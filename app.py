@@ -13,13 +13,12 @@ from datetime import date
 # ==========================================
 st.set_page_config(page_title="BAYA Legal Contracts", layout="wide", page_icon="⚖️")
 
-# كود التصميم - النسخة النهائية الآمنة
 CSS_STYLE = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap');
     
-    /* ضبط الخط والاتجاه الأساسي (مع استثناء الأيقونات) */
-    html, body, [class*="st-"], p, h1, h2, h3, h4, h5, h6, label {
+    /* 1. ضبط الخط والاتجاه الأساسي (مع حماية الأيقونات) */
+    html, body, [class*="st-"], p, h1, h2, h3, h4, h5, h6, label, input, button {
         font-family: 'Cairo', sans-serif !important;
         direction: rtl;
         text-align: right;
@@ -28,36 +27,19 @@ CSS_STYLE = """
         font-family: inherit !important; 
     }
     
-    /* إخفاء زوائد Streamlit (مع الحفاظ على زر الإعدادات الثلاث نقاط) */
-    [data-testid="stHeader"] { background: transparent !important; }
+    /* 2. إخفاء زوائد Streamlit (مع الحفاظ على الإعدادات) */
     [data-testid="stAppDeployButton"] { display: none !important; visibility: hidden !important; }
     footer { display: none !important; visibility: hidden !important; } 
     .viewerBadge_container, [data-testid="stViewerBadge"] { display: none !important; visibility: hidden !important; }
-    /* إخفاء أيقونة جيت هاب من الشريط العلوي فقط */
-    [data-testid="stToolbar"] a { display: none !important; visibility: hidden !important; }
-
-    /* إخفاء جملة (Press Enter to apply) */
-    [data-testid="InputInstructions"] { display: none !important; visibility: hidden !important; }
+    [data-testid="stToolbar"] a { display: none !important; visibility: hidden !important; } /* يخفي جيت هاب فقط */
     
-    /* حركات الأنيميشن الاحترافية */
-    @keyframes comeFromLeft { 0% { transform: translateX(-150px) rotate(-45deg); opacity: 0; } 100% { transform: translateX(0) rotate(0); opacity: 1; } }
-    @keyframes comeFromTop { 0% { transform: translateY(-150px) scale(0.5); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
-    @keyframes comeFromBottom { 0% { transform: translateY(150px) scale(0.5); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
-    @keyframes comeFromRight { 0% { transform: translateX(150px) rotate(45deg); opacity: 0; } 100% { transform: translateX(0) rotate(0); opacity: 1; } }
-    @keyframes fadeInScale { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
-    @keyframes floatingWave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+    /* 3. إخفاء رسالة Press Enter to apply */
+    [data-testid="InputInstructions"] { display: none !important; visibility: hidden !important; }
 
-    .letter-b { animation: comeFromLeft 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
-    .letter-a1 { animation: comeFromTop 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
-    .letter-y { animation: comeFromBottom 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
-    .letter-a2 { animation: comeFromRight 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
-    .fade-in-scale { animation: fadeInScale 1.2s ease-out forwards; display: inline-block; animation-delay: 0.4s; opacity: 0; }
-    .continuous-wave { animation: floatingWave 3.5s ease-in-out infinite; display: inline-block; }
-
-    /* تصميم القائمة الجانبية (شكل المستطيلات) */
+    /* 4. تصميم القائمة الجانبية (شكل المستطيلات التفاعلية الأصلي) */
     [data-testid="stSidebar"] { background-color: #1a2c42 !important; overflow-x: hidden !important; }
     [data-testid="stSidebarContent"] { overflow-x: hidden !important; }
-    [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; } 
+    [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; }
     
     [data-testid="stSidebar"] div[role="radiogroup"] > label {
         background-color: transparent; padding: 0; height: 55px; width: 100%; border-radius: 8px; margin-bottom: 12px;
@@ -73,7 +55,7 @@ CSS_STYLE = """
     [data-testid="collapsedControl"] {
         background-color: #d4af37 !important; border-radius: 50% !important; box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important; 
         transition: all 0.3s ease !important; display: flex !important; align-items: center !important; justify-content: center !important;
-        z-index: 999999 !important; padding: 5px !important; margin: 10px !important; left: auto !important; right: 1rem !important;
+        z-index: 999999 !important; padding: 5px !important; margin: 10px !important; left: auto !important; right: 1rem !important; top: 1rem !important;
     }
     [data-testid="collapsedControl"] svg { fill: #1a2c42 !important; color: #1a2c42 !important; width: 24px !important; height: 24px !important;}
     [data-testid="collapsedControl"]:hover { background-color: #ffffff !important; transform: scale(1.1); }
@@ -84,7 +66,7 @@ CSS_STYLE = """
     [data-testid="stSidebarHeader"] button svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
     [data-testid="stSidebarHeader"] button:hover { background-color: #ffffff !important; transform: scale(1.1); }
 
-    /* تصميم العناوين والمدخلات جوه البرنامج */
+    /* 5. تصميم العناوين والمدخلات جوه البرنامج */
     .stTextInput input, .stNumberInput input, .stTextArea textarea { transition: all 0.3s ease; border: 1px solid #ccc; }
     .stTextInput input:hover, .stNumberInput input:hover, .stTextArea textarea:hover { border-color: #d4af37 !important; box-shadow: 0 0 8px rgba(212, 175, 55, 0.3) !important; background-color: #fdfbf7 !important; }
     .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus { border-color: #1a2c42 !important; }
@@ -97,6 +79,21 @@ CSS_STYLE = """
         margin-top: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); color: #1a2c42 !important; font-weight: 800; font-size: 22px; display: flex; align-items: center; gap: 10px;
     }
     .info-header { background-color: #e8f0fe; padding: 10px 15px; border-right: 4px solid #1a2c42; border-radius: 5px; color: #1a2c42 !important; font-weight: 600; margin-bottom: 15px; margin-top: 15px; }
+
+    /* 6. حركات الأنيميشن الاحترافية */
+    @keyframes comeFromLeft { 0% { transform: translateX(-150px) rotate(-45deg); opacity: 0; } 100% { transform: translateX(0) rotate(0); opacity: 1; } }
+    @keyframes comeFromTop { 0% { transform: translateY(-150px) scale(0.5); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
+    @keyframes comeFromBottom { 0% { transform: translateY(150px) scale(0.5); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
+    @keyframes comeFromRight { 0% { transform: translateX(150px) rotate(45deg); opacity: 0; } 100% { transform: translateX(0) rotate(0); opacity: 1; } }
+    @keyframes fadeInScale { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+    @keyframes floatingWave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+    .letter-b { animation: comeFromLeft 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
+    .letter-a1 { animation: comeFromTop 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
+    .letter-y { animation: comeFromBottom 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
+    .letter-a2 { animation: comeFromRight 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
+    .fade-in-scale { animation: fadeInScale 1.2s ease-out forwards; display: inline-block; animation-delay: 0.4s; opacity: 0; }
+    .continuous-wave { animation: floatingWave 3.5s ease-in-out infinite; display: inline-block; }
 </style>
 """
 st.markdown(CSS_STYLE, unsafe_allow_html=True)
@@ -190,7 +187,7 @@ def format_custom_date(iso_str, mode="full"):
     except: return iso_str
 
 # ==========================================
-# 3. بوابة الدخول (شاشة الأمان والتجميع)
+# 3. بوابة الدخول (Login Gate & Animation)
 # ==========================================
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
@@ -266,12 +263,8 @@ def load_from_archive(record_id, json_str):
     loaded_data = json.loads(json_str)
     doc_type = loaded_data.get("doc_type")
     if not doc_type:
-        if "partitioners" in loaded_data or "moraث" in loaded_data:
-            doc_type = "kesma"
-            loaded_data["doc_type"] = "kesma"
-        else:
-            doc_type = "sale"
-            loaded_data["doc_type"] = "sale"
+        if "partitioners" in loaded_data or "moraث" in loaded_data: doc_type = "kesma"; loaded_data["doc_type"] = "kesma"
+        else: doc_type = "sale"; loaded_data["doc_type"] = "sale"
     if doc_type == "sale":
         for key in ["sellers", "buyers"]:
             if loaded_data.get(key) and isinstance(loaded_data[key][0], str):
@@ -279,12 +272,8 @@ def load_from_archive(record_id, json_str):
     st.session_state.current_archive_id = record_id
     st.session_state.loaded_doc_type = doc_type  
     if 'zip_data' in st.session_state: del st.session_state['zip_data']
-    if doc_type == "kesma":
-        st.session_state.kesma_data = loaded_data
-        st.session_state.active_menu = "🤝 منظومة القسمة الرضائية"
-    else:
-        st.session_state.sale_data = loaded_data
-        st.session_state.active_menu = "📝 منظومة عقود البيع"
+    if doc_type == "kesma": st.session_state.kesma_data = loaded_data; st.session_state.active_menu = "🤝 منظومة القسمة الرضائية"
+    else: st.session_state.sale_data = loaded_data; st.session_state.active_menu = "📝 منظومة عقود البيع"
 
 # ==========================================
 # 5. دوال تجهيز وبناء الوثائق
@@ -298,11 +287,7 @@ def process_lands(lands, total_f, total_k, total_s):
         if len(lands) == 1 and f_val == 0 and k_val == 0 and s_val == 0:
             f_val, k_val, s_val = total_f, total_k, total_s
         ord_word = ordinals[idx] if idx < len(ordinals) else str(idx + 1)
-        processed.append({
-            "f": f_val, "k": k_val, "s": format_sahm(s_val), 
-            "hod": l.get("hod",""), "n": l.get("n",""), "s_bound": l.get("s_bound",""), 
-            "e": l.get("e",""), "w": l.get("w",""), "ترتيب": ord_word
-        })
+        processed.append({"f": f_val, "k": k_val, "s": format_sahm(s_val), "hod": l.get("hod",""), "n": l.get("n",""), "s_bound": l.get("s_bound",""), "e": l.get("e",""), "w": l.get("w",""), "ترتيب": ord_word})
     return processed
 
 def build_sale_context(fd):
@@ -414,7 +399,7 @@ def generate_kesma_zip(kd):
     return zip_buffer.getvalue()
 
 # ==========================================
-# 6. القائمة الجانبية (الأنيميشن المُجمّع داخل القائمة)
+# 6. القائمة الجانبية (Sidebar) مع الأنيميشن
 # ==========================================
 SIDEBAR_HTML = """
 <div style='text-align: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;'>
