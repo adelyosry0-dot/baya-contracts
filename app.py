@@ -13,23 +13,21 @@ from datetime import date
 # ==========================================
 st.set_page_config(page_title="BAYA Legal Contracts", layout="wide", page_icon="⚖️")
 
-st.markdown("""
+# تم وضع كود التصميم في متغير لضمان عدم تأثره بمسافات البايثون
+CSS_STYLE = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap');
     
     html, body, [class*="css"] { font-family: 'Cairo', sans-serif; direction: rtl; text-align: right; }
     
-    /* ========================================== */
-    /* 1. إخفاء زوائد Streamlit و GitHub بذكاء (دون إخفاء زر القائمة) */
-    /* ========================================== */
+    /* إخفاء زوائد Streamlit تماماً (العلامة المائية، زر Deploy الأحمر، الشريط العلوي) */
     [data-testid="stHeader"] { background: transparent !important; }
-    [data-testid="stToolbar"] { visibility: hidden !important; display: none !important; } /* يخفي علامة جيت هاب فقط */
-    footer { visibility: hidden !important; display: none !important; } /* يخفي حقوق ستريم ليت السفلية */
+    [data-testid="stToolbar"] { visibility: hidden !important; display: none !important; } 
+    [data-testid="stAppDeployButton"] { visibility: hidden !important; display: none !important; }
+    footer { visibility: hidden !important; display: none !important; } 
     .viewerBadge_container, [data-testid="stViewerBadge"] { display: none !important; visibility: hidden !important; }
     
-    /* ========================================== */
-    /* 2. حركات الأنيميشن الاحترافية */
-    /* ========================================== */
+    /* حركات الأنيميشن الاحترافية */
     @keyframes comeFromLeft { 0% { transform: translateX(-150px) rotate(-45deg); opacity: 0; } 100% { transform: translateX(0) rotate(0); opacity: 1; } }
     @keyframes comeFromTop { 0% { transform: translateY(-150px) scale(0.5); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
     @keyframes comeFromBottom { 0% { transform: translateY(150px) scale(0.5); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
@@ -44,14 +42,11 @@ st.markdown("""
     .fade-in-scale { animation: fadeInScale 1.2s ease-out forwards; display: inline-block; animation-delay: 0.4s; opacity: 0; }
     .continuous-wave { animation: floatingWave 3.5s ease-in-out infinite; display: inline-block; }
 
-    /* ========================================== */
-    /* 3. تصميم القائمة الجانبية وزر الطي */
-    /* ========================================== */
+    /* تصميم القائمة الجانبية وزر الطي */
     [data-testid="stSidebar"] { background-color: #1a2c42 !important; overflow-x: hidden !important; }
     [data-testid="stSidebarContent"] { overflow-x: hidden !important; }
     [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; }
-    
-    [data-testid="stSidebar"] .stRadio > label { display: none !important; } /* إخفاء كلمة "القائمة:" */
+    [data-testid="stSidebar"] .stRadio > label { display: none !important; } 
     
     [data-testid="stSidebar"] div[role="radiogroup"] > label {
         background-color: transparent; padding: 0; height: 55px; width: 100%; border-radius: 8px; margin-bottom: 12px;
@@ -63,7 +58,7 @@ st.markdown("""
     div[role="radiogroup"] > label:has(input:checked) { background-color: #d4af37 !important; border-color: #d4af37 !important; }
     div[role="radiogroup"] > label:has(input:checked) p { color: #000000 !important; font-weight: 800; }
     
-    /* زر الفتح الخارجي (بعد طي القائمة) */
+    /* زر الفتح الخارجي والإغلاق الداخلي */
     [data-testid="collapsedControl"] {
         background-color: #d4af37 !important; border-radius: 50% !important; box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important; 
         transition: all 0.3s ease !important; display: flex !important; align-items: center !important; justify-content: center !important;
@@ -72,16 +67,13 @@ st.markdown("""
     [data-testid="collapsedControl"] svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
     [data-testid="collapsedControl"]:hover { background-color: #ffffff !important; transform: scale(1.1); }
 
-    /* زر الإغلاق الداخلي (داخل القائمة) */
     [data-testid="stSidebarHeader"] button {
         background-color: #d4af37 !important; border-radius: 50% !important; z-index: 999999 !important; box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
     }
     [data-testid="stSidebarHeader"] button svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
     [data-testid="stSidebarHeader"] button:hover { background-color: #ffffff !important; transform: scale(1.1); }
 
-    /* ========================================== */
-    /* 4. تصميم المدخلات والعناوين */
-    /* ========================================== */
+    /* تصميم العناوين والمدخلات جوه البرنامج */
     .stTextInput input, .stNumberInput input, .stTextArea textarea { transition: all 0.3s ease; border: 1px solid #ccc; }
     .stTextInput input:hover, .stNumberInput input:hover, .stTextArea textarea:hover { border-color: #d4af37 !important; box-shadow: 0 0 8px rgba(212, 175, 55, 0.3) !important; background-color: #fdfbf7 !important; }
     .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus { border-color: #1a2c42 !important; }
@@ -95,7 +87,8 @@ st.markdown("""
     }
     .info-header { background-color: #e8f0fe; padding: 10px 15px; border-right: 4px solid #1a2c42; border-radius: 5px; color: #1a2c42; font-weight: 600; margin-bottom: 15px; margin-top: 15px; }
 </style>
-""", unsafe_allow_html=True)
+"""
+st.markdown(CSS_STYLE, unsafe_allow_html=True)
 
 # ==========================================
 # 2. إنشاء الفولدرات والدوال المساعدة
@@ -191,12 +184,7 @@ def format_custom_date(iso_str, mode="full"):
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
-if not st.session_state.logged_in:
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        # تم إزالة المسافات البادئة ليعمل كـ HTML وليس ككود نصي
-        st.markdown("""
+LOGIN_HTML = """
 <div style='text-align: center; background-color: #1a2c42; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden;'>
     <div class='fade-in-scale' style='font-size: 65px; margin-bottom: 5px;'>⚖️</div>
     <div style="direction: ltr; display: flex; justify-content: center; align-items: baseline; gap: 8px;">
@@ -211,13 +199,17 @@ if not st.session_state.logged_in:
     <h3 class='fade-in-scale' style='color: #fff; margin-top: 15px; font-weight: 400;'>الجمعية التعاونية الزراعية بالناصرية</h3>
     <p class='fade-in-scale' style='color: #ccc; margin-top: 10px;'>يرجى إدخال بيانات الاعتماد للمتابعة</p>
 </div><br>
-""", unsafe_allow_html=True)
-        
+"""
+
+if not st.session_state.logged_in:
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.markdown(LOGIN_HTML, unsafe_allow_html=True)
         with st.form("login_form"):
             username_input = st.text_input("👤 اسم المستخدم (أو رقم الهاتف)")
             password_input = st.text_input("🔑 كلمة المرور", type="password")
             submit_login = st.form_submit_button("تسجيل الدخول 🔓", use_container_width=True)
-            
             if submit_login:
                 if check_login(username_input, password_input):
                     st.session_state.logged_in = True
@@ -269,16 +261,13 @@ def load_from_archive(record_id, json_str):
         else:
             doc_type = "sale"
             loaded_data["doc_type"] = "sale"
-            
     if doc_type == "sale":
         for key in ["sellers", "buyers"]:
             if loaded_data.get(key) and isinstance(loaded_data[key][0], str):
                 loaded_data[key] = [{"name": n, "id": "", "address": "", "id_date": today_iso, "job": "", "age": ""} for n in loaded_data[key]]
-
     st.session_state.current_archive_id = record_id
     st.session_state.loaded_doc_type = doc_type  
     if 'zip_data' in st.session_state: del st.session_state['zip_data']
-    
     if doc_type == "kesma":
         st.session_state.kesma_data = loaded_data
         st.session_state.active_menu = "🤝 منظومة القسمة الرضائية"
@@ -297,36 +286,29 @@ def process_lands(lands, total_f, total_k, total_s):
         f_val, k_val, s_val = l.get("f",0), l.get("k",0), l.get("s",0.0)
         if len(lands) == 1 and f_val == 0 and k_val == 0 and s_val == 0:
             f_val, k_val, s_val = total_f, total_k, total_s
-            
         ord_word = ordinals[idx] if idx < len(ordinals) else str(idx + 1)
-        
         processed.append({
             "f": f_val, "k": k_val, "s": format_sahm(s_val), 
             "hod": l.get("hod",""), "n": l.get("n",""), "s_bound": l.get("s_bound",""), 
-            "e": l.get("e",""), "w": l.get("w",""),
-            "ترتيب": ord_word
+            "e": l.get("e",""), "w": l.get("w",""), "ترتيب": ord_word
         })
     return processed
 
 def build_sale_context(fd):
     final_seller = f"ورثة المرحوم / {fd['moraث_s']}" if fd.get("is_heirs_s") else (fd["sellers"][0]['name'] if fd["sellers"] else "")
     final_buyer = f"ورثة المرحوم / {fd['moraث_b']}" if fd.get("is_heirs_b") else (fd["buyers"][0]['name'] if fd["buyers"] else "")
-    
     formatted_sellers = []
     for s in fd["sellers"]:
         s_copy = s.copy()
         s_copy["id_date"] = format_custom_date(s.get("id_date"), "my")
         formatted_sellers.append(s_copy)
-        
     formatted_buyers = []
     for b in fd["buyers"]:
         b_copy = b.copy()
         b_copy["id_date"] = format_custom_date(b.get("id_date"), "my")
         formatted_buyers.append(b_copy)
-
     s1 = fd["sellers"][0] if fd["sellers"] else {}
     b1 = fd["buyers"][0] if fd["buyers"] else {}
-
     return {
         "sellers": formatted_sellers, "buyers": formatted_buyers,
         "اسم_البائع": final_seller, "رقم_بطاقة_البائع": s1.get("id", ""), "عنوان_البائع": s1.get("address", ""), "مهنة_البائع": s1.get("job", ""), "سن_البائع": s1.get("age", ""), "تاريخ_إصدار_بطاقة_البائع": format_custom_date(s1.get("id_date"), "my"),
@@ -348,11 +330,9 @@ def generate_sale_zip(fd):
     sale_folder = os.path.join("templates", "sale")
     seller_name = fd["sellers"][0]['name'] if fd["sellers"] and fd["sellers"][0]['name'] else "بائع"
     buyer_name = fd["buyers"][0]['name'] if fd["buyers"] and fd["buyers"][0]['name'] else "مشتري"
-    
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
         backup_str = json.dumps(fd, ensure_ascii=False, indent=4)
         zip_file.writestr("backup_data.json", backup_str)
-        
         if os.path.exists(sale_folder):
             files = [f for f in os.listdir(sale_folder) if f.endswith('.docx') and not f.startswith('~')]
             for file_name in files:
@@ -361,7 +341,6 @@ def generate_sale_zip(fd):
                     doc.render(context)
                     doc_buffer = BytesIO()
                     doc.save(doc_buffer)
-                    
                     name_only, ext = os.path.splitext(file_name)
                     new_file_name = f"{name_only}_{buyer_name}_مشتراه_من_{seller_name}{ext}"
                     zip_file.writestr(new_file_name, doc_buffer.getvalue())
@@ -373,7 +352,6 @@ def generate_kesma_zip(kd):
     main_folder = os.path.join("templates", "kesma_main")
     indiv_folder = os.path.join("templates", "kesma_indiv")
     mora_name = kd.get("moraث", "المورث")
-    
     main_partitioners = []
     for p in kd["partitioners"]:
         main_partitioners.append({
@@ -381,7 +359,6 @@ def generate_kesma_zip(kd):
             "إجمالي_فدان": p["total_f"], "إجمالي_قيراط": p["total_k"], "إجمالي_سهم": format_sahm(p["total_s"]),
             "lands": process_lands(p.get("lands", []), p.get("total_f",0), p.get("total_k",0), p.get("total_s",0.0))
         })
-        
     main_context = {
         "اسم_المورث": mora_name, "رقم_حيازة_المورث": kd.get("hayaza_no", ""), "تاريخ_العقد": format_custom_date(kd.get("c_date"), "full"),
         "رقم_قضية_الوراثة": kd.get("morath_case_num", ""), "سنة_قضية_الوراثة": kd.get("morath_year", ""), "تاريخ_جلسة_الوراثة": format_custom_date(kd.get("morath_date"), "full"),
@@ -389,11 +366,9 @@ def generate_kesma_zip(kd):
         "main_lands": process_lands(kd.get("main_lands", []), kd.get("total_f",0), kd.get("total_k",0), kd.get("total_s",0.0)),
         "المتقاسمين": main_partitioners
     }
-    
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
         backup_str = json.dumps(kd, ensure_ascii=False, indent=4)
         zip_file.writestr("backup_data.json", backup_str)
-        
         if os.path.exists(main_folder):
             for file_name in [f for f in os.listdir(main_folder) if f.endswith('.docx') and not f.startswith('~')]:
                 try:
@@ -403,7 +378,6 @@ def generate_kesma_zip(kd):
                     doc.save(doc_buffer)
                     zip_file.writestr(f"عقد_مجمع_ورثة_{mora_name}_{file_name}", doc_buffer.getvalue())
                 except Exception as e: st.error(f"خطأ في القالب المجمع {file_name}: {e}")
-                
         if os.path.exists(indiv_folder):
             indiv_files = [f for f in os.listdir(indiv_folder) if f.endswith('.docx') and not f.startswith('~')]
             for p in kd["partitioners"]:
@@ -429,9 +403,9 @@ def generate_kesma_zip(kd):
     return zip_buffer.getvalue()
 
 # ==========================================
-# 6. القائمة الجانبية (Sidebar & Animation)
+# 6. القائمة الجانبية (Sidebar)
 # ==========================================
-st.sidebar.markdown("""
+SIDEBAR_HTML = """
 <div style='text-align: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;'>
     <div class='continuous-wave' style='font-size: 50px; margin-bottom: 0px;'>⚖️</div>
     <div class='continuous-wave' style="direction: ltr; display: flex; justify-content: center; align-items: baseline; gap: 5px;">
@@ -439,7 +413,8 @@ st.sidebar.markdown("""
         <span style='font-size: 16px; font-weight: 600; color: #d4af37;'>Legal</span>
     </div>
 </div>
-""", unsafe_allow_html=True)
+"""
+st.sidebar.markdown(SIDEBAR_HTML, unsafe_allow_html=True)
 
 menu = ["📝 منظومة عقود البيع", "🤝 منظومة القسمة الرضائية", "🧮 حاسبة الأراضي", "📂 أرشيف العقود", "🖨️ إدارة المستندات (فردي)", "🔄 الاسترجاع من ملف (Backup)", "⚙️ إعدادات الأمان"]
 if 'active_menu' not in st.session_state: st.session_state.active_menu = menu[0]
