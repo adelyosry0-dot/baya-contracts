@@ -195,25 +195,23 @@ if not st.session_state.logged_in:
     st.markdown("<br><br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        # شاشة الدخول مع الأنيميشن وتصحيح ترتيب اللوجو (LTR)
+        # تم إزالة المسافات البادئة ليعمل كـ HTML وليس ككود نصي
         st.markdown("""
-        <div style='text-align: center; background-color: #1a2c42; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden;'>
-            <div class='fade-in-scale' style='font-size: 65px; margin-bottom: 5px;'>⚖️</div>
-            
-            <div style="direction: ltr; display: flex; justify-content: center; align-items: baseline; gap: 8px;">
-                <div style="font-size: 55px; font-weight: 900; color: #d4af37; display: flex; gap: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-                    <span class='letter-b'>B</span>
-                    <span class='letter-a1'>A</span>
-                    <span class='letter-y'>Y</span>
-                    <span class='letter-a2'>A</span>
-                </div>
-                <span class='fade-in-scale' style='color: white; font-size: 26px; font-weight: 600;'>Legal</span>
-            </div>
-            
-            <h3 class='fade-in-scale' style='color: #fff; margin-top: 15px; font-weight: 400;'>الجمعية التعاونية الزراعية بالناصرية</h3>
-            <p class='fade-in-scale' style='color: #ccc; margin-top: 10px;'>يرجى إدخال بيانات الاعتماد للمتابعة</p>
-        </div><br>
-        """, unsafe_allow_html=True)
+<div style='text-align: center; background-color: #1a2c42; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden;'>
+    <div class='fade-in-scale' style='font-size: 65px; margin-bottom: 5px;'>⚖️</div>
+    <div style="direction: ltr; display: flex; justify-content: center; align-items: baseline; gap: 8px;">
+        <div style="font-size: 55px; font-weight: 900; color: #d4af37; display: flex; gap: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+            <span class='letter-b'>B</span>
+            <span class='letter-a1'>A</span>
+            <span class='letter-y'>Y</span>
+            <span class='letter-a2'>A</span>
+        </div>
+        <span class='fade-in-scale' style='color: white; font-size: 26px; font-weight: 600;'>Legal</span>
+    </div>
+    <h3 class='fade-in-scale' style='color: #fff; margin-top: 15px; font-weight: 400;'>الجمعية التعاونية الزراعية بالناصرية</h3>
+    <p class='fade-in-scale' style='color: #ccc; margin-top: 10px;'>يرجى إدخال بيانات الاعتماد للمتابعة</p>
+</div><br>
+""", unsafe_allow_html=True)
         
         with st.form("login_form"):
             username_input = st.text_input("👤 اسم المستخدم (أو رقم الهاتف)")
