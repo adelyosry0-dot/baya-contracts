@@ -41,14 +41,51 @@ st.markdown("""
     div[role="radiogroup"] > label:has(input:checked) { background-color: #d4af37 !important; border-color: #d4af37 !important; }
     div[role="radiogroup"] > label:has(input:checked) p { color: #000000 !important; font-weight: 800; }
     
-    /* 2. إبراز زر طي وفرد القائمة عشان يكون واضح دائماً */
-    [data-testid="collapsedControl"] { left: auto !important; right: 1rem !important; background-color: rgba(255, 255, 255, 0.9) !important; border-radius: 50% !important; box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important; color: #1a2c42 !important; z-index: 99999;}
-    [data-testid="collapsedControl"] svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
+    /* ======================================================== */
+    /* 2. إبراز زر الفتح (خارج القائمة) وزر الإغلاق (داخل القائمة) */
+    
+    /* أ - زر الفتح (لما القائمة تكون مطوية) */
+    [data-testid="collapsedControl"] {
+        background-color: #d4af37 !important; 
+        border-radius: 50% !important; 
+        box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important; 
+        opacity: 1 !important; 
+        visibility: visible !important;
+        z-index: 999999 !important;
+        left: auto !important; 
+        right: 1rem !important; 
+        top: 1rem !important;
+    }
+    [data-testid="collapsedControl"] svg {
+        fill: #1a2c42 !important;
+        color: #1a2c42 !important;
+    }
+    [data-testid="collapsedControl"]:hover {
+        background-color: #ffffff !important;
+        transform: scale(1.1);
+    }
 
-    /* 3. إرجاع شريط التمرير (السكرول) للناس اللي معندهاش ماوس */
-    /* تم حذف أكواد إخفاء السكرول */
+    /* ب - زر الإغلاق (اللي جوه القائمة اللي إنت معلم عليه في الدائرة الزرقاء) */
+    [data-testid="stSidebarHeader"] button {
+        background-color: #d4af37 !important;
+        border-radius: 50% !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        position: relative !important;
+        z-index: 999999 !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
+    }
+    [data-testid="stSidebarHeader"] button svg {
+        fill: #1a2c42 !important;
+        color: #1a2c42 !important;
+    }
+    [data-testid="stSidebarHeader"] button:hover {
+        background-color: #ffffff !important;
+        transform: scale(1.1);
+    }
+    /* ======================================================== */
 
-    /* 4. إرجاع الزر العلوي للوضع الداكن والإعدادات */
+    /* 3. إرجاع الزر العلوي للوضع الداكن والإعدادات */
     .stApp > header { direction: ltr !important; background: transparent !important; }
 
     .stTextInput input, .stNumberInput input, .stTextArea textarea { transition: all 0.3s ease; border: 1px solid #ccc; }
@@ -75,6 +112,8 @@ st.markdown("""
         .premium-header { font-size: 16px !important; padding: 10px !important; }
         .stTextInput > label, .stNumberInput > label { font-size: 14px !important; }
         [data-testid="stVerticalBlock"] > div { overflow-x: hidden !important; }
+        /* ضبط مكان زر القائمة في الموبايل */
+        [data-testid="collapsedControl"] { top: 0.5rem !important; right: 0.5rem !important; }
     }
 </style>
 """, unsafe_allow_html=True)
