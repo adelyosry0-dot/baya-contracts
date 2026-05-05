@@ -19,24 +19,38 @@ st.markdown("""
     
     html, body, [class*="css"] { font-family: 'Cairo', sans-serif; direction: rtl; text-align: right; }
     
-    [data-testid="stSidebar"] { background-color: #1a2c42 !important; }
+    /* 1. إصلاح القائمة الجانبية وإخفاء الزوائد عند الطي */
+    [data-testid="stSidebar"] { background-color: #1a2c42 !important; overflow-x: hidden !important; }
+    [data-testid="stSidebarContent"] { overflow-x: hidden !important; }
+    
     [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; }
     
     [data-testid="stSidebar"] .stRadio > label {
-        color: #d4af37 !important; font-size: 20px !important; font-weight: 800 !important; margin-bottom: 10px !important;
+        color: #d4af37 !important; font-size: 20px !important; font-weight: 800 !important; margin-bottom: 10px !important; white-space: nowrap;
     }
     
     [data-testid="stSidebar"] div[role="radiogroup"] > label {
         background-color: transparent; padding: 0; height: 55px; width: 100%; border-radius: 8px; margin-bottom: 12px;
         transition: all 0.3s ease-in-out; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center;
+        overflow: hidden; white-space: nowrap;
     }
     
-    [data-testid="stSidebar"] div[role="radiogroup"] > label p { color: #ffffff !important; font-size: 16px; margin: 0 !important; text-align: center; width: 100%; font-weight: 600; }
+    [data-testid="stSidebar"] div[role="radiogroup"] > label p { color: #ffffff !important; font-size: 16px; margin: 0 !important; text-align: center; width: 100%; font-weight: 600; white-space: nowrap; }
     
     [data-testid="stSidebar"] div[role="radiogroup"] > label:hover { background-color: #243b55; border-color: #d4af37; transform: translateX(-5px); }
     div[role="radiogroup"] > label:has(input:checked) { background-color: #d4af37 !important; border-color: #d4af37 !important; }
     div[role="radiogroup"] > label:has(input:checked) p { color: #000000 !important; font-weight: 800; }
     
+    /* 2. إبراز زر طي وفرد القائمة عشان يكون واضح دائماً */
+    [data-testid="collapsedControl"] { left: auto !important; right: 1rem !important; background-color: rgba(255, 255, 255, 0.9) !important; border-radius: 50% !important; box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important; color: #1a2c42 !important; z-index: 99999;}
+    [data-testid="collapsedControl"] svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
+
+    /* 3. إرجاع شريط التمرير (السكرول) للناس اللي معندهاش ماوس */
+    /* تم حذف أكواد إخفاء السكرول */
+
+    /* 4. إرجاع الزر العلوي للوضع الداكن والإعدادات */
+    .stApp > header { direction: ltr !important; background: transparent !important; }
+
     .stTextInput input, .stNumberInput input, .stTextArea textarea { transition: all 0.3s ease; border: 1px solid #ccc; }
     .stTextInput input:hover, .stNumberInput input:hover, .stTextArea textarea:hover { border-color: #d4af37 !important; box-shadow: 0 0 8px rgba(212, 175, 55, 0.3) !important; background-color: #fdfbf7 !important; }
     .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus { border-color: #1a2c42 !important; }
@@ -54,12 +68,6 @@ st.markdown("""
         background-color: #e8f0fe; padding: 10px 15px; border-right: 4px solid #1a2c42;
         border-radius: 5px; color: #1a2c42; font-weight: 600; margin-bottom: 15px; margin-top: 15px;
     }
-
-    [data-testid="collapsedControl"] { left: auto !important; right: 1rem !important; }
-    .stApp > header { direction: ltr !important; background: transparent !important; }
-    [data-testid="stToolbar"] { display: none !important; } /* إخفاء الأيقونات العلوية */
-    ::-webkit-scrollbar { display: none !important; }
-    * { scrollbar-width: none !important; }
 
     /* ========= تعديلات شاشات الموبايل ========= */
     @media (max-width: 768px) {
