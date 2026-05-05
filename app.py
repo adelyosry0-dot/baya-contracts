@@ -17,36 +17,44 @@ CSS_STYLE = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap');
     
-    /* 1. ضبط الخط والاتجاه الأساسي (مع حماية الأيقونات) */
-    html, body, [class*="st-"], p, h1, h2, h3, h4, h5, h6, label, input, button {
-        font-family: 'Cairo', sans-serif !important;
-        direction: rtl;
-        text-align: right;
-    }
-    span[data-testid="stExpanderToggleIcon"], .material-icons, i, svg {
-        font-family: inherit !important; 
-    }
+    /* 1. ضبط الخط والاتجاه الأساسي */
+    .stApp { direction: rtl; text-align: right; }
     
-    /* 2. إخفاء زوائد Streamlit (مع الحفاظ على الإعدادات) */
-    [data-testid="stAppDeployButton"] { display: none !important; visibility: hidden !important; }
+    html, body, p, label, h1, h2, h3, h4, h5, h6, input, textarea, button, .stMarkdown, .stText {
+        font-family: 'Cairo', sans-serif !important;
+    }
+
+    /* حماية أيقونات Streamlit لمنع ظهور نصوص مثل keyboard_arrow_down */
+    i, .material-icons, .material-symbols-rounded, [data-testid="stIconMaterial"], svg {
+        font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
+    }
+
+    /* 2. إخفاء زوائد Streamlit المزعجة (مع الحفاظ على قائمة الإعدادات 3 نقاط) */
+    [data-testid="stHeader"] { background: transparent !important; }
+    .stAppDeployButton { display: none !important; visibility: hidden !important; }
+    a[href*="github.com"] { display: none !important; visibility: hidden !important; }
     footer { display: none !important; visibility: hidden !important; } 
     .viewerBadge_container, [data-testid="stViewerBadge"] { display: none !important; visibility: hidden !important; }
-    [data-testid="stToolbar"] a { display: none !important; visibility: hidden !important; } /* يخفي جيت هاب فقط */
-    
-    /* 3. إخفاء رسالة Press Enter to apply */
+
+    /* إخفاء رسالة Press Enter to apply */
     [data-testid="InputInstructions"] { display: none !important; visibility: hidden !important; }
 
-    /* 4. تصميم القائمة الجانبية (شكل المستطيلات التفاعلية الأصلي) */
-    [data-testid="stSidebar"] { background-color: #1a2c42 !important; overflow-x: hidden !important; }
-    [data-testid="stSidebarContent"] { overflow-x: hidden !important; }
+    /* 3. تصميم القائمة الجانبية وتوسيعها */
+    [data-testid="stSidebar"] { 
+        background-color: #1a2c42 !important; 
+        width: 340px !important; 
+        min-width: 340px !important;
+    }
     [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; }
     
     [data-testid="stSidebar"] div[role="radiogroup"] > label {
-        background-color: transparent; padding: 0; height: 55px; width: 100%; border-radius: 8px; margin-bottom: 12px;
+        background-color: transparent; padding: 0; min-height: 55px; width: 100%; border-radius: 8px; margin-bottom: 12px;
         transition: all 0.3s ease-in-out; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center;
-        overflow: hidden; white-space: nowrap;
     }
-    [data-testid="stSidebar"] div[role="radiogroup"] > label p { color: #ffffff !important; font-size: 16px; margin: 0 !important; text-align: center; width: 100%; font-weight: 600; white-space: nowrap; }
+    /* السماح للنص بالتمدد داخل الزر بدلا من الاختفاء */
+    [data-testid="stSidebar"] div[role="radiogroup"] > label p { 
+        color: #ffffff !important; font-size: 16px; margin: 0 !important; text-align: center; width: 100%; font-weight: 600; white-space: normal !important; padding: 5px;
+    }
     [data-testid="stSidebar"] div[role="radiogroup"] > label:hover { background-color: #243b55; border-color: #d4af37; transform: translateX(-5px); }
     div[role="radiogroup"] > label:has(input:checked) { background-color: #d4af37 !important; border-color: #d4af37 !important; }
     div[role="radiogroup"] > label:has(input:checked) p { color: #000000 !important; font-weight: 800; font-size: 18px !important; }
@@ -66,10 +74,10 @@ CSS_STYLE = """
     [data-testid="stSidebarHeader"] button svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
     [data-testid="stSidebarHeader"] button:hover { background-color: #ffffff !important; transform: scale(1.1); }
 
-    /* 5. تصميم العناوين والمدخلات جوه البرنامج */
+    /* 4. تصميم العناوين والمدخلات */
     .stTextInput input, .stNumberInput input, .stTextArea textarea { transition: all 0.3s ease; border: 1px solid #ccc; }
     .stTextInput input:hover, .stNumberInput input:hover, .stTextArea textarea:hover { border-color: #d4af37 !important; box-shadow: 0 0 8px rgba(212, 175, 55, 0.3) !important; background-color: #fdfbf7 !important; }
-    .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus { border-color: #1a2c42 !important; }
+    .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus { border-color: #1a2c42 !important; box-shadow: 0 0 8px rgba(26, 44, 66, 0.3) !important;}
 
     .delete-btn button { background-color: #ffebee !important; color: #cc0000 !important; border: 1px solid #ffcdd2 !important; padding: 2px 10px !important;}
     .delete-btn button:hover { background-color: #ffcdd2 !important; border-color: #cc0000 !important; }
@@ -80,7 +88,7 @@ CSS_STYLE = """
     }
     .info-header { background-color: #e8f0fe; padding: 10px 15px; border-right: 4px solid #1a2c42; border-radius: 5px; color: #1a2c42 !important; font-weight: 600; margin-bottom: 15px; margin-top: 15px; }
 
-    /* 6. حركات الأنيميشن الاحترافية */
+    /* 5. حركات الأنيميشن الاحترافية */
     @keyframes comeFromLeft { 0% { transform: translateX(-150px) rotate(-45deg); opacity: 0; } 100% { transform: translateX(0) rotate(0); opacity: 1; } }
     @keyframes comeFromTop { 0% { transform: translateY(-150px) scale(0.5); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
     @keyframes comeFromBottom { 0% { transform: translateY(150px) scale(0.5); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
@@ -789,6 +797,7 @@ elif choice == "🖨️ إدارة المستندات (فردي)":
                 indiv_file_name = f"{name_only}_{b_name}_مشتراه_من_{s_name}{ext}"
                 c_a, c_b = st.columns(2)
                 with c_a: st.download_button(f"📥 تحميل (Word)", data=st.session_state.ready_file_data, file_name=indiv_file_name)
+                with c_b: st.components.v1.html("""<button onclick="window.print()" style="background-color:#1a2c42;color:white;border:none;padding:10px 20px;font-family:'Cairo';border-radius:5px;cursor:pointer;width:100%;">🖨️ طباعة المستند</button>""", height=50)
 
 elif choice == "⚙️ إعدادات الأمان":
     st.title("⚙️ تغيير بيانات الدخول الخاصة بالبرنامج")
