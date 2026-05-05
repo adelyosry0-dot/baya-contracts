@@ -9,71 +9,53 @@ from io import BytesIO
 from datetime import date
 
 # ==========================================
-# 1. إعدادات الصفحة والتصميم CSS
+# 1. إعدادات الصفحة والتصميم (النسخة الآمنة 100%)
 # ==========================================
 st.set_page_config(page_title="BAYA Legal Contracts", layout="wide", page_icon="⚖️")
 
-# تم وضع كود التصميم في متغير لضمان عدم تأثره بمسافات البايثون
 CSS_STYLE = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap');
     
-    html, body, [class*="css"] { font-family: 'Cairo', sans-serif; direction: rtl; text-align: right; }
+    /* ضبط الخط والاتجاه الأساسي */
+    * { font-family: 'Cairo', sans-serif !important; }
+    html, body, [class*="css"] { direction: rtl; text-align: right; }
     
-    /* إخفاء زوائد Streamlit تماماً (العلامة المائية، زر Deploy الأحمر، الشريط العلوي) */
+    /* إخفاء علامات جيت هاب وستريم ليت نهائياً بشكل آمن */
     [data-testid="stHeader"] { background: transparent !important; }
-    [data-testid="stToolbar"] { visibility: hidden !important; display: none !important; } 
-    [data-testid="stAppDeployButton"] { visibility: hidden !important; display: none !important; }
-    footer { visibility: hidden !important; display: none !important; } 
-    .viewerBadge_container, [data-testid="stViewerBadge"] { display: none !important; visibility: hidden !important; }
-    
-    /* حركات الأنيميشن الاحترافية */
-    @keyframes comeFromLeft { 0% { transform: translateX(-150px) rotate(-45deg); opacity: 0; } 100% { transform: translateX(0) rotate(0); opacity: 1; } }
-    @keyframes comeFromTop { 0% { transform: translateY(-150px) scale(0.5); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
-    @keyframes comeFromBottom { 0% { transform: translateY(150px) scale(0.5); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
-    @keyframes comeFromRight { 0% { transform: translateX(150px) rotate(45deg); opacity: 0; } 100% { transform: translateX(0) rotate(0); opacity: 1; } }
-    @keyframes fadeInScale { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
-    @keyframes floatingWave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-
-    .letter-b { animation: comeFromLeft 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
-    .letter-a1 { animation: comeFromTop 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
-    .letter-y { animation: comeFromBottom 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
-    .letter-a2 { animation: comeFromRight 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
-    .fade-in-scale { animation: fadeInScale 1.2s ease-out forwards; display: inline-block; animation-delay: 0.4s; opacity: 0; }
-    .continuous-wave { animation: floatingWave 3.5s ease-in-out infinite; display: inline-block; }
-
-    /* تصميم القائمة الجانبية وزر الطي */
-    [data-testid="stSidebar"] { background-color: #1a2c42 !important; overflow-x: hidden !important; }
-    [data-testid="stSidebarContent"] { overflow-x: hidden !important; }
-    [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; }
-    [data-testid="stSidebar"] .stRadio > label { display: none !important; } 
-    
-    [data-testid="stSidebar"] div[role="radiogroup"] > label {
-        background-color: transparent; padding: 0; height: 55px; width: 100%; border-radius: 8px; margin-bottom: 12px;
-        transition: all 0.3s ease-in-out; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center;
-        overflow: hidden; white-space: nowrap;
+    [data-testid="stToolbar"], [data-testid="stAppDeployButton"], footer, .viewerBadge_container, [data-testid="stViewerBadge"] { 
+        display: none !important; visibility: hidden !important; 
     }
-    [data-testid="stSidebar"] div[role="radiogroup"] > label p { color: #ffffff !important; font-size: 16px; margin: 0 !important; text-align: center; width: 100%; font-weight: 600; white-space: nowrap; }
-    [data-testid="stSidebar"] div[role="radiogroup"] > label:hover { background-color: #243b55; border-color: #d4af37; transform: translateX(-5px); }
-    div[role="radiogroup"] > label:has(input:checked) { background-color: #d4af37 !important; border-color: #d4af37 !important; }
-    div[role="radiogroup"] > label:has(input:checked) p { color: #000000 !important; font-weight: 800; }
     
-    /* زر الفتح الخارجي والإغلاق الداخلي */
-    [data-testid="collapsedControl"] {
-        background-color: #d4af37 !important; border-radius: 50% !important; box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important; 
-        transition: all 0.3s ease !important; display: flex !important; align-items: center !important; justify-content: center !important;
-        z-index: 999999 !important; padding: 5px !important; margin: 10px !important;
+    /* ========================================== */
+    /* تصميم القائمة الجانبية (شكل آمن ومضمون) */
+    /* ========================================== */
+    [data-testid="stSidebar"] { background-color: #1a2c42 !important; }
+    
+    /* تلوين نصوص القائمة للأبيض */
+    [data-testid="stSidebar"] .stRadio label p { 
+        font-size: 18px !important; font-weight: 600 !important; color: #ffffff !important; 
     }
-    [data-testid="collapsedControl"] svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
-    [data-testid="collapsedControl"]:hover { background-color: #ffffff !important; transform: scale(1.1); }
-
-    [data-testid="stSidebarHeader"] button {
-        background-color: #d4af37 !important; border-radius: 50% !important; z-index: 999999 !important; box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
+    /* إبراز الخيار النشط باللون الذهبي */
+    div[role="radiogroup"] > label:has(input:checked) p { 
+        color: #d4af37 !important; font-weight: 900 !important; font-size: 20px !important;
     }
-    [data-testid="stSidebarHeader"] button svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
-    [data-testid="stSidebarHeader"] button:hover { background-color: #ffffff !important; transform: scale(1.1); }
+    
+    /* أزرار الفتح والقفل (الذهبي والكحلي) */
+    [data-testid="collapsedControl"], [data-testid="stSidebarHeader"] button {
+        background-color: #d4af37 !important; border-radius: 50% !important; 
+        box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important; z-index: 999999 !important;
+    }
+    [data-testid="collapsedControl"] svg, [data-testid="stSidebarHeader"] button svg { 
+        fill: #1a2c42 !important; color: #1a2c42 !important; 
+    }
+    [data-testid="collapsedControl"]:hover, [data-testid="stSidebarHeader"] button:hover { 
+        background-color: #ffffff !important; transform: scale(1.1); 
+    }
 
-    /* تصميم العناوين والمدخلات جوه البرنامج */
+    /* ========================================== */
+    /* تصميم العناوين والمدخلات الداخلية */
+    /* ========================================== */
     .stTextInput input, .stNumberInput input, .stTextArea textarea { transition: all 0.3s ease; border: 1px solid #ccc; }
     .stTextInput input:hover, .stNumberInput input:hover, .stTextArea textarea:hover { border-color: #d4af37 !important; box-shadow: 0 0 8px rgba(212, 175, 55, 0.3) !important; background-color: #fdfbf7 !important; }
     .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus { border-color: #1a2c42 !important; }
@@ -83,9 +65,18 @@ CSS_STYLE = """
 
     .premium-header {
         background: linear-gradient(90deg, #fdfbf7 0%, #ffffff 100%); padding: 12px 20px; border-right: 5px solid #d4af37; border-radius: 8px;
-        margin-top: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); color: #1a2c42; font-weight: 800; font-size: 22px; display: flex; align-items: center; gap: 10px;
+        margin-top: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); color: #1a2c42 !important; font-weight: 800; font-size: 22px; display: flex; align-items: center; gap: 10px;
     }
-    .info-header { background-color: #e8f0fe; padding: 10px 15px; border-right: 4px solid #1a2c42; border-radius: 5px; color: #1a2c42; font-weight: 600; margin-bottom: 15px; margin-top: 15px; }
+    .info-header { background-color: #e8f0fe; padding: 10px 15px; border-right: 4px solid #1a2c42; border-radius: 5px; color: #1a2c42 !important; font-weight: 600; margin-bottom: 15px; margin-top: 15px; }
+
+    /* ========================================== */
+    /* الأنيميشن (آمن ولا يؤثر على المحتوى) */
+    /* ========================================== */
+    @keyframes fadeInScale { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+    .fade-in-scale { animation: fadeInScale 1.2s ease-out forwards; display: inline-block; opacity: 0; }
+    
+    @keyframes floatingWave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    .continuous-wave { animation: floatingWave 3.5s ease-in-out infinite; display: inline-block; }
 </style>
 """
 st.markdown(CSS_STYLE, unsafe_allow_html=True)
@@ -179,25 +170,25 @@ def format_custom_date(iso_str, mode="full"):
     except: return iso_str
 
 # ==========================================
-# 3. بوابة الدخول (Login Gate & Animation)
+# 3. بوابة الدخول (شاشة الأمان والتجميع)
 # ==========================================
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
 LOGIN_HTML = """
 <div style='text-align: center; background-color: #1a2c42; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden;'>
-    <div class='fade-in-scale' style='font-size: 65px; margin-bottom: 5px;'>⚖️</div>
+    <div class='fade-in-scale' style='font-size: 65px; margin-bottom: 5px; animation-delay: 0.1s;'>⚖️</div>
     <div style="direction: ltr; display: flex; justify-content: center; align-items: baseline; gap: 8px;">
         <div style="font-size: 55px; font-weight: 900; color: #d4af37; display: flex; gap: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-            <span class='letter-b'>B</span>
-            <span class='letter-a1'>A</span>
-            <span class='letter-y'>Y</span>
-            <span class='letter-a2'>A</span>
+            <span class='fade-in-scale' style='animation-delay: 0.2s;'>B</span>
+            <span class='fade-in-scale' style='animation-delay: 0.4s;'>A</span>
+            <span class='fade-in-scale' style='animation-delay: 0.6s;'>Y</span>
+            <span class='fade-in-scale' style='animation-delay: 0.8s;'>A</span>
         </div>
-        <span class='fade-in-scale' style='color: white; font-size: 26px; font-weight: 600;'>Legal</span>
+        <span class='fade-in-scale' style='color: white; font-size: 26px; font-weight: 600; animation-delay: 1.0s;'>Legal</span>
     </div>
-    <h3 class='fade-in-scale' style='color: #fff; margin-top: 15px; font-weight: 400;'>الجمعية التعاونية الزراعية بالناصرية</h3>
-    <p class='fade-in-scale' style='color: #ccc; margin-top: 10px;'>يرجى إدخال بيانات الاعتماد للمتابعة</p>
+    <h3 class='fade-in-scale' style='color: #fff; margin-top: 15px; font-weight: 400; animation-delay: 1.2s;'>الجمعية التعاونية الزراعية بالناصرية</h3>
+    <p class='fade-in-scale' style='color: #ccc; margin-top: 10px; animation-delay: 1.4s;'>يرجى إدخال بيانات الاعتماد للمتابعة</p>
 </div><br>
 """
 
