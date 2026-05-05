@@ -19,75 +19,72 @@ st.markdown("""
     
     html, body, [class*="css"] { font-family: 'Cairo', sans-serif; direction: rtl; text-align: right; }
     
-    /* 1. إصلاح القائمة الجانبية وإخفاء الزوائد عند الطي */
+    /* ========================================== */
+    /* 1. إخفاء زوائد وعلامات Streamlit و GitHub */
+    /* ========================================== */
+    header[data-testid="stHeader"] { visibility: hidden !important; display: none !important; }
+    [data-testid="stToolbar"] { visibility: hidden !important; display: none !important; }
+    footer { visibility: hidden !important; display: none !important; }
+    .viewerBadge_container, [data-testid="stViewerBadge"] { display: none !important; }
+    
+    /* ========================================== */
+    /* 2. حركات الأنيميشن الاحترافية (BAYA Assembly) */
+    /* ========================================== */
+    @keyframes dropIn {
+        0% { opacity: 0; transform: translateY(-30px) scale(1.2); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes assembleText {
+        0% { opacity: 0; transform: translateX(40px); letter-spacing: 15px; }
+        100% { opacity: 1; transform: translateX(0); letter-spacing: normal; }
+    }
+    @keyframes fadeIn {
+        0% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+    .animate-scale-drop { animation: dropIn 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+    .animate-text-assemble { animation: assembleText 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
+    .animate-fade { animation: fadeIn 2s ease-in forwards; }
+
+    /* ========================================== */
+    /* 3. تصميم القائمة الجانبية وزر الطي */
+    /* ========================================== */
     [data-testid="stSidebar"] { background-color: #1a2c42 !important; overflow-x: hidden !important; }
     [data-testid="stSidebarContent"] { overflow-x: hidden !important; }
-    
     [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; }
     
     [data-testid="stSidebar"] .stRadio > label {
         color: #d4af37 !important; font-size: 20px !important; font-weight: 800 !important; margin-bottom: 10px !important; white-space: nowrap;
     }
-    
     [data-testid="stSidebar"] div[role="radiogroup"] > label {
         background-color: transparent; padding: 0; height: 55px; width: 100%; border-radius: 8px; margin-bottom: 12px;
         transition: all 0.3s ease-in-out; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center;
         overflow: hidden; white-space: nowrap;
     }
-    
     [data-testid="stSidebar"] div[role="radiogroup"] > label p { color: #ffffff !important; font-size: 16px; margin: 0 !important; text-align: center; width: 100%; font-weight: 600; white-space: nowrap; }
-    
     [data-testid="stSidebar"] div[role="radiogroup"] > label:hover { background-color: #243b55; border-color: #d4af37; transform: translateX(-5px); }
     div[role="radiogroup"] > label:has(input:checked) { background-color: #d4af37 !important; border-color: #d4af37 !important; }
     div[role="radiogroup"] > label:has(input:checked) p { color: #000000 !important; font-weight: 800; }
     
-    /* ======================================================== */
-    /* 2. إبراز زر الفتح (خارج القائمة) وزر الإغلاق (داخل القائمة) */
-    
-    /* أ - زر الفتح (لما القائمة تكون مطوية) */
+    /* زر الفتح الخارجي */
     [data-testid="collapsedControl"] {
-        background-color: #d4af37 !important; 
-        border-radius: 50% !important; 
-        box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important; 
-        opacity: 1 !important; 
-        visibility: visible !important;
-        z-index: 999999 !important;
-        left: auto !important; 
-        right: 1rem !important; 
-        top: 1rem !important;
+        background-color: #d4af37 !important; border-radius: 50% !important; box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important; 
+        opacity: 1 !important; visibility: visible !important; z-index: 999999 !important; left: auto !important; right: 1rem !important; top: 1rem !important;
     }
-    [data-testid="collapsedControl"] svg {
-        fill: #1a2c42 !important;
-        color: #1a2c42 !important;
-    }
-    [data-testid="collapsedControl"]:hover {
-        background-color: #ffffff !important;
-        transform: scale(1.1);
-    }
+    [data-testid="collapsedControl"] svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
+    [data-testid="collapsedControl"]:hover { background-color: #ffffff !important; transform: scale(1.1); }
 
-    /* ب - زر الإغلاق (اللي جوه القائمة اللي إنت معلم عليه في الدائرة الزرقاء) */
+    /* زر الإغلاق الداخلي */
     [data-testid="stSidebarHeader"] button {
-        background-color: #d4af37 !important;
-        border-radius: 50% !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-        position: relative !important;
-        z-index: 999999 !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
+        background-color: #d4af37 !important; border-radius: 50% !important; opacity: 1 !important; visibility: visible !important;
+        position: relative !important; z-index: 999999 !important; box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
     }
-    [data-testid="stSidebarHeader"] button svg {
-        fill: #1a2c42 !important;
-        color: #1a2c42 !important;
-    }
-    [data-testid="stSidebarHeader"] button:hover {
-        background-color: #ffffff !important;
-        transform: scale(1.1);
-    }
-    /* ======================================================== */
+    [data-testid="stSidebarHeader"] button svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
+    [data-testid="stSidebarHeader"] button:hover { background-color: #ffffff !important; transform: scale(1.1); }
 
-    /* 3. إرجاع الزر العلوي للوضع الداكن والإعدادات */
-    .stApp > header { direction: ltr !important; background: transparent !important; }
-
+    /* ========================================== */
+    /* 4. تصميم المدخلات والعناوين */
+    /* ========================================== */
     .stTextInput input, .stNumberInput input, .stTextArea textarea { transition: all 0.3s ease; border: 1px solid #ccc; }
     .stTextInput input:hover, .stNumberInput input:hover, .stTextArea textarea:hover { border-color: #d4af37 !important; box-shadow: 0 0 8px rgba(212, 175, 55, 0.3) !important; background-color: #fdfbf7 !important; }
     .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus { border-color: #1a2c42 !important; }
@@ -96,23 +93,21 @@ st.markdown("""
     .delete-btn button:hover { background-color: #ffcdd2 !important; border-color: #cc0000 !important; }
 
     .premium-header {
-        background: linear-gradient(90deg, #fdfbf7 0%, #ffffff 100%);
-        padding: 12px 20px; border-right: 5px solid #d4af37; border-radius: 8px;
-        margin-top: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        color: #1a2c42; font-weight: 800; font-size: 22px; display: flex; align-items: center; gap: 10px;
+        background: linear-gradient(90deg, #fdfbf7 0%, #ffffff 100%); padding: 12px 20px; border-right: 5px solid #d4af37; border-radius: 8px;
+        margin-top: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); color: #1a2c42; font-weight: 800; font-size: 22px; display: flex; align-items: center; gap: 10px;
     }
     .info-header {
-        background-color: #e8f0fe; padding: 10px 15px; border-right: 4px solid #1a2c42;
-        border-radius: 5px; color: #1a2c42; font-weight: 600; margin-bottom: 15px; margin-top: 15px;
+        background-color: #e8f0fe; padding: 10px 15px; border-right: 4px solid #1a2c42; border-radius: 5px; color: #1a2c42; font-weight: 600; margin-bottom: 15px; margin-top: 15px;
     }
 
-    /* ========= تعديلات شاشات الموبايل ========= */
+    /* ========================================== */
+    /* 5. شاشات الموبايل */
+    /* ========================================== */
     @media (max-width: 768px) {
         h1 { font-size: 24px !important; padding-top: 15px !important; line-height: 1.4 !important; }
         .premium-header { font-size: 16px !important; padding: 10px !important; }
         .stTextInput > label, .stNumberInput > label { font-size: 14px !important; }
         [data-testid="stVerticalBlock"] > div { overflow-x: hidden !important; }
-        /* ضبط مكان زر القائمة في الموبايل */
         [data-testid="collapsedControl"] { top: 0.5rem !important; right: 0.5rem !important; }
     }
 </style>
@@ -169,7 +164,17 @@ if not st.session_state.logged_in:
     st.markdown("<br><br><br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.markdown("<div style='text-align: center; background-color: #1a2c42; padding: 30px; border-radius: 15px; color: white; box-shadow: 0 10px 20px rgba(0,0,0,0.2);'><h1 style='color: #d4af37; margin-bottom: 0;'>⚖️ منظومة BAYA</h1><h3 style='margin-top: 5px; font-weight: 400;'>الجمعية التعاونية الزراعية بالناصرية</h3><p style='color: #ccc; margin-top: 20px;'>يرجى إدخال بيانات الاعتماد للمتابعة</p></div><br>", unsafe_allow_html=True)
+        # هنا تم إضافة الأنيميشن والتصميم الفخم لشاشة الدخول
+        st.markdown("""
+        <div style='text-align: center; background-color: #1a2c42; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);'>
+            <div class='animate-scale-drop' style='font-size: 60px; margin-bottom: -10px;'>⚖️</div>
+            <h1 class='animate-text-assemble' style='color: #d4af37; margin-bottom: 0; font-size: 50px; font-weight: 800;'>BAYA</h1>
+            <span class='animate-fade' style='color: white; font-size: 24px; font-weight: 600;'>Legal</span>
+            <h3 class='animate-fade' style='color: #fff; margin-top: 15px; font-weight: 400;'>الجمعية التعاونية الزراعية بالناصرية</h3>
+            <p class='animate-fade' style='color: #ccc; margin-top: 20px;'>يرجى إدخال بيانات الاعتماد للمتابعة</p>
+        </div><br>
+        """, unsafe_allow_html=True)
+        
         with st.form("login_form"):
             username_input = st.text_input("👤 اسم المستخدم (أو رقم الهاتف)")
             password_input = st.text_input("🔑 كلمة المرور", type="password")
@@ -181,7 +186,7 @@ if not st.session_state.logged_in:
                     st.rerun()
                 else:
                     st.error("❌ بيانات الدخول غير صحيحة، يرجى المحاولة مرة أخرى.")
-    st.stop() # يوقف تحميل باقي البرنامج لو مسجلش دخول
+    st.stop()
 
 # ==========================================
 # 4. الدوال المساعدة وتجهيز الوثائق
@@ -411,13 +416,13 @@ def generate_kesma_zip(kd):
     return zip_buffer.getvalue()
 
 # ==========================================
-# 5. القائمة الجانبية (Sidebar)
+# 5. القائمة الجانبية 
 # ==========================================
 st.sidebar.markdown("""
 <div style='text-align: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;'>
-    <div style='font-size: 70px; margin-bottom: -15px;'>⚖️</div>
-    <span style='font-size: 40px; font-weight: 800; color: white;'>BAYA</span>
-    <span style='font-size: 16px; font-weight: 600; color: #d4af37;'> Legal</span>
+    <div class='animate-scale-drop' style='font-size: 60px; margin-bottom: -15px;'>⚖️</div>
+    <span class='animate-text-assemble' style='font-size: 38px; font-weight: 800; color: white;'>BAYA</span>
+    <span class='animate-fade' style='font-size: 16px; font-weight: 600; color: #d4af37;'> Legal Contracts</span>
 </div>
 """, unsafe_allow_html=True)
 
