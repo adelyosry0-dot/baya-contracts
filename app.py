@@ -9,42 +9,40 @@ from io import BytesIO
 from datetime import date
 
 # ==========================================
-# 1. إعدادات الصفحة والتصميم 
+# 1. إعدادات الصفحة والتصميم CSS
 # ==========================================
 st.set_page_config(page_title="BAYA Legal Contracts", layout="wide", page_icon="⚖️")
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap');
     
     html, body, [class*="css"] { font-family: 'Cairo', sans-serif; direction: rtl; text-align: right; }
     
     /* ========================================== */
-    /* 1. إخفاء زوائد وعلامات Streamlit و GitHub */
+    /* 1. إخفاء زوائد Streamlit و GitHub بذكاء (دون إخفاء زر القائمة) */
     /* ========================================== */
-    header[data-testid="stHeader"] { visibility: hidden !important; display: none !important; }
-    [data-testid="stToolbar"] { visibility: hidden !important; display: none !important; }
-    footer { visibility: hidden !important; display: none !important; }
-    .viewerBadge_container, [data-testid="stViewerBadge"] { display: none !important; }
+    [data-testid="stHeader"] { background: transparent !important; }
+    [data-testid="stToolbar"] { visibility: hidden !important; display: none !important; } /* يخفي علامة جيت هاب فقط */
+    footer { visibility: hidden !important; display: none !important; } /* يخفي حقوق ستريم ليت السفلية */
+    .viewerBadge_container, [data-testid="stViewerBadge"] { display: none !important; visibility: hidden !important; }
     
     /* ========================================== */
-    /* 2. حركات الأنيميشن الاحترافية (BAYA Assembly) */
+    /* 2. حركات الأنيميشن الاحترافية */
     /* ========================================== */
-    @keyframes dropIn {
-        0% { opacity: 0; transform: translateY(-30px) scale(1.2); }
-        100% { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    @keyframes assembleText {
-        0% { opacity: 0; transform: translateX(40px); letter-spacing: 15px; }
-        100% { opacity: 1; transform: translateX(0); letter-spacing: normal; }
-    }
-    @keyframes fadeIn {
-        0% { opacity: 0; }
-        100% { opacity: 1; }
-    }
-    .animate-scale-drop { animation: dropIn 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
-    .animate-text-assemble { animation: assembleText 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
-    .animate-fade { animation: fadeIn 2s ease-in forwards; }
+    @keyframes comeFromLeft { 0% { transform: translateX(-150px) rotate(-45deg); opacity: 0; } 100% { transform: translateX(0) rotate(0); opacity: 1; } }
+    @keyframes comeFromTop { 0% { transform: translateY(-150px) scale(0.5); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
+    @keyframes comeFromBottom { 0% { transform: translateY(150px) scale(0.5); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
+    @keyframes comeFromRight { 0% { transform: translateX(150px) rotate(45deg); opacity: 0; } 100% { transform: translateX(0) rotate(0); opacity: 1; } }
+    @keyframes fadeInScale { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+    @keyframes floatingWave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+    .letter-b { animation: comeFromLeft 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
+    .letter-a1 { animation: comeFromTop 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
+    .letter-y { animation: comeFromBottom 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
+    .letter-a2 { animation: comeFromRight 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
+    .fade-in-scale { animation: fadeInScale 1.2s ease-out forwards; display: inline-block; animation-delay: 0.4s; opacity: 0; }
+    .continuous-wave { animation: floatingWave 3.5s ease-in-out infinite; display: inline-block; }
 
     /* ========================================== */
     /* 3. تصميم القائمة الجانبية وزر الطي */
@@ -53,9 +51,8 @@ st.markdown("""
     [data-testid="stSidebarContent"] { overflow-x: hidden !important; }
     [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; }
     
-    [data-testid="stSidebar"] .stRadio > label {
-        color: #d4af37 !important; font-size: 20px !important; font-weight: 800 !important; margin-bottom: 10px !important; white-space: nowrap;
-    }
+    [data-testid="stSidebar"] .stRadio > label { display: none !important; } /* إخفاء كلمة "القائمة:" */
+    
     [data-testid="stSidebar"] div[role="radiogroup"] > label {
         background-color: transparent; padding: 0; height: 55px; width: 100%; border-radius: 8px; margin-bottom: 12px;
         transition: all 0.3s ease-in-out; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -66,18 +63,18 @@ st.markdown("""
     div[role="radiogroup"] > label:has(input:checked) { background-color: #d4af37 !important; border-color: #d4af37 !important; }
     div[role="radiogroup"] > label:has(input:checked) p { color: #000000 !important; font-weight: 800; }
     
-    /* زر الفتح الخارجي */
+    /* زر الفتح الخارجي (بعد طي القائمة) */
     [data-testid="collapsedControl"] {
         background-color: #d4af37 !important; border-radius: 50% !important; box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important; 
-        opacity: 1 !important; visibility: visible !important; z-index: 999999 !important; left: auto !important; right: 1rem !important; top: 1rem !important;
+        transition: all 0.3s ease !important; display: flex !important; align-items: center !important; justify-content: center !important;
+        z-index: 999999 !important; padding: 5px !important; margin: 10px !important;
     }
     [data-testid="collapsedControl"] svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
     [data-testid="collapsedControl"]:hover { background-color: #ffffff !important; transform: scale(1.1); }
 
-    /* زر الإغلاق الداخلي */
+    /* زر الإغلاق الداخلي (داخل القائمة) */
     [data-testid="stSidebarHeader"] button {
-        background-color: #d4af37 !important; border-radius: 50% !important; opacity: 1 !important; visibility: visible !important;
-        position: relative !important; z-index: 999999 !important; box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
+        background-color: #d4af37 !important; border-radius: 50% !important; z-index: 999999 !important; box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
     }
     [data-testid="stSidebarHeader"] button svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
     [data-testid="stSidebarHeader"] button:hover { background-color: #ffffff !important; transform: scale(1.1); }
@@ -96,25 +93,12 @@ st.markdown("""
         background: linear-gradient(90deg, #fdfbf7 0%, #ffffff 100%); padding: 12px 20px; border-right: 5px solid #d4af37; border-radius: 8px;
         margin-top: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); color: #1a2c42; font-weight: 800; font-size: 22px; display: flex; align-items: center; gap: 10px;
     }
-    .info-header {
-        background-color: #e8f0fe; padding: 10px 15px; border-right: 4px solid #1a2c42; border-radius: 5px; color: #1a2c42; font-weight: 600; margin-bottom: 15px; margin-top: 15px;
-    }
-
-    /* ========================================== */
-    /* 5. شاشات الموبايل */
-    /* ========================================== */
-    @media (max-width: 768px) {
-        h1 { font-size: 24px !important; padding-top: 15px !important; line-height: 1.4 !important; }
-        .premium-header { font-size: 16px !important; padding: 10px !important; }
-        .stTextInput > label, .stNumberInput > label { font-size: 14px !important; }
-        [data-testid="stVerticalBlock"] > div { overflow-x: hidden !important; }
-        [data-testid="collapsedControl"] { top: 0.5rem !important; right: 0.5rem !important; }
-    }
+    .info-header { background-color: #e8f0fe; padding: 10px 15px; border-right: 4px solid #1a2c42; border-radius: 5px; color: #1a2c42; font-weight: 600; margin-bottom: 15px; margin-top: 15px; }
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. إنشاء الفولدرات وقاعدة البيانات ونظام الأمان
+# 2. إنشاء الفولدرات والدوال المساعدة
 # ==========================================
 folders_to_create = [
     os.path.join("templates", "sale"),
@@ -124,73 +108,6 @@ folders_to_create = [
 for folder in folders_to_create:
     if not os.path.exists(folder): os.makedirs(folder)
 
-def init_db():
-    conn = sqlite3.connect('contracts_database.db')
-    c = conn.cursor()
-    # جدول الأرشيف
-    c.execute('''CREATE TABLE IF NOT EXISTS archive (id INTEGER PRIMARY KEY AUTOINCREMENT, contract_date TEXT, seller_name TEXT, buyer_name TEXT, raw_data TEXT)''')
-    # جدول المستخدمين
-    c.execute('''CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)''')
-    
-    # مستخدم افتراضي
-    c.execute("SELECT COUNT(*) FROM users")
-    if c.fetchone()[0] == 0:
-        c.execute("INSERT INTO users (username, password) VALUES ('admin', '12345')")
-    conn.commit(); conn.close()
-
-init_db()
-
-def check_login(username, password):
-    conn = sqlite3.connect('contracts_database.db')
-    c = conn.cursor()
-    c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
-    user = c.fetchone()
-    conn.close()
-    return user is not None
-
-def update_credentials(new_user, new_pass):
-    conn = sqlite3.connect('contracts_database.db')
-    c = conn.cursor()
-    c.execute("UPDATE users SET username=?, password=? WHERE id=1", (new_user, new_pass))
-    conn.commit(); conn.close()
-
-# ==========================================
-# 3. بوابة الدخول (Login Gate)
-# ==========================================
-if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
-
-if not st.session_state.logged_in:
-    st.markdown("<br><br><br>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        # هنا تم إضافة الأنيميشن والتصميم الفخم لشاشة الدخول
-        st.markdown("""
-        <div style='text-align: center; background-color: #1a2c42; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);'>
-            <div class='animate-scale-drop' style='font-size: 60px; margin-bottom: -10px;'>⚖️</div>
-            <h1 class='animate-text-assemble' style='color: #d4af37; margin-bottom: 0; font-size: 50px; font-weight: 800;'>BAYA</h1>
-            <span class='animate-fade' style='color: white; font-size: 24px; font-weight: 600;'>Legal</span>
-            <h3 class='animate-fade' style='color: #fff; margin-top: 15px; font-weight: 400;'>الجمعية التعاونية الزراعية بالناصرية</h3>
-            <p class='animate-fade' style='color: #ccc; margin-top: 20px;'>يرجى إدخال بيانات الاعتماد للمتابعة</p>
-        </div><br>
-        """, unsafe_allow_html=True)
-        
-        with st.form("login_form"):
-            username_input = st.text_input("👤 اسم المستخدم (أو رقم الهاتف)")
-            password_input = st.text_input("🔑 كلمة المرور", type="password")
-            submit_login = st.form_submit_button("تسجيل الدخول 🔓", use_container_width=True)
-            
-            if submit_login:
-                if check_login(username_input, password_input):
-                    st.session_state.logged_in = True
-                    st.rerun()
-                else:
-                    st.error("❌ بيانات الدخول غير صحيحة، يرجى المحاولة مرة أخرى.")
-    st.stop()
-
-# ==========================================
-# 4. الدوال المساعدة وتجهيز الوثائق
-# ==========================================
 def get_age_from_id(nat_id):
     if nat_id and len(nat_id) == 14 and nat_id.isdigit():
         century_code = int(nat_id[0])
@@ -206,6 +123,16 @@ def get_age_from_id(nat_id):
             return str(age)
         except ValueError: return ""
     return ""
+
+def init_db():
+    conn = sqlite3.connect('contracts_database.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS archive (id INTEGER PRIMARY KEY AUTOINCREMENT, contract_date TEXT, seller_name TEXT, buyer_name TEXT, raw_data TEXT)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)''')
+    c.execute("SELECT COUNT(*) FROM users")
+    if c.fetchone()[0] == 0:
+        c.execute("INSERT INTO users (username, password) VALUES ('admin', '12345')")
+    conn.commit(); conn.close()
 
 def save_to_db(date_val, seller, buyer, raw_json):
     conn = sqlite3.connect('contracts_database.db')
@@ -225,6 +152,22 @@ def delete_from_db(record_id):
     c.execute('DELETE FROM archive WHERE id=?', (record_id,))
     conn.commit(); conn.close()
 
+def check_login(username, password):
+    conn = sqlite3.connect('contracts_database.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
+    user = c.fetchone()
+    conn.close()
+    return user is not None
+
+def update_credentials(new_user, new_pass):
+    conn = sqlite3.connect('contracts_database.db')
+    c = conn.cursor()
+    c.execute("UPDATE users SET username=?, password=? WHERE id=1", (new_user, new_pass))
+    conn.commit(); conn.close()
+
+init_db()
+
 def format_sahm(s): return int(s) if s == int(s) else s
 
 def parse_date_safe(d_val):
@@ -242,6 +185,52 @@ def format_custom_date(iso_str, mode="full"):
         return f"{day_name} الموافق {d.day}/{d.month}/{d.year}"
     except: return iso_str
 
+# ==========================================
+# 3. بوابة الدخول (Login Gate & Animation)
+# ==========================================
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
+
+if not st.session_state.logged_in:
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        # شاشة الدخول مع الأنيميشن وتصحيح ترتيب اللوجو (LTR)
+        st.markdown("""
+        <div style='text-align: center; background-color: #1a2c42; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden;'>
+            <div class='fade-in-scale' style='font-size: 65px; margin-bottom: 5px;'>⚖️</div>
+            
+            <div style="direction: ltr; display: flex; justify-content: center; align-items: baseline; gap: 8px;">
+                <div style="font-size: 55px; font-weight: 900; color: #d4af37; display: flex; gap: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                    <span class='letter-b'>B</span>
+                    <span class='letter-a1'>A</span>
+                    <span class='letter-y'>Y</span>
+                    <span class='letter-a2'>A</span>
+                </div>
+                <span class='fade-in-scale' style='color: white; font-size: 26px; font-weight: 600;'>Legal</span>
+            </div>
+            
+            <h3 class='fade-in-scale' style='color: #fff; margin-top: 15px; font-weight: 400;'>الجمعية التعاونية الزراعية بالناصرية</h3>
+            <p class='fade-in-scale' style='color: #ccc; margin-top: 10px;'>يرجى إدخال بيانات الاعتماد للمتابعة</p>
+        </div><br>
+        """, unsafe_allow_html=True)
+        
+        with st.form("login_form"):
+            username_input = st.text_input("👤 اسم المستخدم (أو رقم الهاتف)")
+            password_input = st.text_input("🔑 كلمة المرور", type="password")
+            submit_login = st.form_submit_button("تسجيل الدخول 🔓", use_container_width=True)
+            
+            if submit_login:
+                if check_login(username_input, password_input):
+                    st.session_state.logged_in = True
+                    st.rerun()
+                else:
+                    st.error("❌ بيانات الدخول غير صحيحة، يرجى المحاولة مرة أخرى.")
+    st.stop()
+
+# ==========================================
+# 4. إدارة حالة البيانات الافتراضية
+# ==========================================
 today_iso = date.today().isoformat()
 
 def get_empty_sale():
@@ -276,8 +265,12 @@ def load_from_archive(record_id, json_str):
     loaded_data = json.loads(json_str)
     doc_type = loaded_data.get("doc_type")
     if not doc_type:
-        if "partitioners" in loaded_data or "moraث" in loaded_data: doc_type = "kesma"; loaded_data["doc_type"] = "kesma"
-        else: doc_type = "sale"; loaded_data["doc_type"] = "sale"
+        if "partitioners" in loaded_data or "moraث" in loaded_data:
+            doc_type = "kesma"
+            loaded_data["doc_type"] = "kesma"
+        else:
+            doc_type = "sale"
+            loaded_data["doc_type"] = "sale"
             
     if doc_type == "sale":
         for key in ["sellers", "buyers"]:
@@ -288,9 +281,16 @@ def load_from_archive(record_id, json_str):
     st.session_state.loaded_doc_type = doc_type  
     if 'zip_data' in st.session_state: del st.session_state['zip_data']
     
-    if doc_type == "kesma": st.session_state.kesma_data = loaded_data; st.session_state.active_menu = "🤝 منظومة القسمة الرضائية"
-    else: st.session_state.sale_data = loaded_data; st.session_state.active_menu = "📝 منظومة عقود البيع"
+    if doc_type == "kesma":
+        st.session_state.kesma_data = loaded_data
+        st.session_state.active_menu = "🤝 منظومة القسمة الرضائية"
+    else:
+        st.session_state.sale_data = loaded_data
+        st.session_state.active_menu = "📝 منظومة عقود البيع"
 
+# ==========================================
+# 5. دوال تجهيز وبناء الوثائق
+# ==========================================
 def process_lands(lands, total_f, total_k, total_s):
     if not lands: return []
     processed = []
@@ -299,23 +299,32 @@ def process_lands(lands, total_f, total_k, total_s):
         f_val, k_val, s_val = l.get("f",0), l.get("k",0), l.get("s",0.0)
         if len(lands) == 1 and f_val == 0 and k_val == 0 and s_val == 0:
             f_val, k_val, s_val = total_f, total_k, total_s
+            
         ord_word = ordinals[idx] if idx < len(ordinals) else str(idx + 1)
+        
         processed.append({
             "f": f_val, "k": k_val, "s": format_sahm(s_val), 
             "hod": l.get("hod",""), "n": l.get("n",""), "s_bound": l.get("s_bound",""), 
-            "e": l.get("e",""), "w": l.get("w",""), "ترتيب": ord_word
+            "e": l.get("e",""), "w": l.get("w",""),
+            "ترتيب": ord_word
         })
     return processed
 
 def build_sale_context(fd):
     final_seller = f"ورثة المرحوم / {fd['moraث_s']}" if fd.get("is_heirs_s") else (fd["sellers"][0]['name'] if fd["sellers"] else "")
     final_buyer = f"ورثة المرحوم / {fd['moraث_b']}" if fd.get("is_heirs_b") else (fd["buyers"][0]['name'] if fd["buyers"] else "")
+    
     formatted_sellers = []
     for s in fd["sellers"]:
-        s_copy = s.copy(); s_copy["id_date"] = format_custom_date(s.get("id_date"), "my"); formatted_sellers.append(s_copy)
+        s_copy = s.copy()
+        s_copy["id_date"] = format_custom_date(s.get("id_date"), "my")
+        formatted_sellers.append(s_copy)
+        
     formatted_buyers = []
     for b in fd["buyers"]:
-        b_copy = b.copy(); b_copy["id_date"] = format_custom_date(b.get("id_date"), "my"); formatted_buyers.append(b_copy)
+        b_copy = b.copy()
+        b_copy["id_date"] = format_custom_date(b.get("id_date"), "my")
+        formatted_buyers.append(b_copy)
 
     s1 = fd["sellers"][0] if fd["sellers"] else {}
     b1 = fd["buyers"][0] if fd["buyers"] else {}
@@ -343,16 +352,21 @@ def generate_sale_zip(fd):
     buyer_name = fd["buyers"][0]['name'] if fd["buyers"] and fd["buyers"][0]['name'] else "مشتري"
     
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        zip_file.writestr("backup_data.json", json.dumps(fd, ensure_ascii=False, indent=4))
+        backup_str = json.dumps(fd, ensure_ascii=False, indent=4)
+        zip_file.writestr("backup_data.json", backup_str)
+        
         if os.path.exists(sale_folder):
-            for file_name in [f for f in os.listdir(sale_folder) if f.endswith('.docx') and not f.startswith('~')]:
+            files = [f for f in os.listdir(sale_folder) if f.endswith('.docx') and not f.startswith('~')]
+            for file_name in files:
                 try:
                     doc = DocxTemplate(os.path.join(sale_folder, file_name))
                     doc.render(context)
                     doc_buffer = BytesIO()
                     doc.save(doc_buffer)
+                    
                     name_only, ext = os.path.splitext(file_name)
-                    zip_file.writestr(f"{name_only}_{buyer_name}_مشتراه_من_{seller_name}{ext}", doc_buffer.getvalue())
+                    new_file_name = f"{name_only}_{buyer_name}_مشتراه_من_{seller_name}{ext}"
+                    zip_file.writestr(new_file_name, doc_buffer.getvalue())
                 except Exception as e: st.error(f"خطأ في قالب البيع {file_name}: {e}")
     return zip_buffer.getvalue()
 
@@ -379,7 +393,8 @@ def generate_kesma_zip(kd):
     }
     
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        zip_file.writestr("backup_data.json", json.dumps(kd, ensure_ascii=False, indent=4))
+        backup_str = json.dumps(kd, ensure_ascii=False, indent=4)
+        zip_file.writestr("backup_data.json", backup_str)
         
         if os.path.exists(main_folder):
             for file_name in [f for f in os.listdir(main_folder) if f.endswith('.docx') and not f.startswith('~')]:
@@ -394,7 +409,7 @@ def generate_kesma_zip(kd):
         if os.path.exists(indiv_folder):
             indiv_files = [f for f in os.listdir(indiv_folder) if f.endswith('.docx') and not f.startswith('~')]
             for p in kd["partitioners"]:
-                if not p.get("name") or (p.get("total_f", 0) == 0 and p.get("total_k", 0) == 0 and p.get("total_s", 0) == 0): continue 
+                if not p.get("name") or (p.get("total_f", 0) == 0 and p.get("total_k", 0) == 0 and p.get("total_s", 0) == 0): continue
                 indiv_context = {
                     **main_context,
                     "اسم_المتقاسم": p.get("name",""), "رقم_قومي_المتقاسم": p.get("nat_id",""), "عنوان_المتقاسم": p.get("address",""), "مهنة_المتقاسم": p.get("job",""), "سن_المتقاسم": p.get("age", ""),
@@ -416,19 +431,20 @@ def generate_kesma_zip(kd):
     return zip_buffer.getvalue()
 
 # ==========================================
-# 5. القائمة الجانبية 
+# 6. القائمة الجانبية (Sidebar & Animation)
 # ==========================================
 st.sidebar.markdown("""
 <div style='text-align: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;'>
-    <div class='animate-scale-drop' style='font-size: 60px; margin-bottom: -15px;'>⚖️</div>
-    <span class='animate-text-assemble' style='font-size: 38px; font-weight: 800; color: white;'>BAYA</span>
-    <span class='animate-fade' style='font-size: 16px; font-weight: 600; color: #d4af37;'> Legal Contracts</span>
+    <div class='continuous-wave' style='font-size: 50px; margin-bottom: 0px;'>⚖️</div>
+    <div class='continuous-wave' style="direction: ltr; display: flex; justify-content: center; align-items: baseline; gap: 5px;">
+        <span style='font-size: 35px; font-weight: 900; color: white;'>BAYA</span>
+        <span style='font-size: 16px; font-weight: 600; color: #d4af37;'>Legal</span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
 menu = ["📝 منظومة عقود البيع", "🤝 منظومة القسمة الرضائية", "🧮 حاسبة الأراضي", "📂 أرشيف العقود", "🖨️ إدارة المستندات (فردي)", "🔄 الاسترجاع من ملف (Backup)", "⚙️ إعدادات الأمان"]
 if 'active_menu' not in st.session_state: st.session_state.active_menu = menu[0]
-
 choice = st.sidebar.radio("القائمة:", menu, key="active_menu")
 
 st.sidebar.markdown("---")
@@ -437,10 +453,11 @@ if st.sidebar.button("🚪 تسجيل الخروج", type="primary", use_contain
     st.rerun()
 
 # ==========================================
-# 6. واجهات البرنامج (حسب اختيار القائمة)
+# 7. واجهات البرنامج الرئيسية
 # ==========================================
 if choice == "🔄 الاسترجاع من ملف (Backup)":
     st.title("🔄 استرجاع معاملة مفقودة من ملف الطوارئ")
+    st.info("💡 طريقة الاستخدام: قم بفك الضغط عن ملف الـ ZIP الخاص بالمعاملة القديمة، وارفع ملف `backup_data.json` الموجود بداخله هنا لاستعادة كافة البيانات فوراً.")
     uploaded_file = st.file_uploader("اختر ملف النسخة الاحتياطية (backup_data.json)", type=['json'])
     if uploaded_file is not None:
         try:
@@ -455,7 +472,7 @@ if choice == "🔄 الاسترجاع من ملف (Backup)":
                 if doc_type == "kesma": st.session_state.kesma_data = loaded_data; st.session_state.active_menu = "🤝 منظومة القسمة الرضائية"
                 else: st.session_state.sale_data = loaded_data; st.session_state.active_menu = "📝 منظومة عقود البيع"
                 st.rerun()
-        except Exception as e: st.error("❌ حدث خطأ في قراءة الملف.")
+        except Exception as e: st.error(f"❌ حدث خطأ في قراءة الملف: تأكد أنه ملف backup_data.json سليم.")
 
 elif choice == "🧮 حاسبة الأراضي":
     st.title("🧮 حاسبة مساحات الأراضي الزراعية")
@@ -490,7 +507,6 @@ elif choice == "📝 منظومة عقود البيع":
     fd = st.session_state.sale_data
     st.markdown("---")
     col1, col2 = st.columns(2)
-    
     with col1:
         st.markdown('<div class="premium-header">👥 الطرف الأول (البائع)</div>', unsafe_allow_html=True)
         fd["is_heirs_s"] = st.checkbox("الطرف الأول ورثة؟", value=fd.get("is_heirs_s", False))
@@ -500,7 +516,6 @@ elif choice == "📝 منظومة عقود البيع":
             with wc1: fd["s_morath_case_num"] = st.text_input("رقم قضية الوراثة", value=fd.get("s_morath_case_num", ""))
             with wc2: fd["s_morath_year"] = st.text_input("لسنة", value=fd.get("s_morath_year", ""))
             with wc3: fd["s_morath_date"] = st.date_input("تاريخ جلسة الحكم", value=parse_date_safe(fd.get("s_morath_date")), key="s_m_date").isoformat()
-        
         for i, s in enumerate(fd["sellers"]):
             with st.expander(f"👤 بيانات البائع رقم {i+1}: {s.get('name','')}", expanded=True):
                 s["name"] = st.text_input(f"الاسم", value=s.get("name", ""), key=f"s_name_{i}")
@@ -535,7 +550,6 @@ elif choice == "📝 منظومة عقود البيع":
             with wc1: fd["b_morath_case_num"] = st.text_input("رقم قضية الوراثة", value=fd.get("b_morath_case_num", ""), key="b_mc")
             with wc2: fd["b_morath_year"] = st.text_input("لسنة", value=fd.get("b_morath_year", ""), key="b_my")
             with wc3: fd["b_morath_date"] = st.date_input("تاريخ جلسة الحكم", value=parse_date_safe(fd.get("b_morath_date")), key="b_m_date").isoformat()
-
         for i, b in enumerate(fd["buyers"]):
             with st.expander(f"👤 بيانات المشتري رقم {i+1}: {b.get('name','')}", expanded=True):
                 b["name"] = st.text_input(f"الاسم ", value=b.get("name", ""), key=f"b_name_{i}")
@@ -576,13 +590,11 @@ elif choice == "📝 منظومة عقود البيع":
                 st.markdown("<div class='delete-btn'>", unsafe_allow_html=True)
                 if st.button("❌ حذف القطعة", key=f"del_sell_land_{i}"): fd["lands"].pop(i); st.rerun()
                 st.markdown("</div>", unsafe_allow_html=True)
-
         lc_hod, lc_s, lc_k, lc_f = st.columns([3,1,1,1])
         with lc_hod: l['hod'] = st.text_input("الحوض", value=l.get('hod',""), key=f"lh_{i}")
         with lc_s: l['s'] = st.number_input("سهم", min_value=0.0, max_value=23.99, step=0.5, value=float(l.get('s',0.0)), key=f"ls_{i}")
         with lc_k: l['k'] = st.number_input("قيراط", min_value=0, max_value=23, step=1, value=int(l.get('k',0)), key=f"lk_{i}")
         with lc_f: l['f'] = st.number_input("فدان", min_value=0, step=1, value=int(l.get('f',0)), key=f"lf_{i}")
-        
         bc1, bc2, bc3, bc4 = st.columns(4)
         with bc1: l['n'] = st.text_input("الحد البحري", value=l.get('n',""), key=f"ln_{i}")
         with bc2: l['s_bound'] = st.text_input("الحد القبلي", value=l.get('s_bound',""), key=f"lsb_{i}")
@@ -625,7 +637,7 @@ elif choice == "📝 منظومة عقود البيع":
             st.success("✅ تم التحديث بنجاح وتجهيز الملفات الجديدة!")
 
     if 'zip_data' in st.session_state:
-        st.download_button("📥 تحميل المستندات (ZIP)", data=st.session_state.zip_data, file_name=f"عقد_بيع_{prev_buyer}_مشتراه_من_{prev_seller}.zip", mime="application/zip", type="secondary", use_container_width=True)
+        st.download_button("📥 تحميل جميع مستندات البيع (ملف ZIP)", data=st.session_state.zip_data, file_name=f"عقد_بيع_{prev_buyer}_مشتراه_من_{prev_seller}.zip", mime="application/zip", type="secondary", use_container_width=True)
 
 elif choice == "🤝 منظومة القسمة الرضائية":
     if st.session_state.current_archive_id is not None and st.session_state.get('loaded_doc_type') != 'kesma': st.session_state.current_archive_id = None
@@ -732,8 +744,7 @@ elif choice == "🤝 منظومة القسمة الرضائية":
                 with b3: l["e"] = st.text_input("الحد الشرقي", value=l.get("e",""), key=f"ple_{p_idx}_{l_idx}")
                 with b4: l["w"] = st.text_input("الحد الغربي", value=l.get("w",""), key=f"plw_{p_idx}_{l_idx}")
                 st.write("---")
-            if st.button(f"➕ إضافة قطعة أخرى لـ {p.get('name','') or 'هذا المتقاسم'}", key=f"add_l_{p_idx}"):
-                p["lands"].append({"f": 0, "k": 0, "s": 0.0, "hod": "", "n": "", "s_bound": "", "e": "", "w": ""}); st.rerun()
+            if st.button(f"➕ إضافة قطعة أخرى لـ {p.get('name','') or 'هذا المتقاسم'}", key=f"add_l_{p_idx}"): p["lands"].append({"f": 0, "k": 0, "s": 0.0, "hod": "", "n": "", "s_bound": "", "e": "", "w": ""}); st.rerun()
 
     if st.button("➕ إضافة متقاسم جديد (وريث آخر)", type="secondary"):
         kd["partitioners"].append({"name": "", "nat_id": "", "nat_id_date": today_iso, "address": "", "job": "", "age": "", "hayaza_no": "", "prev_f": 0, "prev_k": 0, "prev_s": 0.0, "total_f": 0, "total_k": 0, "total_s": 0.0, "total_txt": "", "lands": [{"f": 0, "k": 0, "s": 0.0, "hod": "", "n": "", "s_bound": "", "e": "", "w": ""}]})
@@ -745,7 +756,7 @@ elif choice == "🤝 منظومة القسمة الرضائية":
     mora_name = kd.get("moraث", "المورث")
     
     if st.session_state.current_archive_id is None:
-        if st.button("💾 حفظ معاملة القسمة واستخراج كل الملفات", type="primary", use_container_width=True):
+        if st.button("💾 حفظ معاملة القسمة واستخراج كل الملفات (مجمع وفردي)", type="primary", use_container_width=True):
             save_to_db(kd["c_date"], f"[قسمة] ورثة {mora_name}", f"عدد المتقاسمين: {len(kd['partitioners'])}", raw_json)
             st.session_state.zip_data = generate_kesma_zip(kd)
             st.success("✅ تم الحفظ بنجاح وتجهيز الملفات! يمكنك التحميل الآن.")
@@ -757,7 +768,7 @@ elif choice == "🤝 منظومة القسمة الرضائية":
             st.success("✅ تم التحديث بنجاح وتجهيز الملفات الجديدة!")
 
     if 'zip_data' in st.session_state:
-        st.download_button("📥 تحميل المستندات (ZIP)", data=st.session_state.zip_data, file_name=f"ملف_قسمة_ورثة_{mora_name}.zip", mime="application/zip", type="secondary", use_container_width=True)
+        st.download_button("📥 تحميل جميع مستندات القسمة (ملف ZIP)", data=st.session_state.zip_data, file_name=f"ملف_قسمة_ورثة_{mora_name}.zip", mime="application/zip", type="secondary", use_container_width=True)
 
 elif choice == "📂 أرشيف العقود":
     st.title("📂 أرشيف المعاملات المسجلة")
@@ -766,9 +777,7 @@ elif choice == "📂 أرشيف العقود":
     conn = sqlite3.connect('contracts_database.db')
     df = pd.read_sql_query("SELECT id, contract_date, seller_name, buyer_name, raw_data FROM archive ORDER BY id DESC", conn)
     conn.close()
-    
     if search_query: df = df[(df['seller_name'].str.contains(search_query, na=False)) | (df['buyer_name'].str.contains(search_query, na=False))]
-    
     if df.empty: st.info("لا توجد معاملات محفوظة مطابقة للبحث.")
     else:
         for index, row in df.iterrows():
@@ -781,6 +790,7 @@ elif choice == "📂 أرشيف العقود":
 
 elif choice == "🖨️ إدارة المستندات (فردي)":
     st.title("🖨️ طباعة واستخراج المستندات الفردية")
+    st.info("💡 ملاحظة: ملفات القسمة يتم استخراجها آلياً دفعة واحدة من صفحة القسمة. هذه الصفحة مخصصة لاستخراج ملف واحد من قوالب (البيع).")
     sale_folder = os.path.join("templates", "sale")
     if os.path.exists(sale_folder):
         files = [f for f in os.listdir(sale_folder) if f.endswith('.docx') and not f.startswith('~')]
