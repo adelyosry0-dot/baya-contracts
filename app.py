@@ -56,9 +56,18 @@ st.markdown("""
     }
 
     [data-testid="collapsedControl"] { left: auto !important; right: 1rem !important; }
-    .stApp > header { direction: ltr !important; }
+    .stApp > header { direction: ltr !important; background: transparent !important; }
+    [data-testid="stToolbar"] { display: none !important; } /* إخفاء الأيقونات العلوية */
     ::-webkit-scrollbar { display: none !important; }
     * { scrollbar-width: none !important; }
+
+    /* ========= تعديلات شاشات الموبايل ========= */
+    @media (max-width: 768px) {
+        h1 { font-size: 24px !important; padding-top: 15px !important; line-height: 1.4 !important; }
+        .premium-header { font-size: 16px !important; padding: 10px !important; }
+        .stTextInput > label, .stNumberInput > label { font-size: 14px !important; }
+        [data-testid="stVerticalBlock"] > div { overflow-x: hidden !important; }
+    }
 </style>
 """, unsafe_allow_html=True)
 
