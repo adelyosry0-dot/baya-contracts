@@ -17,59 +17,187 @@ CSS_STYLE = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap');
     
-    /* 1. ضبط الخط والاتجاه الأساسي للمحتوى (مع ترك هيكل البرنامج الأصلي لمنع تداخل القائمة) */
-    p, label, h1, h2, h3, h4, h5, h6, input, textarea, button, .stMarkdown, .stText, div[role="radiogroup"] {
+    /* 1. ضبط الخط والاتجاه الأساسي */
+    .stApp { direction: rtl; text-align: right; }
+    
+    html, body, p, label, h1, h2, h3, h4, h5, h6, input, textarea, button, .stMarkdown, .stText {
         font-family: 'Cairo', sans-serif !important;
-        direction: rtl !important;
-        text-align: right !important;
     }
 
-    /* حماية أيقونات Streamlit لمنع ظهور نصوص إنجليزية مكانها */
+    /* حماية أيقونات Streamlit لمنع ظهور نصوص مثل keyboard_arrow_down */
     i, .material-icons, .material-symbols-rounded, [data-testid="stIconMaterial"], svg {
         font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
-        direction: ltr !important;
     }
 
-    /* 2. إخفاء زوائد Streamlit (مع الحفاظ على الإعدادات - الثلاث نقاط) */
+    /* 2. إخفاء زوائد Streamlit المزعجة (مع الحفاظ على قائمة الإعدادات 3 نقاط) */
     [data-testid="stHeader"] { background: transparent !important; }
-    .stAppDeployButton, [data-testid="stAppDeployButton"] { display: none !important; visibility: hidden !important; }
+    .stAppDeployButton { display: none !important; visibility: hidden !important; }
     a[href*="github.com"] { display: none !important; visibility: hidden !important; }
     footer { display: none !important; visibility: hidden !important; } 
     .viewerBadge_container, [data-testid="stViewerBadge"] { display: none !important; visibility: hidden !important; }
+
+    /* إخفاء رسالة Press Enter to apply */
     [data-testid="InputInstructions"] { display: none !important; visibility: hidden !important; }
 
-    /* 3. تصميم القائمة الجانبية (شكل المستطيلات الأصلي) وتوسيعها */
-    [data-testid="stSidebar"] { 
-        background-color: #1a2c42 !important; 
-        width: 340px !important; 
-        min-width: 340px !important;
-    }
-    [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; }
-    
-    [data-testid="stSidebar"] div[role="radiogroup"] > label {
-        background-color: transparent; padding: 0; min-height: 55px; width: 100%; border-radius: 8px; margin-bottom: 12px;
-        transition: all 0.3s ease-in-out; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center;
-    }
-    [data-testid="stSidebar"] div[role="radiogroup"] > label p { 
-        color: #ffffff !important; font-size: 16px; margin: 0 !important; text-align: center; width: 100%; font-weight: 600; white-space: normal !important; padding: 5px;
-    }
-    [data-testid="stSidebar"] div[role="radiogroup"] > label:hover { background-color: #243b55; border-color: #d4af37; transform: translateX(5px); }
-    div[role="radiogroup"] > label:has(input:checked) { background-color: #d4af37 !important; border-color: #d4af37 !important; }
-    div[role="radiogroup"] > label:has(input:checked) p { color: #000000 !important; font-weight: 800; font-size: 18px !important; }
-    
-    /* تلوين أزرار الفتح والإغلاق للقائمة لتكون ذهبية وكحلي */
-    [data-testid="collapsedControl"] {
-        background-color: #d4af37 !important; border-radius: 50% !important; box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important; 
-        transition: all 0.3s ease !important; z-index: 999999 !important; padding: 5px !important; margin: 10px !important;
-    }
-    [data-testid="collapsedControl"] svg { fill: #1a2c42 !important; color: #1a2c42 !important; width: 24px !important; height: 24px !important;}
-    [data-testid="collapsedControl"]:hover { background-color: #ffffff !important; transform: scale(1.1); }
+    /* 3. تحريك القائمة الجانبية الأصلية لليمين */
 
-    [data-testid="stSidebarHeader"] button {
-        background-color: #d4af37 !important; border-radius: 50% !important; z-index: 999999 !important; box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
+    /* عكس موضع الـ layout الكامل - يحرك السايدبار لليمين */
+    [data-testid="stAppViewContainer"] {
+        flex-direction: row-reverse !important;
     }
-    [data-testid="stSidebarHeader"] button svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
-    [data-testid="stSidebarHeader"] button:hover { background-color: #ffffff !important; transform: scale(1.1); }
+
+    /* السايدبار */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0d1b2a 0%, #1a2c42 45%, #162338 100%) !important;
+        width: 310px !important;
+        min-width: 310px !important;
+        border-left: none !important;
+        border-right: 1px solid rgba(212,175,55,0.25) !important;
+        box-shadow: -6px 0 30px rgba(0,0,0,0.4) !important;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* خط ذهبي مضيء في أعلى السايدبار */
+    [data-testid="stSidebar"]::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, transparent, #d4af37, #fff8dc, #d4af37, transparent);
+        background-size: 200% auto;
+        animation: goldShimmer 3s linear infinite;
+        z-index: 999;
+    }
+
+    /* زر فتح السايدبار (الأسهم) - نضعه على اليسار لأن السايدبار بقى على اليمين */
+    [data-testid="collapsedControl"] {
+        left: 8px !important;
+        right: auto !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        background: linear-gradient(135deg, #d4af37, #c9a227) !important;
+        border-radius: 10px 0 0 10px !important;
+        width: 28px !important;
+        height: 70px !important;
+        box-shadow: -4px 0 15px rgba(212,175,55,0.4) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 99999 !important;
+        transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1) !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    [data-testid="collapsedControl"]:hover {
+        width: 36px !important;
+        background: linear-gradient(135deg, #e8c547, #d4af37) !important;
+        box-shadow: -6px 0 22px rgba(212,175,55,0.6) !important;
+    }
+    [data-testid="collapsedControl"] svg {
+        fill: #0d1b2a !important;
+        color: #0d1b2a !important;
+        width: 20px !important;
+        height: 20px !important;
+        transform: none !important;
+    }
+
+    /* زر الإغلاق داخل السايدبار */
+    [data-testid="stSidebarHeader"] {
+        background: transparent !important;
+        padding: 8px 12px !important;
+    }
+    [data-testid="stSidebarHeader"] button {
+        background: rgba(212,175,55,0.15) !important;
+        border-radius: 8px !important;
+        border: 1px solid rgba(212,175,55,0.3) !important;
+        z-index: 999 !important;
+        transition: all 0.3s ease !important;
+    }
+    [data-testid="stSidebarHeader"] button:hover {
+        background: rgba(212,175,55,0.35) !important;
+        border-color: #d4af37 !important;
+    }
+    [data-testid="stSidebarHeader"] button svg {
+        fill: #d4af37 !important;
+        color: #d4af37 !important;
+    }
+
+    /* المحتوى الرئيسي - padding من اليمين بدل اليسار */
+    section[data-testid="stMain"] {
+        margin-right: 0 !important;
+        margin-left: 0 !important;
+    }
+
+    /* عناصر قائمة السايدبار */
+    [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child {
+        display: none !important;
+    }
+    [data-testid="stSidebar"] div[role="radiogroup"] > label {
+        background: rgba(255,255,255,0.03);
+        padding: 0;
+        min-height: 52px;
+        width: 100%;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    [data-testid="stSidebar"] div[role="radiogroup"] > label p {
+        color: #ffffff !important;
+        font-size: 15px;
+        margin: 0 !important;
+        text-align: center;
+        width: 100%;
+        font-weight: 600;
+        white-space: normal !important;
+        padding: 8px 10px;
+    }
+    [data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
+        background: rgba(36,59,85,0.8) !important;
+        border-color: rgba(212,175,55,0.5) !important;
+        transform: translateX(-4px);
+        box-shadow: -4px 0 15px rgba(212,175,55,0.1);
+    }
+    div[role="radiogroup"] > label:has(input:checked) {
+        background: linear-gradient(135deg, #d4af37, #c9a227) !important;
+        border-color: #d4af37 !important;
+        box-shadow: 0 4px 20px rgba(212,175,55,0.4) !important;
+        transform: translateX(-3px);
+    }
+    div[role="radiogroup"] > label:has(input:checked) p {
+        color: #0d1b2a !important;
+        font-weight: 800;
+        font-size: 16px !important;
+    }
+
+    /* زر تسجيل الخروج في السايدبار */
+    [data-testid="stSidebar"] .stButton button[kind="primary"] {
+        background: linear-gradient(135deg, rgba(180,20,20,0.25), rgba(120,10,10,0.15)) !important;
+        border: 1px solid rgba(204,0,0,0.4) !important;
+        color: #ff8a8a !important;
+        font-weight: 700 !important;
+        transition: all 0.3s ease !important;
+        border-radius: 10px !important;
+    }
+    [data-testid="stSidebar"] .stButton button[kind="primary"]:hover {
+        background: linear-gradient(135deg, rgba(204,0,0,0.45), rgba(150,0,0,0.3)) !important;
+        border-color: rgba(220,50,50,0.7) !important;
+        color: #ffffff !important;
+        transform: translateX(-3px);
+        box-shadow: -4px 0 15px rgba(204,0,0,0.25) !important;
+    }
+
+    /* اتجاه الصفحة */
+    .stApp > header { direction: rtl !important; }
+    .stApp { direction: rtl !important; }
 
     /* 4. تصميم العناوين والمدخلات */
     .stTextInput input, .stNumberInput input, .stTextArea textarea { transition: all 0.3s ease; border: 1px solid #ccc; }
@@ -85,20 +213,277 @@ CSS_STYLE = """
     }
     .info-header { background-color: #e8f0fe; padding: 10px 15px; border-right: 4px solid #1a2c42; border-radius: 5px; color: #1a2c42 !important; font-weight: 600; margin-bottom: 15px; margin-top: 15px; }
 
-    /* 5. حركات الأنيميشن الاحترافية */
-    @keyframes comeFromLeft { 0% { transform: translateX(-150px) rotate(-45deg); opacity: 0; } 100% { transform: translateX(0) rotate(0); opacity: 1; } }
-    @keyframes comeFromTop { 0% { transform: translateY(-150px) scale(0.5); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
-    @keyframes comeFromBottom { 0% { transform: translateY(150px) scale(0.5); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
-    @keyframes comeFromRight { 0% { transform: translateX(150px) rotate(45deg); opacity: 0; } 100% { transform: translateX(0) rotate(0); opacity: 1; } }
-    @keyframes fadeInScale { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
-    @keyframes floatingWave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+    /* ============================================================
+       5. الأنيميشن الاحترافي المطوّر - BAYA Pro Animations
+    ============================================================ */
 
-    .letter-b { animation: comeFromLeft 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
-    .letter-a1 { animation: comeFromTop 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
-    .letter-y { animation: comeFromBottom 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
-    .letter-a2 { animation: comeFromRight 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
-    .fade-in-scale { animation: fadeInScale 1.2s ease-out forwards; display: inline-block; animation-delay: 0.4s; opacity: 0; }
-    .continuous-wave { animation: floatingWave 3.5s ease-in-out infinite; display: inline-block; }
+    /* --- الكيفريمز الأساسية المطورة --- */
+    @keyframes comeFromLeft {
+        0%   { transform: translateX(-200px) rotate(-30deg) scale(0.5); opacity: 0; filter: blur(8px); }
+        60%  { transform: translateX(15px) rotate(3deg) scale(1.05); opacity: 1; filter: blur(0); }
+        80%  { transform: translateX(-6px) rotate(-1deg) scale(0.98); }
+        100% { transform: translateX(0) rotate(0) scale(1); opacity: 1; filter: blur(0); }
+    }
+    @keyframes comeFromTop {
+        0%   { transform: translateY(-200px) scale(0.4) rotate(20deg); opacity: 0; filter: blur(10px); }
+        55%  { transform: translateY(12px) scale(1.08) rotate(-2deg); opacity: 1; filter: blur(0); }
+        75%  { transform: translateY(-5px) scale(0.97) rotate(1deg); }
+        100% { transform: translateY(0) scale(1) rotate(0); opacity: 1; }
+    }
+    @keyframes comeFromBottom {
+        0%   { transform: translateY(200px) scale(0.4) rotate(-20deg); opacity: 0; filter: blur(10px); }
+        55%  { transform: translateY(-12px) scale(1.08) rotate(2deg); opacity: 1; filter: blur(0); }
+        75%  { transform: translateY(5px) scale(0.97) rotate(-1deg); }
+        100% { transform: translateY(0) scale(1) rotate(0); opacity: 1; }
+    }
+    @keyframes comeFromRight {
+        0%   { transform: translateX(200px) rotate(30deg) scale(0.5); opacity: 0; filter: blur(8px); }
+        60%  { transform: translateX(-15px) rotate(-3deg) scale(1.05); opacity: 1; filter: blur(0); }
+        80%  { transform: translateX(6px) rotate(1deg) scale(0.98); }
+        100% { transform: translateX(0) rotate(0) scale(1); opacity: 1; filter: blur(0); }
+    }
+
+    /* --- فتح الشاشة بستار ذهبي يُزاح --- */
+    @keyframes curtainReveal {
+        0%   { clip-path: inset(0 0 100% 0); opacity: 0; transform: scale(0.9); }
+        40%  { clip-path: inset(0 0 0% 0); opacity: 1; transform: scale(1.02); }
+        100% { clip-path: inset(0 0 0% 0); opacity: 1; transform: scale(1); }
+    }
+
+    /* --- بريق ذهبي متحرك على الشعار --- */
+    @keyframes goldShimmer {
+        0%   { background-position: -200% center; }
+        100% { background-position: 200% center; }
+    }
+
+    /* --- نبضة ذهبية حول البوكس --- */
+    @keyframes goldenPulseRing {
+        0%   { box-shadow: 0 0 0 0 rgba(212,175,55,0.7), 0 10px 40px rgba(0,0,0,0.4); }
+        50%  { box-shadow: 0 0 0 18px rgba(212,175,55,0), 0 10px 40px rgba(0,0,0,0.4); }
+        100% { box-shadow: 0 0 0 0 rgba(212,175,55,0), 0 10px 40px rgba(0,0,0,0.4); }
+    }
+
+    /* --- أيقونة الميزان تتأرجح --- */
+    @keyframes scaleBalance {
+        0%,100% { transform: rotate(0deg) scale(1); }
+        20%  { transform: rotate(-12deg) scale(1.1); }
+        40%  { transform: rotate(10deg) scale(1.05); }
+        60%  { transform: rotate(-6deg) scale(1.08); }
+        80%  { transform: rotate(4deg) scale(1.02); }
+    }
+
+    /* --- خط ذهبي يرسم نفسه --- */
+    @keyframes drawLine {
+        0%   { width: 0%; opacity: 0; }
+        60%  { opacity: 1; }
+        100% { width: 80%; opacity: 1; }
+    }
+
+    /* --- fade مع ارتفاع سلس --- */
+    @keyframes fadeInScale {
+        0%   { opacity: 0; transform: translateY(20px) scale(0.92); filter: blur(4px); }
+        60%  { opacity: 1; filter: blur(0); }
+        100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+
+    /* --- موجة هادئة دائمة --- */
+    @keyframes floatingWave {
+        0%,100% { transform: translateY(0px) rotate(0deg); }
+        30%  { transform: translateY(-8px) rotate(-2deg); }
+        70%  { transform: translateY(-4px) rotate(1deg); }
+    }
+
+    /* --- وميض ذهبي متكرر --- */
+    @keyframes goldGlow {
+        0%,100% { text-shadow: 0 0 10px rgba(212,175,55,0.3), 0 0 20px rgba(212,175,55,0.1); }
+        50%  { text-shadow: 0 0 20px rgba(212,175,55,0.8), 0 0 40px rgba(212,175,55,0.4), 0 0 60px rgba(212,175,55,0.2); }
+    }
+
+    /* --- نجمة تتفتت للخارج (particle burst) --- */
+    @keyframes starBurst {
+        0%   { opacity: 0; transform: scale(0) rotate(0deg); }
+        30%  { opacity: 1; }
+        60%  { transform: scale(1.3) rotate(180deg); opacity: 0.8; }
+        100% { transform: scale(0) rotate(360deg); opacity: 0; }
+    }
+
+    /* --- خلفية متدرجة متحركة --- */
+    @keyframes gradientShift {
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* ============================================================
+       تطبيق الأنيميشن على العناصر
+    ============================================================ */
+
+    /* حروف الشعار BAYA */
+    .letter-b {
+        animation: comeFromLeft 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        display: inline-block;
+        animation-delay: 0.1s;
+        opacity: 0;
+    }
+    .letter-a1 {
+        animation: comeFromTop 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        display: inline-block;
+        animation-delay: 0.25s;
+        opacity: 0;
+    }
+    .letter-y {
+        animation: comeFromBottom 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        display: inline-block;
+        animation-delay: 0.4s;
+        opacity: 0;
+    }
+    .letter-a2 {
+        animation: comeFromRight 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        display: inline-block;
+        animation-delay: 0.55s;
+        opacity: 0;
+    }
+
+    /* بريق ذهبي على حروف BAYA بعد الظهور */
+    .letter-b, .letter-a1, .letter-y, .letter-a2 {
+        background: linear-gradient(90deg, #d4af37 30%, #fff8dc 50%, #d4af37 70%);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: comeFromLeft 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+                   goldShimmer 3s linear 1.8s infinite;
+    }
+    .letter-a1 { animation: comeFromTop 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldShimmer 3s linear 2s infinite; }
+    .letter-y   { animation: comeFromBottom 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldShimmer 3s linear 2.2s infinite; }
+    .letter-a2  { animation: comeFromRight 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldShimmer 3s linear 2.4s infinite; }
+
+    /* fade in عام محسّن */
+    .fade-in-scale {
+        animation: fadeInScale 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        display: inline-block;
+        opacity: 0;
+    }
+
+    /* موجة هادئة دائمة */
+    .continuous-wave {
+        animation: floatingWave 4s ease-in-out infinite;
+        display: inline-block;
+    }
+
+    /* أيقونة الميزان */
+    .balance-icon {
+        animation: fadeInScale 0.8s ease-out forwards, scaleBalance 6s ease-in-out 2s infinite;
+        display: inline-block;
+        opacity: 0;
+    }
+
+    /* بوكس اللوجين - نبضة ذهبية متكررة */
+    .login-box-pulse {
+        animation: goldenPulseRing 2.5s ease-out infinite;
+    }
+
+    /* خط ذهبي يرسم نفسه تحت الشعار */
+    .gold-line {
+        display: block;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #d4af37, #fff8dc, #d4af37, transparent);
+        border-radius: 2px;
+        margin: 10px auto;
+        animation: drawLine 1.5s cubic-bezier(0.22, 1, 0.36, 1) 1.2s forwards;
+        width: 0%;
+        opacity: 0;
+    }
+
+    /* خلفية اللوجين متحركة */
+    .login-animated-bg {
+        background: linear-gradient(-45deg, #0d1b2a, #1a2c42, #162338, #0a1628, #1e3a5f);
+        background-size: 400% 400%;
+        animation: gradientShift 8s ease infinite;
+    }
+
+    /* وميض الزر الذهبي */
+    .stFormSubmitButton button, [data-testid="stFormSubmitButton"] button {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1) !important;
+    }
+    .stFormSubmitButton button::after, [data-testid="stFormSubmitButton"] button::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -75%;
+        width: 50%;
+        height: 200%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transform: skewX(-20deg);
+        animation: shimmerBtn 3s ease-in-out 2s infinite;
+    }
+    @keyframes shimmerBtn {
+        0%   { left: -75%; opacity: 0; }
+        10%  { opacity: 1; }
+        50%  { left: 125%; opacity: 1; }
+        51%,100% { left: 125%; opacity: 0; }
+    }
+
+    /* نجمة دوارة خلف الأيقونة */
+    .star-particle {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: #d4af37;
+        border-radius: 50%;
+        animation: starBurst 2s ease-out forwards;
+    }
+
+    /* premium-header محسّن مع حركة دخول */
+    .premium-header {
+        background: linear-gradient(135deg, #fdfbf7 0%, #fffef9 50%, #f9f5e8 100%);
+        padding: 12px 20px;
+        border-right: 5px solid #d4af37;
+        border-radius: 8px;
+        margin-top: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(212,175,55,0.15), 0 2px 6px rgba(0,0,0,0.05);
+        color: #1a2c42 !important;
+        font-weight: 800;
+        font-size: 22px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .premium-header::before {
+        content: '';
+        position: absolute;
+        top: 0; right: 0;
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.07) 50%, transparent 100%);
+        background-size: 200% auto;
+        animation: goldShimmer 4s linear infinite;
+    }
+    .premium-header:hover {
+        transform: translateX(-3px);
+        box-shadow: 0 6px 20px rgba(212,175,55,0.25), 0 3px 8px rgba(0,0,0,0.08);
+    }
+
+    .info-header {
+        background-color: #e8f0fe;
+        padding: 10px 15px;
+        border-right: 4px solid #1a2c42;
+        border-radius: 5px;
+        color: #1a2c42 !important;
+        font-weight: 600;
+        margin-bottom: 15px;
+        margin-top: 15px;
+        transition: all 0.3s ease;
+    }
+    .info-header:hover {
+        background-color: #d4e0fc;
+        transform: translateX(-2px);
+    }
 </style>
 """
 st.markdown(CSS_STYLE, unsafe_allow_html=True)
@@ -197,28 +582,178 @@ def format_custom_date(iso_str, mode="full"):
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
-LOGIN_HTML = """
-<div style='text-align: center; background-color: #1a2c42; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden;'>
-    <div class='fade-in-scale' style='font-size: 65px; margin-bottom: 5px; animation-delay: 0.1s;'>⚖️</div>
-    <div style="direction: ltr; display: flex; justify-content: center; align-items: baseline; gap: 8px;">
-        <div style="font-size: 55px; font-weight: 900; color: #d4af37; display: flex; gap: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-            <span class='letter-b'>B</span>
-            <span class='letter-a1'>A</span>
-            <span class='letter-y'>Y</span>
-            <span class='letter-a2'>A</span>
-        </div>
-        <span class='fade-in-scale' style='color: white; font-size: 26px; font-weight: 600; animation-delay: 1.0s;'>Legal</span>
-    </div>
-    <h3 class='fade-in-scale' style='color: #fff; margin-top: 15px; font-weight: 400; animation-delay: 1.2s;'>الجمعية التعاونية الزراعية بالناصرية</h3>
-    <p class='fade-in-scale' style='color: #ccc; margin-top: 10px; animation-delay: 1.4s;'>يرجى إدخال بيانات الاعتماد للمتابعة</p>
-</div><br>
+LOGIN_COMPONENT = """
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: transparent; font-family: 'Cairo', sans-serif; }
+
+  @keyframes comeFromLeft {
+    0%   { transform: translateX(-120px) rotate(-25deg) scale(0.5); opacity: 0; filter: blur(6px); }
+    65%  { transform: translateX(10px) rotate(2deg) scale(1.06); opacity: 1; filter: blur(0); }
+    82%  { transform: translateX(-4px) rotate(-1deg) scale(0.98); }
+    100% { transform: translateX(0) rotate(0) scale(1); opacity: 1; }
+  }
+  @keyframes comeFromTop {
+    0%   { transform: translateY(-120px) scale(0.4) rotate(15deg); opacity: 0; filter: blur(8px); }
+    60%  { transform: translateY(10px) scale(1.08) rotate(-2deg); opacity: 1; filter: blur(0); }
+    80%  { transform: translateY(-4px) scale(0.97); }
+    100% { transform: translateY(0) scale(1) rotate(0); opacity: 1; }
+  }
+  @keyframes comeFromBottom {
+    0%   { transform: translateY(120px) scale(0.4) rotate(-15deg); opacity: 0; filter: blur(8px); }
+    60%  { transform: translateY(-10px) scale(1.08) rotate(2deg); opacity: 1; filter: blur(0); }
+    80%  { transform: translateY(4px) scale(0.97); }
+    100% { transform: translateY(0) scale(1) rotate(0); opacity: 1; }
+  }
+  @keyframes comeFromRight {
+    0%   { transform: translateX(120px) rotate(25deg) scale(0.5); opacity: 0; filter: blur(6px); }
+    65%  { transform: translateX(-10px) rotate(-2deg) scale(1.06); opacity: 1; filter: blur(0); }
+    82%  { transform: translateX(4px) rotate(1deg) scale(0.98); }
+    100% { transform: translateX(0) rotate(0) scale(1); opacity: 1; }
+  }
+  @keyframes goldShimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+  @keyframes fadeInUp {
+    0%   { opacity: 0; transform: translateY(18px); filter: blur(3px); }
+    100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+  }
+  @keyframes scaleBalance {
+    0%,100% { transform: rotate(0deg) scale(1); }
+    20%  { transform: rotate(-10deg) scale(1.08); }
+    40%  { transform: rotate(8deg) scale(1.04); }
+    60%  { transform: rotate(-4deg) scale(1.06); }
+    80%  { transform: rotate(3deg) scale(1.01); }
+  }
+  @keyframes drawLine {
+    0%   { width: 0; opacity: 0; }
+    100% { width: 75%; opacity: 1; }
+  }
+  @keyframes gradientShift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  @keyframes pulseGold {
+    0%,100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.55), 0 12px 40px rgba(0,0,0,0.45); }
+    50%      { box-shadow: 0 0 0 14px rgba(212,175,55,0), 0 12px 40px rgba(0,0,0,0.45); }
+  }
+
+  .box {
+    background: linear-gradient(-45deg, #0d1b2a, #1a2c42, #162338, #0a1628, #1e3a5f);
+    background-size: 400% 400%;
+    animation: gradientShift 8s ease infinite, pulseGold 2.8s ease-out infinite;
+    border-radius: 20px;
+    border: 1px solid rgba(212,175,55,0.22);
+    padding: 36px 30px 28px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2.5px;
+    background: linear-gradient(90deg, transparent, #d4af37, #fff8dc, #d4af37, transparent);
+    background-size: 200% auto;
+    animation: goldShimmer 3s linear infinite;
+  }
+
+  .icon {
+    font-size: 62px;
+    display: inline-block;
+    filter: drop-shadow(0 0 16px rgba(212,175,55,0.5));
+    animation: fadeInUp 0.7s ease 0.1s both, scaleBalance 6s ease-in-out 2s infinite;
+    margin-bottom: 10px;
+  }
+
+  .letters {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+    letter-spacing: 3px;
+    margin-bottom: 5px;
+  }
+  .letter {
+    font-size: 58px;
+    font-weight: 900;
+    display: inline-block;
+    background: linear-gradient(90deg, #d4af37 30%, #fff8dc 50%, #d4af37 70%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    opacity: 0;
+  }
+  .lb { animation: comeFromLeft   1.1s cubic-bezier(0.34,1.56,0.64,1) 0.20s forwards, goldShimmer 3s linear 1.8s infinite; }
+  .la { animation: comeFromTop    1.1s cubic-bezier(0.34,1.56,0.64,1) 0.38s forwards, goldShimmer 3s linear 2.0s infinite; }
+  .ly { animation: comeFromBottom 1.1s cubic-bezier(0.34,1.56,0.64,1) 0.56s forwards, goldShimmer 3s linear 2.2s infinite; }
+  .la2{ animation: comeFromRight  1.1s cubic-bezier(0.34,1.56,0.64,1) 0.74s forwards, goldShimmer 3s linear 2.4s infinite; }
+
+  .legal {
+    font-size: 12px;
+    font-weight: 300;
+    letter-spacing: 7px;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase;
+    animation: fadeInUp 0.8s ease 1.1s both;
+    margin-bottom: 2px;
+  }
+  .gold-line {
+    display: block;
+    height: 1.5px;
+    background: linear-gradient(90deg, transparent, #d4af37, #fff8dc, #d4af37, transparent);
+    border-radius: 2px;
+    margin: 12px auto 0;
+    width: 0;
+    animation: drawLine 1.2s cubic-bezier(0.22,1,0.36,1) 1.0s forwards;
+  }
+  .subtitle {
+    color: rgba(255,255,255,0.9);
+    font-size: 15px;
+    font-weight: 600;
+    margin-top: 16px;
+    animation: fadeInUp 0.8s ease 1.4s both;
+    opacity: 0;
+  }
+  .hint {
+    color: rgba(170,188,215,0.78);
+    font-size: 12.5px;
+    margin-top: 7px;
+    animation: fadeInUp 0.8s ease 1.65s both;
+    opacity: 0;
+  }
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="icon">⚖️</div>
+  <div class="letters">
+    <span class="letter lb">B</span>
+    <span class="letter la">A</span>
+    <span class="letter ly">Y</span>
+    <span class="letter la2">A</span>
+  </div>
+  <div class="legal">L E G A L</div>
+  <span class="gold-line"></span>
+  <div class="subtitle">الجمعية التعاونية الزراعية بالناصرية</div>
+  <div class="hint">✦ يرجى إدخال بيانات الاعتماد للمتابعة ✦</div>
+</div>
+</body>
+</html>
 """
 
 if not st.session_state.logged_in:
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
-        st.markdown(LOGIN_HTML, unsafe_allow_html=True)
+        st.components.v1.html(LOGIN_COMPONENT, height=320, scrolling=False)
         with st.form("login_form"):
             username_input = st.text_input("👤 اسم المستخدم (أو رقم الهاتف)")
             password_input = st.text_input("🔑 كلمة المرور", type="password")
@@ -404,32 +939,35 @@ def generate_kesma_zip(kd):
     return zip_buffer.getvalue()
 
 # ==========================================
-# 6. القائمة الجانبية (Sidebar) مع الأنيميشن
+# 6. القائمة الجانبية اليمينية
 # ==========================================
-SIDEBAR_HTML = """
-<div style='text-align: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;'>
-    <div class='continuous-wave' style='font-size: 50px; margin-bottom: 0px;'>⚖️</div>
-    <div class='continuous-wave' style="direction: ltr; display: flex; justify-content: center; align-items: baseline; gap: 5px;">
-        <div style="font-size: 35px; font-weight: 900; color: white; display: flex; gap: 2px;">
-            <span class='letter-b'>B</span>
-            <span class='letter-a1'>A</span>
-            <span class='letter-y'>Y</span>
-            <span class='letter-a2'>A</span>
+SIDEBAR_LOGO_HTML = """
+<div style='text-align:center; padding:10px 0 20px 0; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:8px;'>
+    <div class='continuous-wave' style='font-size:46px; filter:drop-shadow(0 0 12px rgba(212,175,55,0.5));'>⚖️</div>
+    <div style='margin-top:6px;'>
+        <div style='direction:ltr; font-size:30px; font-weight:900; display:flex; justify-content:center; gap:2px; letter-spacing:2px;'>
+            <span class='letter-b' style='animation-delay:0.1s;'>B</span>
+            <span class='letter-a1' style='animation-delay:0.25s;'>A</span>
+            <span class='letter-y' style='animation-delay:0.4s;'>Y</span>
+            <span class='letter-a2' style='animation-delay:0.55s;'>A</span>
         </div>
-        <span class='fade-in-scale' style='font-size: 16px; font-weight: 600; color: #d4af37;'>Legal</span>
+        <div class='fade-in-scale' style='color:rgba(212,175,55,0.8); font-size:12px; letter-spacing:5px; font-weight:300; margin-top:2px; animation-delay:1s;'>L E G A L</div>
     </div>
+    <span class='gold-line' style='display:block; height:1.5px; background:linear-gradient(90deg,transparent,#d4af37,#fff8dc,#d4af37,transparent); margin:12px auto 0; width:0%; animation:drawLine 1.2s ease 0.8s forwards;'></span>
 </div>
 """
-st.sidebar.markdown(SIDEBAR_HTML, unsafe_allow_html=True)
+st.sidebar.markdown(SIDEBAR_LOGO_HTML, unsafe_allow_html=True)
 
 menu = ["📝 منظومة عقود البيع", "🤝 منظومة القسمة الرضائية", "🧮 حاسبة الأراضي", "📂 أرشيف العقود", "🖨️ إدارة المستندات (فردي)", "🔄 الاسترجاع من ملف (Backup)", "⚙️ إعدادات الأمان"]
 if 'active_menu' not in st.session_state: st.session_state.active_menu = menu[0]
-choice = st.sidebar.radio("القائمة:", menu, key="active_menu")
+choice = st.sidebar.radio("", menu, key="active_menu")
 
 st.sidebar.markdown("---")
 if st.sidebar.button("🚪 تسجيل الخروج", type="primary", use_container_width=True):
     st.session_state.logged_in = False
     st.rerun()
+
+
 
 # ==========================================
 # 7. واجهات البرنامج الرئيسية
@@ -718,7 +1256,7 @@ elif choice == "🤝 منظومة القسمة الرضائية":
                 with l_k: l["k"] = st.number_input("قيراط", min_value=0, max_value=23, step=1, value=int(l.get("k",0)), key=f"plk_{p_idx}_{l_idx}")
                 with l_f: l["f"] = st.number_input("فدان", min_value=0, step=1, value=int(l.get("f",0)), key=f"plf_{p_idx}_{l_idx}")
                 b1, b2, b3, b4 = st.columns(4)
-                with b1: l["n"] = text_input("الحد البحري", value=l.get("n",""), key=f"pln_{p_idx}_{l_idx}")
+                with b1: l["n"] = st.text_input("الحد البحري", value=l.get("n",""), key=f"pln_{p_idx}_{l_idx}")
                 with b2: l["s_bound"] = st.text_input("الحد القبلي", value=l.get("s_bound",""), key=f"pls_b_{p_idx}_{l_idx}")
                 with b3: l["e"] = st.text_input("الحد الشرقي", value=l.get("e",""), key=f"ple_{p_idx}_{l_idx}")
                 with b4: l["w"] = st.text_input("الحد الغربي", value=l.get("w",""), key=f"plw_{p_idx}_{l_idx}")
