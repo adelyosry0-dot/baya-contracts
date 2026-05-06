@@ -60,6 +60,7 @@ CSS_STYLE = """
     /* منع القائمة من تغطية الكلام ودفع الصفحة لليسار عند الفتح */
     .stApp > header { direction: rtl !important; }
     .stApp { direction: rtl !important; }
+    
     [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; }
     
     [data-testid="stSidebar"] div[role="radiogroup"] > label {
