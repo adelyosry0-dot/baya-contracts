@@ -14,7 +14,6 @@ from datetime import date
 st.set_page_config(page_title="BAYA Legal Contracts", layout="wide", page_icon="⚖️")
 
 CSS_STYLE = """
-CSS_STYLE = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap');
     
@@ -101,8 +100,6 @@ CSS_STYLE = """
     .fade-in-scale { animation: fadeInScale 1.2s ease-out forwards; display: inline-block; animation-delay: 0.4s; opacity: 0; }
     .continuous-wave { animation: floatingWave 3.5s ease-in-out infinite; display: inline-block; }
 </style>
-"""
-st.markdown(CSS_STYLE, unsafe_allow_html=True)
 """
 st.markdown(CSS_STYLE, unsafe_allow_html=True)
 
