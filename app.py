@@ -51,9 +51,9 @@ CSS_STYLE = """
         background: linear-gradient(180deg, #0d1b2a 0%, #1a2c42 45%, #162338 100%) !important;
         width: 310px !important;
         min-width: 310px !important;
-        border-left: none !important;
-        border-right: 1px solid rgba(212,175,55,0.25) !important;
-        box-shadow: -6px 0 30px rgba(0,0,0,0.4) !important;
+        border-left: 1px solid rgba(212,175,55,0.25) !important;
+        border-right: none !important;
+        box-shadow: 6px 0 30px rgba(0,0,0,0.4) !important;
         position: relative;
         overflow: hidden;
     }
@@ -70,17 +70,17 @@ CSS_STYLE = """
         z-index: 999;
     }
 
-    /* زر فتح السايدبار (الأسهم) - نضعه على اليسار لأن السايدبار بقى على اليمين */
+    /* زر فتح/إغلاق السايدبار - على الحافة اليسرى من السايدبار */
     [data-testid="collapsedControl"] {
-        left: 8px !important;
-        right: auto !important;
+        right: 8px !important;
+        left: auto !important;
         top: 50% !important;
         transform: translateY(-50%) !important;
         background: linear-gradient(135deg, #d4af37, #c9a227) !important;
-        border-radius: 10px 0 0 10px !important;
+        border-radius: 0 10px 10px 0 !important;
         width: 28px !important;
         height: 70px !important;
-        box-shadow: -4px 0 15px rgba(212,175,55,0.4) !important;
+        box-shadow: 4px 0 15px rgba(212,175,55,0.4) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -93,7 +93,7 @@ CSS_STYLE = """
     [data-testid="collapsedControl"]:hover {
         width: 36px !important;
         background: linear-gradient(135deg, #e8c547, #d4af37) !important;
-        box-shadow: -6px 0 22px rgba(212,175,55,0.6) !important;
+        box-shadow: 6px 0 22px rgba(212,175,55,0.6) !important;
     }
     [data-testid="collapsedControl"] svg {
         fill: #0d1b2a !important;
@@ -163,14 +163,14 @@ CSS_STYLE = """
     [data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
         background: rgba(36,59,85,0.8) !important;
         border-color: rgba(212,175,55,0.5) !important;
-        transform: translateX(-4px);
-        box-shadow: -4px 0 15px rgba(212,175,55,0.1);
+        transform: translateX(4px);
+        box-shadow: 4px 0 15px rgba(212,175,55,0.1);
     }
     div[role="radiogroup"] > label:has(input:checked) {
         background: linear-gradient(135deg, #d4af37, #c9a227) !important;
         border-color: #d4af37 !important;
         box-shadow: 0 4px 20px rgba(212,175,55,0.4) !important;
-        transform: translateX(-3px);
+        transform: translateX(3px);
     }
     div[role="radiogroup"] > label:has(input:checked) p {
         color: #0d1b2a !important;
@@ -191,8 +191,8 @@ CSS_STYLE = """
         background: linear-gradient(135deg, rgba(204,0,0,0.45), rgba(150,0,0,0.3)) !important;
         border-color: rgba(220,50,50,0.7) !important;
         color: #ffffff !important;
-        transform: translateX(-3px);
-        box-shadow: -4px 0 15px rgba(204,0,0,0.25) !important;
+        transform: translateX(3px);
+        box-shadow: 4px 0 15px rgba(204,0,0,0.25) !important;
     }
 
     /* اتجاه الصفحة */
@@ -320,48 +320,64 @@ CSS_STYLE = """
 
     /* حروف الشعار BAYA */
     .letter-b {
-        animation: comeFromLeft 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        animation: comeFromLeft 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards,
+                   goldShimmer 3s linear 1.8s infinite;
         display: inline-block;
-        animation-delay: 0.1s;
         opacity: 0;
-    }
-    .letter-a1 {
-        animation: comeFromTop 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        display: inline-block;
-        animation-delay: 0.25s;
-        opacity: 0;
-    }
-    .letter-y {
-        animation: comeFromBottom 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        display: inline-block;
-        animation-delay: 0.4s;
-        opacity: 0;
-    }
-    .letter-a2 {
-        animation: comeFromRight 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        display: inline-block;
-        animation-delay: 0.55s;
-        opacity: 0;
-    }
-
-    /* بريق ذهبي على حروف BAYA بعد الظهور */
-    .letter-b, .letter-a1, .letter-y, .letter-a2 {
         background: linear-gradient(90deg, #d4af37 30%, #fff8dc 50%, #d4af37 70%);
         background-size: 200% auto;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        animation: comeFromLeft 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-                   goldShimmer 3s linear 1.8s infinite;
     }
-    .letter-a1 { animation: comeFromTop 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldShimmer 3s linear 2s infinite; }
-    .letter-y   { animation: comeFromBottom 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldShimmer 3s linear 2.2s infinite; }
-    .letter-a2  { animation: comeFromRight 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldShimmer 3s linear 2.4s infinite; }
-
-    /* fade in عام محسّن */
-    .fade-in-scale {
-        animation: fadeInScale 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    .letter-a1 {
+        animation: comeFromTop 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.38s forwards,
+                   goldShimmer 3s linear 2s infinite;
         display: inline-block;
+        opacity: 0;
+        background: linear-gradient(90deg, #d4af37 30%, #fff8dc 50%, #d4af37 70%);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .letter-y {
+        animation: comeFromBottom 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.56s forwards,
+                   goldShimmer 3s linear 2.2s infinite;
+        display: inline-block;
+        opacity: 0;
+        background: linear-gradient(90deg, #d4af37 30%, #fff8dc 50%, #d4af37 70%);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .letter-a2 {
+        animation: comeFromRight 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.74s forwards,
+                   goldShimmer 3s linear 2.4s infinite;
+        display: inline-block;
+        opacity: 0;
+        background: linear-gradient(90deg, #d4af37 30%, #fff8dc 50%, #d4af37 70%);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* عناصر الدخول الأخرى بـ animation-delay صحيحة */
+    .legal-text {
+        animation: fadeInScale 0.9s cubic-bezier(0.22, 1, 0.36, 1) 1.1s forwards;
+        display: inline-block;
+        opacity: 0;
+    }
+    .society-name {
+        animation: fadeInScale 0.9s cubic-bezier(0.22, 1, 0.36, 1) 1.4s forwards;
+        display: block;
+        opacity: 0;
+    }
+    .login-hint {
+        animation: fadeInScale 0.9s cubic-bezier(0.22, 1, 0.36, 1) 1.6s forwards;
+        display: block;
         opacity: 0;
     }
 
@@ -582,178 +598,48 @@ def format_custom_date(iso_str, mode="full"):
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
-LOGIN_COMPONENT = """
-<!DOCTYPE html>
-<html dir="rtl">
-<head>
-<meta charset="UTF-8">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800;900&display=swap" rel="stylesheet">
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: transparent; font-family: 'Cairo', sans-serif; }
+LOGIN_HTML = """
+<div class='login-box-pulse' style='text-align:center; padding:38px 32px 32px; border-radius:20px; overflow:hidden; position:relative; border:1px solid rgba(212,175,55,0.2);'>
+    <div class='login-animated-bg' style='position:absolute;top:0;left:0;width:100%;height:100%;border-radius:20px;z-index:0;'></div>
+    <div style='position:relative;z-index:1;'>
 
-  @keyframes comeFromLeft {
-    0%   { transform: translateX(-120px) rotate(-25deg) scale(0.5); opacity: 0; filter: blur(6px); }
-    65%  { transform: translateX(10px) rotate(2deg) scale(1.06); opacity: 1; filter: blur(0); }
-    82%  { transform: translateX(-4px) rotate(-1deg) scale(0.98); }
-    100% { transform: translateX(0) rotate(0) scale(1); opacity: 1; }
-  }
-  @keyframes comeFromTop {
-    0%   { transform: translateY(-120px) scale(0.4) rotate(15deg); opacity: 0; filter: blur(8px); }
-    60%  { transform: translateY(10px) scale(1.08) rotate(-2deg); opacity: 1; filter: blur(0); }
-    80%  { transform: translateY(-4px) scale(0.97); }
-    100% { transform: translateY(0) scale(1) rotate(0); opacity: 1; }
-  }
-  @keyframes comeFromBottom {
-    0%   { transform: translateY(120px) scale(0.4) rotate(-15deg); opacity: 0; filter: blur(8px); }
-    60%  { transform: translateY(-10px) scale(1.08) rotate(2deg); opacity: 1; filter: blur(0); }
-    80%  { transform: translateY(4px) scale(0.97); }
-    100% { transform: translateY(0) scale(1) rotate(0); opacity: 1; }
-  }
-  @keyframes comeFromRight {
-    0%   { transform: translateX(120px) rotate(25deg) scale(0.5); opacity: 0; filter: blur(6px); }
-    65%  { transform: translateX(-10px) rotate(-2deg) scale(1.06); opacity: 1; filter: blur(0); }
-    82%  { transform: translateX(4px) rotate(1deg) scale(0.98); }
-    100% { transform: translateX(0) rotate(0) scale(1); opacity: 1; }
-  }
-  @keyframes goldShimmer {
-    0%   { background-position: -200% center; }
-    100% { background-position: 200% center; }
-  }
-  @keyframes fadeInUp {
-    0%   { opacity: 0; transform: translateY(18px); filter: blur(3px); }
-    100% { opacity: 1; transform: translateY(0); filter: blur(0); }
-  }
-  @keyframes scaleBalance {
-    0%,100% { transform: rotate(0deg) scale(1); }
-    20%  { transform: rotate(-10deg) scale(1.08); }
-    40%  { transform: rotate(8deg) scale(1.04); }
-    60%  { transform: rotate(-4deg) scale(1.06); }
-    80%  { transform: rotate(3deg) scale(1.01); }
-  }
-  @keyframes drawLine {
-    0%   { width: 0; opacity: 0; }
-    100% { width: 75%; opacity: 1; }
-  }
-  @keyframes gradientShift {
-    0%   { background-position: 0% 50%; }
-    50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-  @keyframes pulseGold {
-    0%,100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.55), 0 12px 40px rgba(0,0,0,0.45); }
-    50%      { box-shadow: 0 0 0 14px rgba(212,175,55,0), 0 12px 40px rgba(0,0,0,0.45); }
-  }
+        <!-- أيقونة الميزان -->
+        <div class='balance-icon' style='font-size:64px; margin-bottom:10px; filter:drop-shadow(0 0 18px rgba(212,175,55,0.55));'>⚖️</div>
 
-  .box {
-    background: linear-gradient(-45deg, #0d1b2a, #1a2c42, #162338, #0a1628, #1e3a5f);
-    background-size: 400% 400%;
-    animation: gradientShift 8s ease infinite, pulseGold 2.8s ease-out infinite;
-    border-radius: 20px;
-    border: 1px solid rgba(212,175,55,0.22);
-    padding: 36px 30px 28px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-  .box::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2.5px;
-    background: linear-gradient(90deg, transparent, #d4af37, #fff8dc, #d4af37, transparent);
-    background-size: 200% auto;
-    animation: goldShimmer 3s linear infinite;
-  }
+        <!-- BAYA - سطر كامل -->
+        <div style='direction:ltr; display:flex; justify-content:center; gap:3px; letter-spacing:3px; margin-bottom:4px;'>
+            <span class='letter-b' style='font-size:60px; font-weight:900;'>B</span>
+            <span class='letter-a1' style='font-size:60px; font-weight:900;'>A</span>
+            <span class='letter-y' style='font-size:60px; font-weight:900;'>Y</span>
+            <span class='letter-a2' style='font-size:60px; font-weight:900;'>A</span>
+        </div>
 
-  .icon {
-    font-size: 62px;
-    display: inline-block;
-    filter: drop-shadow(0 0 16px rgba(212,175,55,0.5));
-    animation: fadeInUp 0.7s ease 0.1s both, scaleBalance 6s ease-in-out 2s infinite;
-    margin-bottom: 10px;
-  }
+        <!-- Legal - سطر منفصل تحت BAYA -->
+        <div class='legal-text' style='color:rgba(255,255,255,0.65); font-size:13px; font-weight:300; letter-spacing:7px; text-transform:uppercase; margin-bottom:0;'>
+            L E G A L
+        </div>
 
-  .letters {
-    display: flex;
-    justify-content: center;
-    gap: 2px;
-    letter-spacing: 3px;
-    margin-bottom: 5px;
-  }
-  .letter {
-    font-size: 58px;
-    font-weight: 900;
-    display: inline-block;
-    background: linear-gradient(90deg, #d4af37 30%, #fff8dc 50%, #d4af37 70%);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    opacity: 0;
-  }
-  .lb { animation: comeFromLeft   1.1s cubic-bezier(0.34,1.56,0.64,1) 0.20s forwards, goldShimmer 3s linear 1.8s infinite; }
-  .la { animation: comeFromTop    1.1s cubic-bezier(0.34,1.56,0.64,1) 0.38s forwards, goldShimmer 3s linear 2.0s infinite; }
-  .ly { animation: comeFromBottom 1.1s cubic-bezier(0.34,1.56,0.64,1) 0.56s forwards, goldShimmer 3s linear 2.2s infinite; }
-  .la2{ animation: comeFromRight  1.1s cubic-bezier(0.34,1.56,0.64,1) 0.74s forwards, goldShimmer 3s linear 2.4s infinite; }
+        <!-- خط ذهبي -->
+        <span class='gold-line'></span>
 
-  .legal {
-    font-size: 12px;
-    font-weight: 300;
-    letter-spacing: 7px;
-    color: rgba(255,255,255,0.6);
-    text-transform: uppercase;
-    animation: fadeInUp 0.8s ease 1.1s both;
-    margin-bottom: 2px;
-  }
-  .gold-line {
-    display: block;
-    height: 1.5px;
-    background: linear-gradient(90deg, transparent, #d4af37, #fff8dc, #d4af37, transparent);
-    border-radius: 2px;
-    margin: 12px auto 0;
-    width: 0;
-    animation: drawLine 1.2s cubic-bezier(0.22,1,0.36,1) 1.0s forwards;
-  }
-  .subtitle {
-    color: rgba(255,255,255,0.9);
-    font-size: 15px;
-    font-weight: 600;
-    margin-top: 16px;
-    animation: fadeInUp 0.8s ease 1.4s both;
-    opacity: 0;
-  }
-  .hint {
-    color: rgba(170,188,215,0.78);
-    font-size: 12.5px;
-    margin-top: 7px;
-    animation: fadeInUp 0.8s ease 1.65s both;
-    opacity: 0;
-  }
-</style>
-</head>
-<body>
-<div class="box">
-  <div class="icon">⚖️</div>
-  <div class="letters">
-    <span class="letter lb">B</span>
-    <span class="letter la">A</span>
-    <span class="letter ly">Y</span>
-    <span class="letter la2">A</span>
-  </div>
-  <div class="legal">L E G A L</div>
-  <span class="gold-line"></span>
-  <div class="subtitle">الجمعية التعاونية الزراعية بالناصرية</div>
-  <div class="hint">✦ يرجى إدخال بيانات الاعتماد للمتابعة ✦</div>
-</div>
-</body>
-</html>
+        <!-- اسم الجمعية -->
+        <h3 class='society-name' style='color:rgba(255,255,255,0.92); margin-top:16px; font-weight:600; font-size:16px; margin-bottom:4px;'>
+            الجمعية التعاونية الزراعية بالناصرية
+        </h3>
+
+        <!-- نص الدخول -->
+        <p class='login-hint' style='color:rgba(170,188,215,0.8); margin-top:6px; font-size:13px;'>
+            ✦ يرجى إدخال بيانات الاعتماد للمتابعة ✦
+        </p>
+    </div>
+</div><br>
 """
 
 if not st.session_state.logged_in:
-    col1, col2, col3 = st.columns([1, 1.5, 1])
+    st.markdown("<br>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 1.6, 1])
     with col2:
-        st.components.v1.html(LOGIN_COMPONENT, height=320, scrolling=False)
+        st.markdown(LOGIN_HTML, unsafe_allow_html=True)
         with st.form("login_form"):
             username_input = st.text_input("👤 اسم المستخدم (أو رقم الهاتف)")
             password_input = st.text_input("🔑 كلمة المرور", type="password")
