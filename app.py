@@ -45,6 +45,21 @@ CSS_STYLE = """
         width: 340px !important; 
         min-width: 340px !important;
     }
+    /* عكس اتجاه الأسهم لتشير لليمين بشكل منطقي */
+    [data-testid="collapsedControl"] svg, 
+    [data-testid="stSidebarHeader"] button svg {
+        transform: rotate(180deg) !important;
+    }
+
+    /* تثبيت زر فتح القائمة في أقصى اليمين دائماً */
+    [data-testid="collapsedControl"] {
+        left: auto !important; 
+        right: 15px !important; 
+    }
+
+    /* منع القائمة من تغطية الكلام ودفع الصفحة لليسار عند الفتح */
+    .stApp > header { direction: rtl !important; }
+    .stApp { direction: rtl !important; }
     [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; }
     
     [data-testid="stSidebar"] div[role="radiogroup"] > label {
