@@ -14,19 +14,21 @@ from datetime import date
 st.set_page_config(page_title="BAYA Legal Contracts", layout="wide", page_icon="⚖️")
 
 CSS_STYLE = """
+CSS_STYLE = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap');
     
-    /* 1. ضبط الخط والاتجاه الأساسي */
-    .stApp { direction: rtl; text-align: right; }
-    
-    html, body, p, label, h1, h2, h3, h4, h5, h6, input, textarea, button, .stMarkdown, .stText {
+    /* 1. ضبط الخط والاتجاه الأساسي للمحتوى (مع ترك هيكل البرنامج الأصلي لمنع تداخل القائمة) */
+    p, label, h1, h2, h3, h4, h5, h6, input, textarea, button, .stMarkdown, .stText, div[role="radiogroup"] {
         font-family: 'Cairo', sans-serif !important;
+        direction: rtl !important;
+        text-align: right !important;
     }
 
     /* حماية أيقونات Streamlit لمنع ظهور نصوص إنجليزية مكانها */
     i, .material-icons, .material-symbols-rounded, [data-testid="stIconMaterial"], svg {
         font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
+        direction: ltr !important;
     }
 
     /* 2. إخفاء زوائد Streamlit (مع الحفاظ على الإعدادات - الثلاث نقاط) */
@@ -35,8 +37,6 @@ CSS_STYLE = """
     a[href*="github.com"] { display: none !important; visibility: hidden !important; }
     footer { display: none !important; visibility: hidden !important; } 
     .viewerBadge_container, [data-testid="stViewerBadge"] { display: none !important; visibility: hidden !important; }
-
-    /* إخفاء رسالة Press Enter to apply */
     [data-testid="InputInstructions"] { display: none !important; visibility: hidden !important; }
 
     /* 3. تصميم القائمة الجانبية (شكل المستطيلات الأصلي) وتوسيعها */
@@ -54,11 +54,11 @@ CSS_STYLE = """
     [data-testid="stSidebar"] div[role="radiogroup"] > label p { 
         color: #ffffff !important; font-size: 16px; margin: 0 !important; text-align: center; width: 100%; font-weight: 600; white-space: normal !important; padding: 5px;
     }
-    [data-testid="stSidebar"] div[role="radiogroup"] > label:hover { background-color: #243b55; border-color: #d4af37; transform: translateX(-5px); }
+    [data-testid="stSidebar"] div[role="radiogroup"] > label:hover { background-color: #243b55; border-color: #d4af37; transform: translateX(5px); }
     div[role="radiogroup"] > label:has(input:checked) { background-color: #d4af37 !important; border-color: #d4af37 !important; }
     div[role="radiogroup"] > label:has(input:checked) p { color: #000000 !important; font-weight: 800; font-size: 18px !important; }
     
-    /* تلوين أزرار الفتح والإغلاق للقائمة لتكون ذهبية وكحلي (مع ترك حركتها الطبيعية) */
+    /* تلوين أزرار الفتح والإغلاق للقائمة لتكون ذهبية وكحلي */
     [data-testid="collapsedControl"] {
         background-color: #d4af37 !important; border-radius: 50% !important; box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important; 
         transition: all 0.3s ease !important; z-index: 999999 !important; padding: 5px !important; margin: 10px !important;
@@ -101,6 +101,8 @@ CSS_STYLE = """
     .fade-in-scale { animation: fadeInScale 1.2s ease-out forwards; display: inline-block; animation-delay: 0.4s; opacity: 0; }
     .continuous-wave { animation: floatingWave 3.5s ease-in-out infinite; display: inline-block; }
 </style>
+"""
+st.markdown(CSS_STYLE, unsafe_allow_html=True)
 """
 st.markdown(CSS_STYLE, unsafe_allow_html=True)
 
