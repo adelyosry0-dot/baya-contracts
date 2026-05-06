@@ -24,14 +24,14 @@ CSS_STYLE = """
         font-family: 'Cairo', sans-serif !important;
     }
 
-    /* حماية أيقونات Streamlit لمنع ظهور نصوص مثل keyboard_arrow_down */
+    /* حماية أيقونات Streamlit لمنع ظهور نصوص إنجليزية مكانها */
     i, .material-icons, .material-symbols-rounded, [data-testid="stIconMaterial"], svg {
         font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
     }
 
-    /* 2. إخفاء زوائد Streamlit المزعجة (مع الحفاظ على قائمة الإعدادات 3 نقاط) */
+    /* 2. إخفاء زوائد Streamlit (مع الحفاظ على الإعدادات - الثلاث نقاط) */
     [data-testid="stHeader"] { background: transparent !important; }
-    .stAppDeployButton { display: none !important; visibility: hidden !important; }
+    .stAppDeployButton, [data-testid="stAppDeployButton"] { display: none !important; visibility: hidden !important; }
     a[href*="github.com"] { display: none !important; visibility: hidden !important; }
     footer { display: none !important; visibility: hidden !important; } 
     .viewerBadge_container, [data-testid="stViewerBadge"] { display: none !important; visibility: hidden !important; }
@@ -39,35 +39,18 @@ CSS_STYLE = """
     /* إخفاء رسالة Press Enter to apply */
     [data-testid="InputInstructions"] { display: none !important; visibility: hidden !important; }
 
-    /* 3. تصميم القائمة الجانبية وتوسيعها */
+    /* 3. تصميم القائمة الجانبية (شكل المستطيلات الأصلي) وتوسيعها */
     [data-testid="stSidebar"] { 
         background-color: #1a2c42 !important; 
         width: 340px !important; 
         min-width: 340px !important;
     }
-    /* عكس اتجاه الأسهم لتشير لليمين بشكل منطقي */
-    [data-testid="collapsedControl"] svg, 
-    [data-testid="stSidebarHeader"] button svg {
-        transform: rotate(180deg) !important;
-    }
-
-    /* تثبيت زر فتح القائمة في أقصى اليمين دائماً */
-    [data-testid="collapsedControl"] {
-        left: auto !important; 
-        right: 15px !important; 
-    }
-
-    /* منع القائمة من تغطية الكلام ودفع الصفحة لليسار عند الفتح */
-    .stApp > header { direction: rtl !important; }
-    .stApp { direction: rtl !important; }
-    
     [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; }
     
     [data-testid="stSidebar"] div[role="radiogroup"] > label {
         background-color: transparent; padding: 0; min-height: 55px; width: 100%; border-radius: 8px; margin-bottom: 12px;
         transition: all 0.3s ease-in-out; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center;
     }
-    /* السماح للنص بالتمدد داخل الزر بدلا من الاختفاء */
     [data-testid="stSidebar"] div[role="radiogroup"] > label p { 
         color: #ffffff !important; font-size: 16px; margin: 0 !important; text-align: center; width: 100%; font-weight: 600; white-space: normal !important; padding: 5px;
     }
@@ -75,11 +58,10 @@ CSS_STYLE = """
     div[role="radiogroup"] > label:has(input:checked) { background-color: #d4af37 !important; border-color: #d4af37 !important; }
     div[role="radiogroup"] > label:has(input:checked) p { color: #000000 !important; font-weight: 800; font-size: 18px !important; }
     
-    /* أزرار الفتح الخارجي والإغلاق الداخلي للقائمة */
+    /* تلوين أزرار الفتح والإغلاق للقائمة لتكون ذهبية وكحلي (مع ترك حركتها الطبيعية) */
     [data-testid="collapsedControl"] {
         background-color: #d4af37 !important; border-radius: 50% !important; box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important; 
-        transition: all 0.3s ease !important; display: flex !important; align-items: center !important; justify-content: center !important;
-        z-index: 999999 !important; padding: 5px !important; margin: 10px !important; left: auto !important; right: 1rem !important; top: 1rem !important;
+        transition: all 0.3s ease !important; z-index: 999999 !important; padding: 5px !important; margin: 10px !important;
     }
     [data-testid="collapsedControl"] svg { fill: #1a2c42 !important; color: #1a2c42 !important; width: 24px !important; height: 24px !important;}
     [data-testid="collapsedControl"]:hover { background-color: #ffffff !important; transform: scale(1.1); }
@@ -737,7 +719,7 @@ elif choice == "🤝 منظومة القسمة الرضائية":
                 with l_k: l["k"] = st.number_input("قيراط", min_value=0, max_value=23, step=1, value=int(l.get("k",0)), key=f"plk_{p_idx}_{l_idx}")
                 with l_f: l["f"] = st.number_input("فدان", min_value=0, step=1, value=int(l.get("f",0)), key=f"plf_{p_idx}_{l_idx}")
                 b1, b2, b3, b4 = st.columns(4)
-                with b1: l["n"] = st.text_input("الحد البحري", value=l.get("n",""), key=f"pln_{p_idx}_{l_idx}")
+                with b1: l["n"] = text_input("الحد البحري", value=l.get("n",""), key=f"pln_{p_idx}_{l_idx}")
                 with b2: l["s_bound"] = st.text_input("الحد القبلي", value=l.get("s_bound",""), key=f"pls_b_{p_idx}_{l_idx}")
                 with b3: l["e"] = st.text_input("الحد الشرقي", value=l.get("e",""), key=f"ple_{p_idx}_{l_idx}")
                 with b4: l["w"] = st.text_input("الحد الغربي", value=l.get("w",""), key=f"plw_{p_idx}_{l_idx}")
