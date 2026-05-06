@@ -39,165 +39,56 @@ CSS_STYLE = """
     /* إخفاء رسالة Press Enter to apply */
     [data-testid="InputInstructions"] { display: none !important; visibility: hidden !important; }
 
-    /* 3. تحريك القائمة الجانبية الأصلية لليمين */
-
-    /* عكس موضع الـ layout الكامل - يحرك السايدبار لليمين */
-    [data-testid="stAppViewContainer"] {
-        flex-direction: row-reverse !important;
+    /* 3. تصميم القائمة الجانبية وتوسيعها */
+    [data-testid="stSidebar"] { 
+        background-color: #1a2c42 !important; 
+        width: 340px !important; 
+        min-width: 340px !important;
     }
-
-    /* السايدبار */
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0d1b2a 0%, #1a2c42 45%, #162338 100%) !important;
-        width: 310px !important;
-        min-width: 310px !important;
-        border-left: 1px solid rgba(212,175,55,0.25) !important;
-        border-right: none !important;
-        box-shadow: 6px 0 30px rgba(0,0,0,0.4) !important;
-        position: relative;
-        overflow: hidden;
-    }
-
-    /* خط ذهبي مضيء في أعلى السايدبار */
-    [data-testid="stSidebar"]::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, transparent, #d4af37, #fff8dc, #d4af37, transparent);
-        background-size: 200% auto;
-        animation: goldShimmer 3s linear infinite;
-        z-index: 999;
-    }
-
-    /* زر فتح/إغلاق السايدبار - على الحافة اليسرى من السايدبار */
-    [data-testid="collapsedControl"] {
-        right: 8px !important;
-        left: auto !important;
-        top: 50% !important;
-        transform: translateY(-50%) !important;
-        background: linear-gradient(135deg, #d4af37, #c9a227) !important;
-        border-radius: 0 10px 10px 0 !important;
-        width: 28px !important;
-        height: 70px !important;
-        box-shadow: 4px 0 15px rgba(212,175,55,0.4) !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        z-index: 99999 !important;
-        transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1) !important;
-        border: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    [data-testid="collapsedControl"]:hover {
-        width: 36px !important;
-        background: linear-gradient(135deg, #e8c547, #d4af37) !important;
-        box-shadow: 6px 0 22px rgba(212,175,55,0.6) !important;
-    }
-    [data-testid="collapsedControl"] svg {
-        fill: #0d1b2a !important;
-        color: #0d1b2a !important;
-        width: 20px !important;
-        height: 20px !important;
-        transform: none !important;
-    }
-
-    /* زر الإغلاق داخل السايدبار */
-    [data-testid="stSidebarHeader"] {
-        background: transparent !important;
-        padding: 8px 12px !important;
-    }
-    [data-testid="stSidebarHeader"] button {
-        background: rgba(212,175,55,0.15) !important;
-        border-radius: 8px !important;
-        border: 1px solid rgba(212,175,55,0.3) !important;
-        z-index: 999 !important;
-        transition: all 0.3s ease !important;
-    }
-    [data-testid="stSidebarHeader"] button:hover {
-        background: rgba(212,175,55,0.35) !important;
-        border-color: #d4af37 !important;
-    }
+    /* عكس اتجاه الأسهم لتشير لليمين بشكل منطقي */
+    [data-testid="collapsedControl"] svg, 
     [data-testid="stSidebarHeader"] button svg {
-        fill: #d4af37 !important;
-        color: #d4af37 !important;
+        transform: rotate(180deg) !important;
     }
 
-    /* المحتوى الرئيسي - padding من اليمين بدل اليسار */
-    section[data-testid="stMain"] {
-        margin-right: 0 !important;
-        margin-left: 0 !important;
+    /* تثبيت زر فتح القائمة في أقصى اليمين دائماً */
+    [data-testid="collapsedControl"] {
+        left: auto !important; 
+        right: 15px !important; 
     }
 
-    /* عناصر قائمة السايدبار */
-    [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child {
-        display: none !important;
-    }
-    [data-testid="stSidebar"] div[role="radiogroup"] > label {
-        background: rgba(255,255,255,0.03);
-        padding: 0;
-        min-height: 52px;
-        width: 100%;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        border: 1px solid rgba(255,255,255,0.1) !important;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-        position: relative;
-        overflow: hidden;
-    }
-    [data-testid="stSidebar"] div[role="radiogroup"] > label p {
-        color: #ffffff !important;
-        font-size: 15px;
-        margin: 0 !important;
-        text-align: center;
-        width: 100%;
-        font-weight: 600;
-        white-space: normal !important;
-        padding: 8px 10px;
-    }
-    [data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
-        background: rgba(36,59,85,0.8) !important;
-        border-color: rgba(212,175,55,0.5) !important;
-        transform: translateX(4px);
-        box-shadow: 4px 0 15px rgba(212,175,55,0.1);
-    }
-    div[role="radiogroup"] > label:has(input:checked) {
-        background: linear-gradient(135deg, #d4af37, #c9a227) !important;
-        border-color: #d4af37 !important;
-        box-shadow: 0 4px 20px rgba(212,175,55,0.4) !important;
-        transform: translateX(3px);
-    }
-    div[role="radiogroup"] > label:has(input:checked) p {
-        color: #0d1b2a !important;
-        font-weight: 800;
-        font-size: 16px !important;
-    }
-
-    /* زر تسجيل الخروج في السايدبار */
-    [data-testid="stSidebar"] .stButton button[kind="primary"] {
-        background: linear-gradient(135deg, rgba(180,20,20,0.25), rgba(120,10,10,0.15)) !important;
-        border: 1px solid rgba(204,0,0,0.4) !important;
-        color: #ff8a8a !important;
-        font-weight: 700 !important;
-        transition: all 0.3s ease !important;
-        border-radius: 10px !important;
-    }
-    [data-testid="stSidebar"] .stButton button[kind="primary"]:hover {
-        background: linear-gradient(135deg, rgba(204,0,0,0.45), rgba(150,0,0,0.3)) !important;
-        border-color: rgba(220,50,50,0.7) !important;
-        color: #ffffff !important;
-        transform: translateX(3px);
-        box-shadow: 4px 0 15px rgba(204,0,0,0.25) !important;
-    }
-
-    /* اتجاه الصفحة */
+    /* منع القائمة من تغطية الكلام ودفع الصفحة لليسار عند الفتح */
     .stApp > header { direction: rtl !important; }
     .stApp { direction: rtl !important; }
+    
+    [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; }
+    
+    [data-testid="stSidebar"] div[role="radiogroup"] > label {
+        background-color: transparent; padding: 0; min-height: 55px; width: 100%; border-radius: 8px; margin-bottom: 12px;
+        transition: all 0.3s ease-in-out; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    /* السماح للنص بالتمدد داخل الزر بدلا من الاختفاء */
+    [data-testid="stSidebar"] div[role="radiogroup"] > label p { 
+        color: #ffffff !important; font-size: 16px; margin: 0 !important; text-align: center; width: 100%; font-weight: 600; white-space: normal !important; padding: 5px;
+    }
+    [data-testid="stSidebar"] div[role="radiogroup"] > label:hover { background-color: #243b55; border-color: #d4af37; transform: translateX(-5px); }
+    div[role="radiogroup"] > label:has(input:checked) { background-color: #d4af37 !important; border-color: #d4af37 !important; }
+    div[role="radiogroup"] > label:has(input:checked) p { color: #000000 !important; font-weight: 800; font-size: 18px !important; }
+    
+    /* أزرار الفتح الخارجي والإغلاق الداخلي للقائمة */
+    [data-testid="collapsedControl"] {
+        background-color: #d4af37 !important; border-radius: 50% !important; box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important; 
+        transition: all 0.3s ease !important; display: flex !important; align-items: center !important; justify-content: center !important;
+        z-index: 999999 !important; padding: 5px !important; margin: 10px !important; left: auto !important; right: 1rem !important; top: 1rem !important;
+    }
+    [data-testid="collapsedControl"] svg { fill: #1a2c42 !important; color: #1a2c42 !important; width: 24px !important; height: 24px !important;}
+    [data-testid="collapsedControl"]:hover { background-color: #ffffff !important; transform: scale(1.1); }
+
+    [data-testid="stSidebarHeader"] button {
+        background-color: #d4af37 !important; border-radius: 50% !important; z-index: 999999 !important; box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
+    }
+    [data-testid="stSidebarHeader"] button svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
+    [data-testid="stSidebarHeader"] button:hover { background-color: #ffffff !important; transform: scale(1.1); }
 
     /* 4. تصميم العناوين والمدخلات */
     .stTextInput input, .stNumberInput input, .stTextArea textarea { transition: all 0.3s ease; border: 1px solid #ccc; }
@@ -320,64 +211,48 @@ CSS_STYLE = """
 
     /* حروف الشعار BAYA */
     .letter-b {
-        animation: comeFromLeft 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards,
-                   goldShimmer 3s linear 1.8s infinite;
+        animation: comeFromLeft 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         display: inline-block;
+        animation-delay: 0.1s;
         opacity: 0;
-        background: linear-gradient(90deg, #d4af37 30%, #fff8dc 50%, #d4af37 70%);
-        background-size: 200% auto;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
     }
     .letter-a1 {
-        animation: comeFromTop 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.38s forwards,
-                   goldShimmer 3s linear 2s infinite;
+        animation: comeFromTop 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         display: inline-block;
+        animation-delay: 0.25s;
         opacity: 0;
-        background: linear-gradient(90deg, #d4af37 30%, #fff8dc 50%, #d4af37 70%);
-        background-size: 200% auto;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
     }
     .letter-y {
-        animation: comeFromBottom 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.56s forwards,
-                   goldShimmer 3s linear 2.2s infinite;
+        animation: comeFromBottom 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         display: inline-block;
+        animation-delay: 0.4s;
         opacity: 0;
-        background: linear-gradient(90deg, #d4af37 30%, #fff8dc 50%, #d4af37 70%);
-        background-size: 200% auto;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
     }
     .letter-a2 {
-        animation: comeFromRight 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.74s forwards,
-                   goldShimmer 3s linear 2.4s infinite;
+        animation: comeFromRight 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         display: inline-block;
+        animation-delay: 0.55s;
         opacity: 0;
+    }
+
+    /* بريق ذهبي على حروف BAYA بعد الظهور */
+    .letter-b, .letter-a1, .letter-y, .letter-a2 {
         background: linear-gradient(90deg, #d4af37 30%, #fff8dc 50%, #d4af37 70%);
         background-size: 200% auto;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
+        animation: comeFromLeft 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+                   goldShimmer 3s linear 1.8s infinite;
     }
+    .letter-a1 { animation: comeFromTop 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldShimmer 3s linear 2s infinite; }
+    .letter-y   { animation: comeFromBottom 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldShimmer 3s linear 2.2s infinite; }
+    .letter-a2  { animation: comeFromRight 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldShimmer 3s linear 2.4s infinite; }
 
-    /* عناصر الدخول الأخرى بـ animation-delay صحيحة */
-    .legal-text {
-        animation: fadeInScale 0.9s cubic-bezier(0.22, 1, 0.36, 1) 1.1s forwards;
+    /* fade in عام محسّن */
+    .fade-in-scale {
+        animation: fadeInScale 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         display: inline-block;
-        opacity: 0;
-    }
-    .society-name {
-        animation: fadeInScale 0.9s cubic-bezier(0.22, 1, 0.36, 1) 1.4s forwards;
-        display: block;
-        opacity: 0;
-    }
-    .login-hint {
-        animation: fadeInScale 0.9s cubic-bezier(0.22, 1, 0.36, 1) 1.6s forwards;
-        display: block;
         opacity: 0;
     }
 
@@ -599,45 +474,29 @@ if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
 LOGIN_HTML = """
-<div class='login-box-pulse' style='text-align:center; padding:38px 32px 32px; border-radius:20px; overflow:hidden; position:relative; border:1px solid rgba(212,175,55,0.2);'>
+<div class='login-box-pulse' style='text-align: center; padding: 45px 35px; border-radius: 20px; overflow: hidden; position: relative; border: 1px solid rgba(212,175,55,0.25);'>
     <div class='login-animated-bg' style='position:absolute;top:0;left:0;width:100%;height:100%;border-radius:20px;z-index:0;'></div>
     <div style='position:relative;z-index:1;'>
-
-        <!-- أيقونة الميزان -->
-        <div class='balance-icon' style='font-size:64px; margin-bottom:10px; filter:drop-shadow(0 0 18px rgba(212,175,55,0.55));'>⚖️</div>
-
-        <!-- BAYA - سطر كامل -->
-        <div style='direction:ltr; display:flex; justify-content:center; gap:3px; letter-spacing:3px; margin-bottom:4px;'>
-            <span class='letter-b' style='font-size:60px; font-weight:900;'>B</span>
-            <span class='letter-a1' style='font-size:60px; font-weight:900;'>A</span>
-            <span class='letter-y' style='font-size:60px; font-weight:900;'>Y</span>
-            <span class='letter-a2' style='font-size:60px; font-weight:900;'>A</span>
+        <div class='balance-icon' style='font-size: 70px; margin-bottom: 8px; animation-delay: 0.1s; filter: drop-shadow(0 0 15px rgba(212,175,55,0.5));'>⚖️</div>
+        <div style="direction: ltr; display: flex; justify-content: center; align-items: baseline; gap: 6px; margin-bottom: 4px;">
+            <div style="font-size: 62px; font-weight: 900; display: flex; gap: 3px; letter-spacing: 2px;">
+                <span class='letter-b' style='animation-delay: 0.2s;'>B</span>
+                <span class='letter-a1' style='animation-delay: 0.4s;'>A</span>
+                <span class='letter-y' style='animation-delay: 0.6s;'>Y</span>
+                <span class='letter-a2' style='animation-delay: 0.8s;'>A</span>
+            </div>
+            <span class='fade-in-scale continuous-wave' style='color: rgba(255,255,255,0.9); font-size: 28px; font-weight: 300; animation-delay: 1.2s; letter-spacing: 4px;'>Legal</span>
         </div>
-
-        <!-- Legal - سطر منفصل تحت BAYA -->
-        <div class='legal-text' style='color:rgba(255,255,255,0.65); font-size:13px; font-weight:300; letter-spacing:7px; text-transform:uppercase; margin-bottom:0;'>
-            L E G A L
-        </div>
-
-        <!-- خط ذهبي -->
         <span class='gold-line'></span>
-
-        <!-- اسم الجمعية -->
-        <h3 class='society-name' style='color:rgba(255,255,255,0.92); margin-top:16px; font-weight:600; font-size:16px; margin-bottom:4px;'>
-            الجمعية التعاونية الزراعية بالناصرية
-        </h3>
-
-        <!-- نص الدخول -->
-        <p class='login-hint' style='color:rgba(170,188,215,0.8); margin-top:6px; font-size:13px;'>
-            ✦ يرجى إدخال بيانات الاعتماد للمتابعة ✦
-        </p>
+        <h3 class='fade-in-scale' style='color: rgba(255,255,255,0.95); margin-top: 18px; font-weight: 600; font-size: 17px; animation-delay: 1.5s;'>الجمعية التعاونية الزراعية بالناصرية</h3>
+        <p class='fade-in-scale' style='color: rgba(180,195,220,0.85); margin-top: 8px; font-size: 14px; animation-delay: 1.7s;'>✦ يرجى إدخال بيانات الاعتماد للمتابعة ✦</p>
     </div>
 </div><br>
 """
 
 if not st.session_state.logged_in:
-    st.markdown("<br>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 1.6, 1])
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown(LOGIN_HTML, unsafe_allow_html=True)
         with st.form("login_form"):
@@ -825,35 +684,32 @@ def generate_kesma_zip(kd):
     return zip_buffer.getvalue()
 
 # ==========================================
-# 6. القائمة الجانبية اليمينية
+# 6. القائمة الجانبية (Sidebar) مع الأنيميشن
 # ==========================================
-SIDEBAR_LOGO_HTML = """
-<div style='text-align:center; padding:10px 0 20px 0; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:8px;'>
-    <div class='continuous-wave' style='font-size:46px; filter:drop-shadow(0 0 12px rgba(212,175,55,0.5));'>⚖️</div>
-    <div style='margin-top:6px;'>
-        <div style='direction:ltr; font-size:30px; font-weight:900; display:flex; justify-content:center; gap:2px; letter-spacing:2px;'>
-            <span class='letter-b' style='animation-delay:0.1s;'>B</span>
-            <span class='letter-a1' style='animation-delay:0.25s;'>A</span>
-            <span class='letter-y' style='animation-delay:0.4s;'>Y</span>
-            <span class='letter-a2' style='animation-delay:0.55s;'>A</span>
+SIDEBAR_HTML = """
+<div style='text-align: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;'>
+    <div class='continuous-wave' style='font-size: 50px; margin-bottom: 0px;'>⚖️</div>
+    <div class='continuous-wave' style="direction: ltr; display: flex; justify-content: center; align-items: baseline; gap: 5px;">
+        <div style="font-size: 35px; font-weight: 900; color: white; display: flex; gap: 2px;">
+            <span class='letter-b'>B</span>
+            <span class='letter-a1'>A</span>
+            <span class='letter-y'>Y</span>
+            <span class='letter-a2'>A</span>
         </div>
-        <div class='fade-in-scale' style='color:rgba(212,175,55,0.8); font-size:12px; letter-spacing:5px; font-weight:300; margin-top:2px; animation-delay:1s;'>L E G A L</div>
+        <span class='fade-in-scale' style='font-size: 16px; font-weight: 600; color: #d4af37;'>Legal</span>
     </div>
-    <span class='gold-line' style='display:block; height:1.5px; background:linear-gradient(90deg,transparent,#d4af37,#fff8dc,#d4af37,transparent); margin:12px auto 0; width:0%; animation:drawLine 1.2s ease 0.8s forwards;'></span>
 </div>
 """
-st.sidebar.markdown(SIDEBAR_LOGO_HTML, unsafe_allow_html=True)
+st.sidebar.markdown(SIDEBAR_HTML, unsafe_allow_html=True)
 
 menu = ["📝 منظومة عقود البيع", "🤝 منظومة القسمة الرضائية", "🧮 حاسبة الأراضي", "📂 أرشيف العقود", "🖨️ إدارة المستندات (فردي)", "🔄 الاسترجاع من ملف (Backup)", "⚙️ إعدادات الأمان"]
 if 'active_menu' not in st.session_state: st.session_state.active_menu = menu[0]
-choice = st.sidebar.radio("", menu, key="active_menu")
+choice = st.sidebar.radio("القائمة:", menu, key="active_menu")
 
 st.sidebar.markdown("---")
 if st.sidebar.button("🚪 تسجيل الخروج", type="primary", use_container_width=True):
     st.session_state.logged_in = False
     st.rerun()
-
-
 
 # ==========================================
 # 7. واجهات البرنامج الرئيسية
