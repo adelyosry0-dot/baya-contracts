@@ -90,30 +90,27 @@ CSS_STYLE = """
     [data-testid="stSidebarHeader"] button svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
     [data-testid="stSidebarHeader"] button:hover { background-color: #ffffff !important; transform: scale(1.1); }
 
-    /* زر الطي >> على يسار الشريط الجانبي */
+    /* زر الطي المطور لبرنامج BAYA */
     #sidebar-toggle-btn {
         position: fixed;
-        top: 50%;
-        left: 0px;
-        transform: translateY(-50%);
+        top: 20px;
+        right: 0px; 
         z-index: 9999999;
         background-color: #d4af37;
         color: #1a2c42;
         border: none;
-        border-radius: 0 8px 8px 0;
-        padding: 14px 8px;
-        font-size: 16px;
+        border-radius: 8px 0 0 8px;
+        padding: 12px 10px;
+        font-size: 18px;
         font-weight: 900;
         cursor: pointer;
-        box-shadow: 3px 0 10px rgba(0,0,0,0.3);
+        box-shadow: -2px 0 10px rgba(0,0,0,0.3);
         transition: all 0.3s ease;
-        line-height: 1.2;
-        direction: ltr;
+        line-height: 1;
     }
     #sidebar-toggle-btn:hover {
         background-color: #ffffff;
-        color: #1a2c42;
-        left: 2px;
+        padding-right: 15px;
     }
 
     /* 4. تصميم العناوين والمدخلات */
@@ -780,53 +777,53 @@ SIDEBAR_HTML = """
 st.sidebar.markdown(SIDEBAR_HTML, unsafe_allow_html=True)
 
 # JavaScript لإضافة زر << / >> لطي/فتح الشريط الجانبي يدوياً
-SIDEBAR_TOGGLE_JS = """
+    SIDEBAR_TOGGLE_JS = """
 <script>
 (function() {
     function addToggleBtn() {
         if (document.getElementById('sidebar-toggle-btn')) return;
+        
         var btn = document.createElement('button');
         btn.id = 'sidebar-toggle-btn';
-        btn.title = 'طي / فتح القائمة';
-
-        function isSidebarVisible() {
-            // إذا ظهر collapsedControl فالشريط مطوي
-            return !document.querySelector('[data-testid="collapsedControl"]');
-        }
-
-        function updateBtn() {
-            // الشريط على اليمين: مفتوح >> اضغط لطيه (<<) | مطوي << اضغط لفتحه (>>)
-            btn.innerHTML = isSidebarVisible() ? '&lt;&lt;' : '&gt;&gt;';
+        
+        function updateBtnIcon() {
+            var sidebar = document.querySelector('[data-testid="stSidebar"]');
+            // التأكد من حالة القائمة (مغلقة أم مفتوحة)
+            var isCollapsed = sidebar ? sidebar.getAttribute('aria-expanded') === 'false' : true;
+            btn.innerHTML = isCollapsed ? '◀' : '▶';
+            
+            // تحريك الزر مع القائمة الجانبية
+            if (!isCollapsed) {
+                btn.style.right = '340px'; 
+            } else {
+                btn.style.right = '0px';
+            }
         }
 
         btn.onclick = function() {
-            var collapsedBtn = document.querySelector('[data-testid="collapsedControl"]');
-            var headerBtn = document.querySelector('[data-testid="stSidebarHeader"] button');
-            if (collapsedBtn) {
-                collapsedBtn.click(); // الشريط مطوي -> افتحه
-            } else if (headerBtn) {
-                headerBtn.click(); // الشريط مفتوح -> اطوه
-            }
-            setTimeout(updateBtn, 350);
+            var closeBtn = document.querySelector('[data-testid="stSidebarHeader"] button');
+            var openBtn = document.querySelector('[data-testid="collapsedControl"]');
+            
+            if (openBtn) { openBtn.click(); } 
+            else if (closeBtn) { closeBtn.click(); }
+            
+            setTimeout(updateBtnIcon, 400);
         };
 
-        var observer = new MutationObserver(updateBtn);
-        observer.observe(document.body, { childList: true, subtree: true });
         document.body.appendChild(btn);
-        updateBtn();
+        var observer = new MutationObserver(updateBtnIcon);
+        observer.observe(document.body, { childList: true, subtree: true });
+        updateBtnIcon();
     }
 
-    setTimeout(addToggleBtn, 800);
-
-    // إعادة إضافة الزر بعد كل rerun لـ Streamlit
+    setTimeout(addToggleBtn, 1000);
     var pageObserver = new MutationObserver(function() {
-        if (!document.getElementById('sidebar-toggle-btn')) {
-            setTimeout(addToggleBtn, 400);
-        }
+        if (!document.getElementById('sidebar-toggle-btn')) { addToggleBtn(); }
     });
     pageObserver.observe(document.body, { childList: true });
 })();
 </script>
+"""
 """
 st.markdown(SIDEBAR_TOGGLE_JS, unsafe_allow_html=True)
 
