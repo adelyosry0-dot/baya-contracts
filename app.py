@@ -667,7 +667,7 @@ LOGIN_HTML = """
         </div>
         <span class='gold-line'></span>
         <h3 class='fade-in-scale' style='color: rgba(255,255,255,0.95); margin-top: 18px; font-weight: 600; font-size: 17px; animation-delay: 1.5s;'>الجمعية التعاونية الزراعية بالناصرية</h3>
-        <p class='fade-in-scale' style='color: rgba(180,195,220,0.85); margin-top: 8px; font-size: 14px; animation-delay: 1.7s;'>✦ يرجى إدخال بيانات الاعتماد للمتابعة ✦</p>
+        <p class='fade-in-scale' style='color: rgba(180,195,220,0.85); margin-top: 8px; font-size: 14px; animation-delay: 1.7s;'>منظومة عادل يسري الكامله لعقود البيه والقسمه الرضائية</p>
     </div>
 </div><br>
 """
