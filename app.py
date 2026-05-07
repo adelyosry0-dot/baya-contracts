@@ -29,7 +29,7 @@ CSS_STYLE = """
         font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
     }
 
-    /* 2. إخفاء زوائد Streamlit المزعجة (مع الحفاظ على قائمة الإعدادات 3 نقاط) */
+    /* 2. إخفاء زوائد Streamlit المزعجة */
     [data-testid="stHeader"] { background: transparent !important; }
     .stAppDeployButton { display: none !important; visibility: hidden !important; }
     a[href*="github.com"] { display: none !important; visibility: hidden !important; }
@@ -39,56 +39,111 @@ CSS_STYLE = """
     /* إخفاء رسالة Press Enter to apply */
     [data-testid="InputInstructions"] { display: none !important; visibility: hidden !important; }
 
-    /* 3. تصميم القائمة الجانبية وتوسيعها */
+    /* إخفاء زر المظهر الداكن وشريط الأدوات العلوي */
+    [data-testid="stToolbar"] { display: none !important; visibility: hidden !important; }
+    [data-testid="stDecoration"] { display: none !important; visibility: hidden !important; }
+    #MainMenu { display: none !important; visibility: hidden !important; }
+
+    /* ==========================================
+       3. تثبيت الشريط الجانبي على اليمين
+    ========================================== */
     [data-testid="stSidebar"] { 
         background-color: #1a2c42 !important; 
         width: 340px !important; 
         min-width: 340px !important;
+        /* تثبيت على اليمين */
+        position: fixed !important;
+        right: 0 !important;
+        left: auto !important;
+        top: 0 !important;
+        height: 100vh !important;
+        z-index: 999 !important;
     }
-    /* عكس اتجاه الأسهم لتشير لليمين بشكل منطقي */
+
+    /* دفع المحتوى الرئيسي لليسار */
+    [data-testid="stAppViewContainer"] > section.main {
+        margin-right: 340px !important;
+        margin-left: 0 !important;
+        padding-left: 1rem !important;
+    }
+
+    /* عكس اتجاه الأسهم */
     [data-testid="collapsedControl"] svg, 
     [data-testid="stSidebarHeader"] button svg {
         transform: rotate(180deg) !important;
     }
 
-    /* تثبيت زر فتح القائمة في أقصى اليمين دائماً */
+    /* تثبيت زر فتح القائمة على اليمين عند الإغلاق */
     [data-testid="collapsedControl"] {
+        position: fixed !important;
         left: auto !important; 
-        right: 15px !important; 
+        right: 15px !important;
+        top: 15px !important;
+        background-color: #d4af37 !important;
+        border-radius: 50% !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important; 
+        transition: all 0.3s ease !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 999999 !important;
+        padding: 5px !important;
+        width: 40px !important;
+        height: 40px !important;
     }
+    [data-testid="collapsedControl"] svg { fill: #1a2c42 !important; color: #1a2c42 !important; width: 24px !important; height: 24px !important;}
+    [data-testid="collapsedControl"]:hover { background-color: #ffffff !important; transform: scale(1.1) !important; }
 
-    /* منع القائمة من تغطية الكلام ودفع الصفحة لليسار عند الفتح */
-    .stApp > header { direction: rtl !important; }
-    .stApp { direction: rtl !important; }
-    
+    [data-testid="stSidebarHeader"] button {
+        background-color: #d4af37 !important;
+        border-radius: 50% !important;
+        z-index: 999999 !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
+    }
+    [data-testid="stSidebarHeader"] button svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
+    [data-testid="stSidebarHeader"] button:hover { background-color: #ffffff !important; transform: scale(1.1) !important; }
+
+    /* إخفاء radio bullets */
     [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; }
     
     [data-testid="stSidebar"] div[role="radiogroup"] > label {
-        background-color: transparent; padding: 0; min-height: 55px; width: 100%; border-radius: 8px; margin-bottom: 12px;
-        transition: all 0.3s ease-in-out; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center;
+        background-color: transparent;
+        padding: 0;
+        min-height: 55px;
+        width: 100%;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        transition: all 0.3s ease-in-out;
+        border: 1px solid rgba(255,255,255,0.15);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
-    /* السماح للنص بالتمدد داخل الزر بدلا من الاختفاء */
     [data-testid="stSidebar"] div[role="radiogroup"] > label p { 
-        color: #ffffff !important; font-size: 16px; margin: 0 !important; text-align: center; width: 100%; font-weight: 600; white-space: normal !important; padding: 5px;
+        color: #ffffff !important;
+        font-size: 16px;
+        margin: 0 !important;
+        text-align: center;
+        width: 100%;
+        font-weight: 600;
+        white-space: normal !important;
+        padding: 5px;
     }
-    [data-testid="stSidebar"] div[role="radiogroup"] > label:hover { background-color: #243b55; border-color: #d4af37; transform: translateX(-5px); }
-    div[role="radiogroup"] > label:has(input:checked) { background-color: #d4af37 !important; border-color: #d4af37 !important; }
-    div[role="radiogroup"] > label:has(input:checked) p { color: #000000 !important; font-weight: 800; font-size: 18px !important; }
-    
-    /* أزرار الفتح الخارجي والإغلاق الداخلي للقائمة */
-    [data-testid="collapsedControl"] {
-        background-color: #d4af37 !important; border-radius: 50% !important; box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important; 
-        transition: all 0.3s ease !important; display: flex !important; align-items: center !important; justify-content: center !important;
-        z-index: 999999 !important; padding: 5px !important; margin: 10px !important; left: auto !important; right: 1rem !important; top: 1rem !important;
+    [data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
+        background-color: #243b55;
+        border-color: #d4af37;
+        transform: translateX(5px);
     }
-    [data-testid="collapsedControl"] svg { fill: #1a2c42 !important; color: #1a2c42 !important; width: 24px !important; height: 24px !important;}
-    [data-testid="collapsedControl"]:hover { background-color: #ffffff !important; transform: scale(1.1); }
-
-    [data-testid="stSidebarHeader"] button {
-        background-color: #d4af37 !important; border-radius: 50% !important; z-index: 999999 !important; box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
+    div[role="radiogroup"] > label:has(input:checked) {
+        background-color: #d4af37 !important;
+        border-color: #d4af37 !important;
     }
-    [data-testid="stSidebarHeader"] button svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
-    [data-testid="stSidebarHeader"] button:hover { background-color: #ffffff !important; transform: scale(1.1); }
+    div[role="radiogroup"] > label:has(input:checked) p {
+        color: #000000 !important;
+        font-weight: 800;
+        font-size: 18px !important;
+    }
 
     /* 4. تصميم العناوين والمدخلات */
     .stTextInput input, .stNumberInput input, .stTextArea textarea { transition: all 0.3s ease; border: 1px solid #ccc; }
@@ -99,16 +154,35 @@ CSS_STYLE = """
     .delete-btn button:hover { background-color: #ffcdd2 !important; border-color: #cc0000 !important; }
 
     .premium-header {
-        background: linear-gradient(90deg, #fdfbf7 0%, #ffffff 100%); padding: 12px 20px; border-right: 5px solid #d4af37; border-radius: 8px;
-        margin-top: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); color: #1a2c42 !important; font-weight: 800; font-size: 22px; display: flex; align-items: center; gap: 10px;
+        background: linear-gradient(90deg, #fdfbf7 0%, #ffffff 100%);
+        padding: 12px 20px;
+        border-right: 5px solid #d4af37;
+        border-radius: 8px;
+        margin-top: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        color: #1a2c42 !important;
+        font-weight: 800;
+        font-size: 22px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
-    .info-header { background-color: #e8f0fe; padding: 10px 15px; border-right: 4px solid #1a2c42; border-radius: 5px; color: #1a2c42 !important; font-weight: 600; margin-bottom: 15px; margin-top: 15px; }
+    .info-header {
+        background-color: #e8f0fe;
+        padding: 10px 15px;
+        border-right: 4px solid #1a2c42;
+        border-radius: 5px;
+        color: #1a2c42 !important;
+        font-weight: 600;
+        margin-bottom: 15px;
+        margin-top: 15px;
+    }
 
     /* ============================================================
-       5. الأنيميشن الاحترافي المطوّر - BAYA Pro Animations
+       5. الأنيميشن الاحترافي
     ============================================================ */
 
-    /* --- الكيفريمز الأساسية المطورة --- */
     @keyframes comeFromLeft {
         0%   { transform: translateX(-200px) rotate(-30deg) scale(0.5); opacity: 0; filter: blur(8px); }
         60%  { transform: translateX(15px) rotate(3deg) scale(1.05); opacity: 1; filter: blur(0); }
@@ -133,28 +207,20 @@ CSS_STYLE = """
         80%  { transform: translateX(6px) rotate(1deg) scale(0.98); }
         100% { transform: translateX(0) rotate(0) scale(1); opacity: 1; filter: blur(0); }
     }
-
-    /* --- فتح الشاشة بستار ذهبي يُزاح --- */
     @keyframes curtainReveal {
         0%   { clip-path: inset(0 0 100% 0); opacity: 0; transform: scale(0.9); }
         40%  { clip-path: inset(0 0 0% 0); opacity: 1; transform: scale(1.02); }
         100% { clip-path: inset(0 0 0% 0); opacity: 1; transform: scale(1); }
     }
-
-    /* --- بريق ذهبي متحرك على الشعار --- */
     @keyframes goldShimmer {
         0%   { background-position: -200% center; }
         100% { background-position: 200% center; }
     }
-
-    /* --- نبضة ذهبية حول البوكس --- */
     @keyframes goldenPulseRing {
         0%   { box-shadow: 0 0 0 0 rgba(212,175,55,0.7), 0 10px 40px rgba(0,0,0,0.4); }
         50%  { box-shadow: 0 0 0 18px rgba(212,175,55,0), 0 10px 40px rgba(0,0,0,0.4); }
         100% { box-shadow: 0 0 0 0 rgba(212,175,55,0), 0 10px 40px rgba(0,0,0,0.4); }
     }
-
-    /* --- أيقونة الميزان تتأرجح --- */
     @keyframes scaleBalance {
         0%,100% { transform: rotate(0deg) scale(1); }
         20%  { transform: rotate(-12deg) scale(1.1); }
@@ -162,54 +228,37 @@ CSS_STYLE = """
         60%  { transform: rotate(-6deg) scale(1.08); }
         80%  { transform: rotate(4deg) scale(1.02); }
     }
-
-    /* --- خط ذهبي يرسم نفسه --- */
     @keyframes drawLine {
         0%   { width: 0%; opacity: 0; }
         60%  { opacity: 1; }
         100% { width: 80%; opacity: 1; }
     }
-
-    /* --- fade مع ارتفاع سلس --- */
     @keyframes fadeInScale {
         0%   { opacity: 0; transform: translateY(20px) scale(0.92); filter: blur(4px); }
         60%  { opacity: 1; filter: blur(0); }
         100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
     }
-
-    /* --- موجة هادئة دائمة --- */
     @keyframes floatingWave {
         0%,100% { transform: translateY(0px) rotate(0deg); }
         30%  { transform: translateY(-8px) rotate(-2deg); }
         70%  { transform: translateY(-4px) rotate(1deg); }
     }
-
-    /* --- وميض ذهبي متكرر --- */
     @keyframes goldGlow {
         0%,100% { text-shadow: 0 0 10px rgba(212,175,55,0.3), 0 0 20px rgba(212,175,55,0.1); }
         50%  { text-shadow: 0 0 20px rgba(212,175,55,0.8), 0 0 40px rgba(212,175,55,0.4), 0 0 60px rgba(212,175,55,0.2); }
     }
-
-    /* --- نجمة تتفتت للخارج (particle burst) --- */
     @keyframes starBurst {
         0%   { opacity: 0; transform: scale(0) rotate(0deg); }
         30%  { opacity: 1; }
         60%  { transform: scale(1.3) rotate(180deg); opacity: 0.8; }
         100% { transform: scale(0) rotate(360deg); opacity: 0; }
     }
-
-    /* --- خلفية متدرجة متحركة --- */
     @keyframes gradientShift {
         0%   { background-position: 0% 50%; }
         50%  { background-position: 100% 50%; }
         100% { background-position: 0% 50%; }
     }
 
-    /* ============================================================
-       تطبيق الأنيميشن على العناصر
-    ============================================================ */
-
-    /* حروف الشعار BAYA */
     .letter-b {
         animation: comeFromLeft 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         display: inline-block;
@@ -235,7 +284,6 @@ CSS_STYLE = """
         opacity: 0;
     }
 
-    /* بريق ذهبي على حروف BAYA بعد الظهور */
     .letter-b, .letter-a1, .letter-y, .letter-a2 {
         background: linear-gradient(90deg, #d4af37 30%, #fff8dc 50%, #d4af37 70%);
         background-size: 200% auto;
@@ -249,32 +297,23 @@ CSS_STYLE = """
     .letter-y   { animation: comeFromBottom 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldShimmer 3s linear 2.2s infinite; }
     .letter-a2  { animation: comeFromRight 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldShimmer 3s linear 2.4s infinite; }
 
-    /* fade in عام محسّن */
     .fade-in-scale {
         animation: fadeInScale 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         display: inline-block;
         opacity: 0;
     }
-
-    /* موجة هادئة دائمة */
     .continuous-wave {
         animation: floatingWave 4s ease-in-out infinite;
         display: inline-block;
     }
-
-    /* أيقونة الميزان */
     .balance-icon {
         animation: fadeInScale 0.8s ease-out forwards, scaleBalance 6s ease-in-out 2s infinite;
         display: inline-block;
         opacity: 0;
     }
-
-    /* بوكس اللوجين - نبضة ذهبية متكررة */
     .login-box-pulse {
         animation: goldenPulseRing 2.5s ease-out infinite;
     }
-
-    /* خط ذهبي يرسم نفسه تحت الشعار */
     .gold-line {
         display: block;
         height: 2px;
@@ -285,15 +324,12 @@ CSS_STYLE = """
         width: 0%;
         opacity: 0;
     }
-
-    /* خلفية اللوجين متحركة */
     .login-animated-bg {
         background: linear-gradient(-45deg, #0d1b2a, #1a2c42, #162338, #0a1628, #1e3a5f);
         background-size: 400% 400%;
         animation: gradientShift 8s ease infinite;
     }
 
-    /* وميض الزر الذهبي */
     .stFormSubmitButton button, [data-testid="stFormSubmitButton"] button {
         position: relative;
         overflow: hidden;
@@ -317,17 +353,6 @@ CSS_STYLE = """
         51%,100% { left: 125%; opacity: 0; }
     }
 
-    /* نجمة دوارة خلف الأيقونة */
-    .star-particle {
-        position: absolute;
-        width: 6px;
-        height: 6px;
-        background: #d4af37;
-        border-radius: 50%;
-        animation: starBurst 2s ease-out forwards;
-    }
-
-    /* premium-header محسّن مع حركة دخول */
     .premium-header {
         background: linear-gradient(135deg, #fdfbf7 0%, #fffef9 50%, #f9f5e8 100%);
         padding: 12px 20px;
@@ -359,7 +384,6 @@ CSS_STYLE = """
         transform: translateX(-3px);
         box-shadow: 0 6px 20px rgba(212,175,55,0.25), 0 3px 8px rgba(0,0,0,0.08);
     }
-
     .info-header {
         background-color: #e8f0fe;
         padding: 10px 15px;
@@ -375,34 +399,26 @@ CSS_STYLE = """
         background-color: #d4e0fc;
         transform: translateX(-2px);
     }
-/* ============================================================
-       6. توافق الموبايل (Responsive & Mobile Friendly)
+
+    /* ============================================================
+       6. توافق الموبايل
     ============================================================ */
     @media (max-width: 768px) {
-
-        /* ===== الشريط الجانبي على الموبايل: أيقونات فقط ===== */
-
-        /* تضييق الشريط لـ 65px فقط */
         [data-testid="stSidebar"] {
             width: 65px !important;
             min-width: 65px !important;
             max-width: 65px !important;
             overflow: visible !important;
         }
-
-        /* إخفاء محتوى Streamlit الأصلي داخل الشريط */
         [data-testid="stSidebarContent"] {
             opacity: 0 !important;
             pointer-events: none !important;
             overflow: hidden !important;
         }
-
-        /* توسيع المنطقة الرئيسية لتأخذ باقي المساحة */
         [data-testid="stAppViewContainer"] > section.main {
             margin-right: 65px !important;
+            margin-left: 0 !important;
         }
-
-        /* ===== قائمة الأيقونات المخصصة ===== */
         #mobile-icon-nav {
             position: fixed;
             top: 0;
@@ -421,7 +437,6 @@ CSS_STYLE = """
             overflow-x: visible;
             gap: 4px;
         }
-
         .mob-nav-logo {
             font-size: 28px;
             padding: 8px 0;
@@ -430,7 +445,6 @@ CSS_STYLE = """
             text-align: center;
             margin-bottom: 6px;
         }
-
         .mob-nav-item {
             width: 55px;
             min-height: 52px;
@@ -445,17 +459,11 @@ CSS_STYLE = """
             padding: 4px 2px;
             position: relative;
         }
-
         .mob-nav-item:hover, .mob-nav-item.active {
             background-color: #d4af37;
             border-color: #d4af37;
         }
-
-        .mob-nav-item .mob-icon {
-            font-size: 22px;
-            line-height: 1;
-        }
-
+        .mob-nav-item .mob-icon { font-size: 22px; line-height: 1; }
         .mob-nav-item .mob-label {
             font-family: 'Cairo', sans-serif;
             font-size: 8px;
@@ -468,13 +476,8 @@ CSS_STYLE = """
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
         .mob-nav-item.active .mob-label,
-        .mob-nav-item:hover .mob-label {
-            color: #1a2c42;
-        }
-
-        /* tooltip يظهر على اليسار عند hover */
+        .mob-nav-item:hover .mob-label { color: #1a2c42; }
         .mob-nav-item::before {
             content: attr(data-title);
             position: absolute;
@@ -495,11 +498,7 @@ CSS_STYLE = """
             z-index: 999999;
             box-shadow: -2px 2px 8px rgba(0,0,0,0.3);
         }
-
-        .mob-nav-item:hover::before {
-            opacity: 1;
-        }
-
+        .mob-nav-item:hover::before { opacity: 1; }
         .mob-nav-logout {
             width: 55px;
             min-height: 45px;
@@ -515,11 +514,7 @@ CSS_STYLE = """
             padding: 4px 2px;
             transition: all 0.25s ease;
         }
-
-        .mob-nav-logout:hover {
-            background-color: rgba(220,50,50,0.7);
-        }
-
+        .mob-nav-logout:hover { background-color: rgba(220,50,50,0.7); }
         .mob-nav-logout .mob-icon { font-size: 20px; }
         .mob-nav-logout .mob-label {
             font-family: 'Cairo', sans-serif;
@@ -527,31 +522,23 @@ CSS_STYLE = """
             color: rgba(255,150,150,0.9);
             margin-top: 2px;
         }
-
-        /* ===== تصغير عناصر أخرى على الموبايل ===== */
         .login-box-pulse { padding: 25px 15px !important; }
         .balance-icon { font-size: 45px !important; }
-        .premium-header {
-            font-size: 16px !important;
-            padding: 8px 10px !important;
-        }
+        .premium-header { font-size: 16px !important; padding: 8px 10px !important; }
     }
-/* تقليل المسافة العلوية في الصفحة الرئيسية */
-.block-container {
-    padding-top: 1rem !important;
-    margin-top: 0 !important;
-}
 
-/* إخفاء المسافة فوق الهيدر */
-[data-testid="stAppViewContainer"] > .main {
-    padding-top: 0rem !important;
-}
-
-/* تقليل ارتفاع الهيدر الشفاف */
-[data-testid="stHeader"] {
-    height: 0rem !important;
-    min-height: 0 !important;
-}
+    /* تقليل المسافة العلوية */
+    .block-container {
+        padding-top: 1rem !important;
+        margin-top: 0 !important;
+    }
+    [data-testid="stAppViewContainer"] > .main {
+        padding-top: 0rem !important;
+    }
+    [data-testid="stHeader"] {
+        height: 0rem !important;
+        min-height: 0 !important;
+    }
 
 </style>
 """
@@ -667,7 +654,7 @@ LOGIN_HTML = """
         </div>
         <span class='gold-line'></span>
         <h3 class='fade-in-scale' style='color: rgba(255,255,255,0.95); margin-top: 18px; font-weight: 600; font-size: 17px; animation-delay: 1.5s;'>الجمعية التعاونية الزراعية بالناصرية</h3>
-        <p class='fade-in-scale' style='color: rgba(180,195,220,0.85); margin-top: 8px; font-size: 14px; animation-delay: 1.7s;'>منظومة عادل يسري الكامله لعقود البيع والقسمه الرضائية</p>
+        <p class='fade-in-scale' style='color: rgba(180,195,220,0.85); margin-top: 8px; font-size: 14px; animation-delay: 1.7s;'>✦ يرجى إدخال بيانات الاعتماد للمتابعة ✦</p>
     </div>
 </div><br>
 """
@@ -862,7 +849,7 @@ def generate_kesma_zip(kd):
     return zip_buffer.getvalue()
 
 # ==========================================
-# 6. القائمة الجانبية (Sidebar) مع الأنيميشن
+# 6. القائمة الجانبية (Sidebar)
 # ==========================================
 SIDEBAR_HTML = """
 <div style='text-align: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;'>
@@ -900,7 +887,6 @@ SIDEBAR_TOGGLE_JS = """
     }
 
     function getActiveIndex() {
-        /* اقرأ الـ radio المحدد حالياً */
         var radios = document.querySelectorAll('[data-testid="stSidebar"] input[type="radio"]');
         for (var i = 0; i < radios.length; i++) {
             if (radios[i].checked) return i;
@@ -912,7 +898,6 @@ SIDEBAR_TOGGLE_JS = """
         var radios = document.querySelectorAll('[data-testid="stSidebar"] input[type="radio"]');
         if (radios[index]) {
             radios[index].click();
-            /* تحديث الـ active class */
             document.querySelectorAll('.mob-nav-item').forEach(function(el, i) {
                 el.classList.toggle('active', i === index);
             });
@@ -922,7 +907,6 @@ SIDEBAR_TOGGLE_JS = """
     function buildNav() {
         if (!isMobile()) return;
         if (document.getElementById('mobile-icon-nav')) {
-            /* تحديث الـ active فقط */
             var idx = getActiveIndex();
             document.querySelectorAll('.mob-nav-item').forEach(function(el, i) {
                 el.classList.toggle('active', i === idx);
@@ -933,7 +917,6 @@ SIDEBAR_TOGGLE_JS = """
         var nav = document.createElement('div');
         nav.id = 'mobile-icon-nav';
 
-        /* شعار ⚖️ */
         var logo = document.createElement('div');
         logo.className = 'mob-nav-logo';
         logo.textContent = '⚖️';
@@ -952,12 +935,10 @@ SIDEBAR_TOGGLE_JS = """
             nav.appendChild(el);
         });
 
-        /* زر الخروج */
         var logout = document.createElement('div');
         logout.className = 'mob-nav-logout';
         logout.innerHTML = '<span class="mob-icon">🚪</span><span class="mob-label">خروج</span>';
         logout.addEventListener('click', function() {
-            /* اضغط زر تسجيل الخروج الأصلي في Streamlit */
             var btns = document.querySelectorAll('[data-testid="stSidebar"] button');
             btns.forEach(function(b) {
                 if (b.innerText.includes('خروج') || b.innerText.includes('🚪')) b.click();
@@ -968,16 +949,13 @@ SIDEBAR_TOGGLE_JS = """
         document.body.appendChild(nav);
     }
 
-    /* بناء أول مرة */
     setTimeout(buildNav, 900);
 
-    /* إعادة البناء بعد كل rerun */
     var obs = new MutationObserver(function() {
         if (isMobile()) {
             if (!document.getElementById('mobile-icon-nav')) {
                 setTimeout(buildNav, 400);
             } else {
-                /* تحديث الـ active */
                 var idx = getActiveIndex();
                 document.querySelectorAll('.mob-nav-item').forEach(function(el, i) {
                     el.classList.toggle('active', i === idx);
@@ -987,7 +965,6 @@ SIDEBAR_TOGGLE_JS = """
     });
     obs.observe(document.body, { childList: true, subtree: true });
 
-    /* إزالة النافيجيشن لو الشاشة اتكبّرت */
     window.addEventListener('resize', function() {
         var nav = document.getElementById('mobile-icon-nav');
         if (!isMobile() && nav) nav.remove();
