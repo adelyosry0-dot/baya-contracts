@@ -90,26 +90,56 @@ CSS_STYLE = """
     [data-testid="stSidebarHeader"] button svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
     [data-testid="stSidebarHeader"] button:hover { background-color: #ffffff !important; transform: scale(1.1); }
 
-    /* زر الطي المخصص - ثابت في الأعلى ولا يغطي مساحة العمل */
-    #sidebar-toggle-btn {
+    /* زر إخفاء الشريط - داخل الشريط نفسه */
+    #sidebar-hide-btn {
+        display: block;
+        width: calc(100% - 32px);
+        margin: 8px 16px 4px 16px;
+        padding: 10px 0;
+        background-color: rgba(212, 175, 55, 0.15);
+        color: #d4af37;
+        border: 1px solid rgba(212, 175, 55, 0.4);
+        border-radius: 8px;
+        font-family: 'Cairo', sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.3s ease;
+        letter-spacing: 1px;
+    }
+    #sidebar-hide-btn:hover {
+        background-color: rgba(212, 175, 55, 0.3);
+        border-color: #d4af37;
+        transform: scale(1.02);
+    }
+
+    /* زر إعادة إظهار الشريط - يظهر على يمين الشاشة لما الشريط يختفي */
+    #sidebar-show-btn {
         position: fixed;
-        top: 15px;
-        right: 15px;
+        top: 50%;
+        right: 0px;
+        transform: translateY(-50%);
         z-index: 9999999;
         background-color: #d4af37;
         color: #1a2c42;
         border: none;
-        border-radius: 8px;
-        padding: 10px 15px;
-        font-size: 16px;
+        border-radius: 8px 0 0 8px;
+        padding: 18px 10px;
+        font-size: 18px;
         font-weight: 900;
         cursor: pointer;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        box-shadow: -3px 0 12px rgba(0,0,0,0.35);
         transition: all 0.3s ease;
+        direction: ltr;
+        display: none;
+        writing-mode: vertical-rl;
+        letter-spacing: 2px;
     }
-    #sidebar-toggle-btn:hover {
+    #sidebar-show-btn:hover {
         background-color: #ffffff;
-        transform: scale(1.05);
+        color: #1a2c42;
+        right: 2px;
     }
 
     /* 4. تصميم العناوين والمدخلات */
@@ -425,10 +455,14 @@ CSS_STYLE = """
             padding: 10px 12px !important; 
         }
         
-        /* 5. تصغير زر طي القائمة الجانبية الإضافي */
-        #sidebar-toggle-btn { 
-            padding: 10px 5px !important; 
+        /* 5. تصغير زر إخفاء/إظهار الشريط الجانبي */
+        #sidebar-hide-btn { 
             font-size: 12px !important; 
+            padding: 8px 0 !important;
+        }
+        #sidebar-show-btn {
+            padding: 14px 7px !important;
+            font-size: 15px !important;
         }
     }
 /* تقليل المسافة العلوية في الصفحة الرئيسية */
@@ -775,38 +809,74 @@ SIDEBAR_HTML = """
 """
 st.sidebar.markdown(SIDEBAR_HTML, unsafe_allow_html=True)
 
-# JavaScript لإضافة زر للطي والفتح (محدث ومثبت في الأعلى)
+# JavaScript: زر إخفاء داخل الشريط + زر إعادة إظهار عائم على يمين الشاشة
 SIDEBAR_TOGGLE_JS = """
 <script>
 (function() {
-    function addToggleBtn() {
-        if (document.getElementById('sidebar-toggle-btn')) return;
+
+    /* ---- زر الإخفاء داخل الشريط ---- */
+    function addHideBtn() {
+        if (document.getElementById('sidebar-hide-btn')) return;
+
+        var sidebar = document.querySelector('[data-testid="stSidebarContent"]')
+                   || document.querySelector('[data-testid="stSidebar"] > div');
+        if (!sidebar) return;
+
         var btn = document.createElement('button');
-        btn.id = 'sidebar-toggle-btn';
-        btn.innerHTML = '☰ القائمة';
-        btn.title = 'إخفاء / إظهار القائمة الجانبية';
+        btn.id   = 'sidebar-hide-btn';
+        btn.title = 'إخفاء الشريط الجانبي';
+        btn.innerHTML = '&#x25C4;&#x25C4; إخفاء القائمة';
 
         btn.onclick = function() {
-            var closeBtn = document.querySelector('[data-testid="stSidebarHeader"] button');
-            var openBtn = document.querySelector('[data-testid="collapsedControl"]');
-            if (openBtn) {
-                openBtn.click();
-            } else if (closeBtn) {
-                closeBtn.click();
-            }
+            // اضغط زر الطي الأصلي في Streamlit
+            var headerBtn = document.querySelector('[data-testid="stSidebarHeader"] button');
+            if (headerBtn) headerBtn.click();
+            setTimeout(syncShowBtn, 350);
         };
 
+        // أضفه في أول الـ sidebar
+        sidebar.insertBefore(btn, sidebar.firstChild);
+    }
+
+    /* ---- زر الإعادة العائم على يمين الشاشة ---- */
+    function addShowBtn() {
+        if (document.getElementById('sidebar-show-btn')) return;
+        var btn = document.createElement('button');
+        btn.id   = 'sidebar-show-btn';
+        btn.title = 'إظهار القائمة';
+        btn.innerHTML = '&#9654;&#9654;';
+        btn.onclick = function() {
+            var collapsedBtn = document.querySelector('[data-testid="collapsedControl"]');
+            if (collapsedBtn) collapsedBtn.click();
+            setTimeout(syncShowBtn, 350);
+        };
         document.body.appendChild(btn);
     }
 
-    setTimeout(addToggleBtn, 1000);
+    /* ---- مزامنة ظهور/إخفاء زر الإعادة ---- */
+    function syncShowBtn() {
+        var showBtn = document.getElementById('sidebar-show-btn');
+        if (!showBtn) return;
+        var isCollapsed = !!document.querySelector('[data-testid="collapsedControl"]');
+        showBtn.style.display = isCollapsed ? 'block' : 'none';
+    }
 
-    var pageObserver = new MutationObserver(function() {
-        if (!document.getElementById('sidebar-toggle-btn')) {
-            addToggleBtn();
-        }
-    });
-    pageObserver.observe(document.body, { childList: true });
+    /* ---- تهيئة كل شيء ---- */
+    function init() {
+        addHideBtn();
+        addShowBtn();
+        syncShowBtn();
+
+        // راقب التغييرات لتحديث الحالة
+        var obs = new MutationObserver(function() {
+            syncShowBtn();
+            // أعد إضافة زر الإخفاء لو اتعمل rerun
+            if (!document.getElementById('sidebar-hide-btn')) addHideBtn();
+        });
+        obs.observe(document.body, { childList: true, subtree: true });
+    }
+
+    setTimeout(init, 900);
 })();
 </script>
 """
