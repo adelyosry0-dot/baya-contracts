@@ -72,51 +72,6 @@ CSS_STYLE = """
     .stTextInput input:hover, .stNumberInput input:hover, .stTextArea textarea:hover { border-color: #d4af37 !important; box-shadow: 0 0 8px rgba(212, 175, 55, 0.3) !important; background-color: #fdfbf7 !important; }
     .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus { border-color: #1a2c42 !important; box-shadow: 0 0 8px rgba(26, 44, 66, 0.3) !important;}
 
-    /* === Vertical Spin Buttons للـ Number Input === */
-
-    /* إخفاء أزرار + و - الجانبية بتاعة Streamlit */
-    .stNumberInput [data-testid="stNumberInputStepDown"],
-    .stNumberInput [data-testid="stNumberInputStepUp"],
-    .stNumberInput button {
-        display: none !important;
-    }
-
-    /* إظهار الـ input بالعرض الكامل مع أسهم المتصفح الطبيعية */
-    .stNumberInput input[type="number"] {
-        -moz-appearance: number-input !important;
-        appearance: auto !important;
-        -webkit-appearance: auto !important;
-        width: 100% !important;
-        text-align: center !important;
-        padding-left: 4px !important;
-        padding-right: 4px !important;
-    }
-
-    /* تنسيق أسهم الـ spin في Chrome/Edge/Safari */
-    .stNumberInput input[type="number"]::-webkit-inner-spin-button,
-    .stNumberInput input[type="number"]::-webkit-outer-spin-button {
-        -webkit-appearance: inner-spin-button !important;
-        appearance: auto !important;
-        opacity: 1 !important;
-        height: 100% !important;
-        cursor: pointer;
-    }
-
-    /* تأكيد إظهار الأسهم في Firefox */
-    .stNumberInput input[type="number"] {
-        -moz-appearance: number-input !important;
-    }
-
-    /* ضبط حاوية الـ number input */
-    .stNumberInput > div {
-        display: flex !important;
-        align-items: center !important;
-    }
-    .stNumberInput > div > div {
-        width: 100% !important;
-        flex: 1 !important;
-    }
-
     .delete-btn button { background-color: #ffebee !important; color: #cc0000 !important; border: 1px solid #ffcdd2 !important; padding: 2px 10px !important;}
     .delete-btn button:hover { background-color: #ffcdd2 !important; border-color: #cc0000 !important; }
 
