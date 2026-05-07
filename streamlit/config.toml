@@ -1,0 +1,15 @@
+[global]
+developmentMode = false
+
+[server]
+runOnSave = true
+
+[client]
+toolbarMode = "minimal"
+
+[theme]
+base = "light"
+primaryColor = "#d4af37"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f0f2f6"
+textColor = "#1a2c42"
