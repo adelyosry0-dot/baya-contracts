@@ -39,18 +39,25 @@ CSS_STYLE = """
     /* إخفاء رسالة Press Enter to apply */
     [data-testid="InputInstructions"] { display: none !important; visibility: hidden !important; }
 
-    /* 3. تصميم القائمة الجانبية - ثابتة دائماً */
+    /* 3. تصميم القائمة الجانبية وتوسيعها */
     [data-testid="stSidebar"] { 
         background-color: #1a2c42 !important; 
         width: 340px !important; 
         min-width: 340px !important;
     }
+    /* عكس اتجاه الأسهم لتشير لليمين بشكل منطقي */
+    [data-testid="collapsedControl"] svg, 
+    [data-testid="stSidebarHeader"] button svg {
+        transform: rotate(180deg) !important;
+    }
 
-    /* إخفاء أزرار طي/فتح الشريط تماماً - الشريط ثابت */
-    [data-testid="collapsedControl"] { display: none !important; }
-    [data-testid="stSidebarHeader"] button { display: none !important; }
-    [data-testid="stSidebarCollapseButton"] { display: none !important; }
+    /* تثبيت زر فتح القائمة في أقصى اليمين دائماً */
+    [data-testid="collapsedControl"] {
+        left: auto !important; 
+        right: 15px !important; 
+    }
 
+    /* منع القائمة من تغطية الكلام ودفع الصفحة لليسار عند الفتح */
     .stApp > header { direction: rtl !important; }
     .stApp { direction: rtl !important; }
     
@@ -60,12 +67,28 @@ CSS_STYLE = """
         background-color: transparent; padding: 0; min-height: 55px; width: 100%; border-radius: 8px; margin-bottom: 12px;
         transition: all 0.3s ease-in-out; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center;
     }
+    /* السماح للنص بالتمدد داخل الزر بدلا من الاختفاء */
     [data-testid="stSidebar"] div[role="radiogroup"] > label p { 
         color: #ffffff !important; font-size: 16px; margin: 0 !important; text-align: center; width: 100%; font-weight: 600; white-space: normal !important; padding: 5px;
     }
     [data-testid="stSidebar"] div[role="radiogroup"] > label:hover { background-color: #243b55; border-color: #d4af37; transform: translateX(-5px); }
     div[role="radiogroup"] > label:has(input:checked) { background-color: #d4af37 !important; border-color: #d4af37 !important; }
     div[role="radiogroup"] > label:has(input:checked) p { color: #000000 !important; font-weight: 800; font-size: 18px !important; }
+    
+    /* أزرار الفتح الخارجي والإغلاق الداخلي للقائمة */
+    [data-testid="collapsedControl"] {
+        background-color: #d4af37 !important; border-radius: 50% !important; box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important; 
+        transition: all 0.3s ease !important; display: flex !important; align-items: center !important; justify-content: center !important;
+        z-index: 999999 !important; padding: 5px !important; margin: 10px !important; left: auto !important; right: 1rem !important; top: 1rem !important;
+    }
+    [data-testid="collapsedControl"] svg { fill: #1a2c42 !important; color: #1a2c42 !important; width: 24px !important; height: 24px !important;}
+    [data-testid="collapsedControl"]:hover { background-color: #ffffff !important; transform: scale(1.1); }
+
+    [data-testid="stSidebarHeader"] button {
+        background-color: #d4af37 !important; border-radius: 50% !important; z-index: 999999 !important; box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
+    }
+    [data-testid="stSidebarHeader"] button svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
+    [data-testid="stSidebarHeader"] button:hover { background-color: #ffffff !important; transform: scale(1.1); }
 
     /* 4. تصميم العناوين والمدخلات */
     .stTextInput input, .stNumberInput input, .stTextArea textarea { transition: all 0.3s ease; border: 1px solid #ccc; }
@@ -356,44 +379,178 @@ CSS_STYLE = """
        6. توافق الموبايل (Responsive & Mobile Friendly)
     ============================================================ */
     @media (max-width: 768px) {
-        /* 5. تصغير الشريط الجانبي على الموبايل */
-        [data-testid="stSidebar"] { 
-            width: 280px !important; 
-            min-width: 280px !important;
-            max-width: 85vw !important;
+
+        /* ===== الشريط الجانبي على الموبايل: أيقونات فقط ===== */
+
+        /* تضييق الشريط لـ 65px فقط */
+        [data-testid="stSidebar"] {
+            width: 65px !important;
+            min-width: 65px !important;
+            max-width: 65px !important;
+            overflow: visible !important;
         }
+
+        /* إخفاء محتوى Streamlit الأصلي داخل الشريط */
+        [data-testid="stSidebarContent"] {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            overflow: hidden !important;
+        }
+
+        /* توسيع المنطقة الرئيسية لتأخذ باقي المساحة */
+        [data-testid="stAppViewContainer"] > section.main {
+            margin-right: 65px !important;
+        }
+
+        /* ===== قائمة الأيقونات المخصصة ===== */
+        #mobile-icon-nav {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 65px;
+            height: 100vh;
+            background-color: #1a2c42;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            z-index: 99999;
+            box-shadow: -2px 0 12px rgba(0,0,0,0.4);
+            overflow-y: auto;
+            overflow-x: visible;
+            gap: 4px;
+        }
+
+        .mob-nav-logo {
+            font-size: 28px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            width: 100%;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .mob-nav-item {
+            width: 55px;
+            min-height: 52px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 1px solid transparent;
+            padding: 4px 2px;
+            position: relative;
+        }
+
+        .mob-nav-item:hover, .mob-nav-item.active {
+            background-color: #d4af37;
+            border-color: #d4af37;
+        }
+
+        .mob-nav-item .mob-icon {
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        .mob-nav-item .mob-label {
+            font-family: 'Cairo', sans-serif;
+            font-size: 8px;
+            color: rgba(255,255,255,0.8);
+            text-align: center;
+            margin-top: 2px;
+            line-height: 1.2;
+            max-width: 55px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .mob-nav-item.active .mob-label,
+        .mob-nav-item:hover .mob-label {
+            color: #1a2c42;
+        }
+
+        /* tooltip يظهر على اليسار عند hover */
+        .mob-nav-item::before {
+            content: attr(data-title);
+            position: absolute;
+            right: 68px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #d4af37;
+            color: #1a2c42;
+            font-family: 'Cairo', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 10px;
+            border-radius: 6px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 999999;
+            box-shadow: -2px 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .mob-nav-item:hover::before {
+            opacity: 1;
+        }
+
+        .mob-nav-logout {
+            width: 55px;
+            min-height: 45px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            cursor: pointer;
+            background-color: rgba(220,50,50,0.2);
+            border: 1px solid rgba(220,50,50,0.4);
+            margin-top: auto;
+            padding: 4px 2px;
+            transition: all 0.25s ease;
+        }
+
+        .mob-nav-logout:hover {
+            background-color: rgba(220,50,50,0.7);
+        }
+
+        .mob-nav-logout .mob-icon { font-size: 20px; }
+        .mob-nav-logout .mob-label {
+            font-family: 'Cairo', sans-serif;
+            font-size: 8px;
+            color: rgba(255,150,150,0.9);
+            margin-top: 2px;
+        }
+
+        /* ===== تصغير عناصر أخرى على الموبايل ===== */
         .login-box-pulse { padding: 25px 15px !important; }
         .balance-icon { font-size: 45px !important; }
-        .login-box-pulse div[style*="font-size: 62px"] { font-size: 40px !important; }
-        .continuous-wave[style*="font-size: 28px"] { font-size: 20px !important; }
-        .login-box-pulse h3 { font-size: 15px !important; }
-        
-        /* 3. تصغير شعار BAYA في القائمة الجانبية */
-        div[style*="font-size: 50px"] { font-size: 38px !important; }
-        div[style*="font-size: 35px"] { font-size: 26px !important; }
-
-        /* 4. تصغير العناوين الرئيسية في التطبيق */
-        .premium-header { 
-            font-size: 18px !important; 
-            padding: 10px 12px !important; 
+        .premium-header {
+            font-size: 16px !important;
+            padding: 8px 10px !important;
         }
     }
 /* تقليل المسافة العلوية في الصفحة الرئيسية */
 .block-container {
-    padding-top: 3.5rem !important;
+    padding-top: 1rem !important;
     margin-top: 0 !important;
 }
 
-/* مساحة كافية للهيدر عشان يظهر زر الوضع الداكن */
+/* إخفاء المسافة فوق الهيدر */
 [data-testid="stAppViewContainer"] > .main {
     padding-top: 0rem !important;
 }
 
-/* إظهار الهيدر بارتفاع مناسب - عشان يظهر زر الإعدادات والوضع الداكن */
+/* تقليل ارتفاع الهيدر الشفاف */
 [data-testid="stHeader"] {
-    height: 3rem !important;
-    min-height: 3rem !important;
-    background: transparent !important;
+    height: 0rem !important;
+    min-height: 0 !important;
 }
 
 </style>
@@ -723,7 +880,124 @@ SIDEBAR_HTML = """
 """
 st.sidebar.markdown(SIDEBAR_HTML, unsafe_allow_html=True)
 
+# JavaScript: قائمة أيقونات على الموبايل
+SIDEBAR_TOGGLE_JS = """
+<script>
+(function() {
 
+    var MENU_ITEMS = [
+        { icon: '📝', label: 'البيع',    title: 'منظومة عقود البيع' },
+        { icon: '🤝', label: 'القسمة',   title: 'منظومة القسمة الرضائية' },
+        { icon: '🧮', label: 'الحاسبة',  title: 'حاسبة الأراضي' },
+        { icon: '📂', label: 'الأرشيف',  title: 'أرشيف العقود' },
+        { icon: '🖨️', label: 'مستندات', title: 'إدارة المستندات (فردي)' },
+        { icon: '🔄', label: 'استرجاع',  title: 'الاسترجاع من ملف (Backup)' },
+        { icon: '⚙️', label: 'إعدادات', title: 'إعدادات الأمان' }
+    ];
+
+    function isMobile() {
+        return window.innerWidth <= 768;
+    }
+
+    function getActiveIndex() {
+        /* اقرأ الـ radio المحدد حالياً */
+        var radios = document.querySelectorAll('[data-testid="stSidebar"] input[type="radio"]');
+        for (var i = 0; i < radios.length; i++) {
+            if (radios[i].checked) return i;
+        }
+        return 0;
+    }
+
+    function clickRadio(index) {
+        var radios = document.querySelectorAll('[data-testid="stSidebar"] input[type="radio"]');
+        if (radios[index]) {
+            radios[index].click();
+            /* تحديث الـ active class */
+            document.querySelectorAll('.mob-nav-item').forEach(function(el, i) {
+                el.classList.toggle('active', i === index);
+            });
+        }
+    }
+
+    function buildNav() {
+        if (!isMobile()) return;
+        if (document.getElementById('mobile-icon-nav')) {
+            /* تحديث الـ active فقط */
+            var idx = getActiveIndex();
+            document.querySelectorAll('.mob-nav-item').forEach(function(el, i) {
+                el.classList.toggle('active', i === idx);
+            });
+            return;
+        }
+
+        var nav = document.createElement('div');
+        nav.id = 'mobile-icon-nav';
+
+        /* شعار ⚖️ */
+        var logo = document.createElement('div');
+        logo.className = 'mob-nav-logo';
+        logo.textContent = '⚖️';
+        nav.appendChild(logo);
+
+        var activeIdx = getActiveIndex();
+
+        MENU_ITEMS.forEach(function(item, i) {
+            var el = document.createElement('div');
+            el.className = 'mob-nav-item' + (i === activeIdx ? ' active' : '');
+            el.setAttribute('data-title', item.title);
+            el.innerHTML =
+                '<span class="mob-icon">' + item.icon + '</span>' +
+                '<span class="mob-label">' + item.label + '</span>';
+            el.addEventListener('click', function() { clickRadio(i); });
+            nav.appendChild(el);
+        });
+
+        /* زر الخروج */
+        var logout = document.createElement('div');
+        logout.className = 'mob-nav-logout';
+        logout.innerHTML = '<span class="mob-icon">🚪</span><span class="mob-label">خروج</span>';
+        logout.addEventListener('click', function() {
+            /* اضغط زر تسجيل الخروج الأصلي في Streamlit */
+            var btns = document.querySelectorAll('[data-testid="stSidebar"] button');
+            btns.forEach(function(b) {
+                if (b.innerText.includes('خروج') || b.innerText.includes('🚪')) b.click();
+            });
+        });
+        nav.appendChild(logout);
+
+        document.body.appendChild(nav);
+    }
+
+    /* بناء أول مرة */
+    setTimeout(buildNav, 900);
+
+    /* إعادة البناء بعد كل rerun */
+    var obs = new MutationObserver(function() {
+        if (isMobile()) {
+            if (!document.getElementById('mobile-icon-nav')) {
+                setTimeout(buildNav, 400);
+            } else {
+                /* تحديث الـ active */
+                var idx = getActiveIndex();
+                document.querySelectorAll('.mob-nav-item').forEach(function(el, i) {
+                    el.classList.toggle('active', i === idx);
+                });
+            }
+        }
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+
+    /* إزالة النافيجيشن لو الشاشة اتكبّرت */
+    window.addEventListener('resize', function() {
+        var nav = document.getElementById('mobile-icon-nav');
+        if (!isMobile() && nav) nav.remove();
+        if (isMobile() && !nav) setTimeout(buildNav, 300);
+    });
+
+})();
+</script>
+"""
+st.markdown(SIDEBAR_TOGGLE_JS, unsafe_allow_html=True)
 
 menu = ["📝 منظومة عقود البيع", "🤝 منظومة القسمة الرضائية", "🧮 حاسبة الأراضي", "📂 أرشيف العقود", "🖨️ إدارة المستندات (فردي)", "🔄 الاسترجاع من ملف (Backup)", "⚙️ إعدادات الأمان"]
 if 'active_menu' not in st.session_state: st.session_state.active_menu = menu[0]
