@@ -90,6 +90,32 @@ CSS_STYLE = """
     [data-testid="stSidebarHeader"] button svg { fill: #1a2c42 !important; color: #1a2c42 !important; }
     [data-testid="stSidebarHeader"] button:hover { background-color: #ffffff !important; transform: scale(1.1); }
 
+    /* زر الطي >> على يسار الشريط الجانبي */
+    #sidebar-toggle-btn {
+        position: fixed;
+        top: 50%;
+        left: 0px;
+        transform: translateY(-50%);
+        z-index: 9999999;
+        background-color: #d4af37;
+        color: #1a2c42;
+        border: none;
+        border-radius: 0 8px 8px 0;
+        padding: 14px 8px;
+        font-size: 16px;
+        font-weight: 900;
+        cursor: pointer;
+        box-shadow: 3px 0 10px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+        line-height: 1.2;
+        direction: ltr;
+    }
+    #sidebar-toggle-btn:hover {
+        background-color: #ffffff;
+        color: #1a2c42;
+        left: 2px;
+    }
+
     /* 4. تصميم العناوين والمدخلات */
     .stTextInput input, .stNumberInput input, .stTextArea textarea { transition: all 0.3s ease; border: 1px solid #ccc; }
     .stTextInput input:hover, .stNumberInput input:hover, .stTextArea textarea:hover { border-color: #d4af37 !important; box-shadow: 0 0 8px rgba(212, 175, 55, 0.3) !important; background-color: #fdfbf7 !important; }
@@ -104,20 +130,328 @@ CSS_STYLE = """
     }
     .info-header { background-color: #e8f0fe; padding: 10px 15px; border-right: 4px solid #1a2c42; border-radius: 5px; color: #1a2c42 !important; font-weight: 600; margin-bottom: 15px; margin-top: 15px; }
 
-    /* 5. حركات الأنيميشن الاحترافية */
-    @keyframes comeFromLeft { 0% { transform: translateX(-150px) rotate(-45deg); opacity: 0; } 100% { transform: translateX(0) rotate(0); opacity: 1; } }
-    @keyframes comeFromTop { 0% { transform: translateY(-150px) scale(0.5); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
-    @keyframes comeFromBottom { 0% { transform: translateY(150px) scale(0.5); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
-    @keyframes comeFromRight { 0% { transform: translateX(150px) rotate(45deg); opacity: 0; } 100% { transform: translateX(0) rotate(0); opacity: 1; } }
-    @keyframes fadeInScale { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
-    @keyframes floatingWave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+    /* ============================================================
+       5. الأنيميشن الاحترافي المطوّر - BAYA Pro Animations
+    ============================================================ */
 
-    .letter-b { animation: comeFromLeft 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
-    .letter-a1 { animation: comeFromTop 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
-    .letter-y { animation: comeFromBottom 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
-    .letter-a2 { animation: comeFromRight 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; display: inline-block; }
-    .fade-in-scale { animation: fadeInScale 1.2s ease-out forwards; display: inline-block; animation-delay: 0.4s; opacity: 0; }
-    .continuous-wave { animation: floatingWave 3.5s ease-in-out infinite; display: inline-block; }
+    /* --- الكيفريمز الأساسية المطورة --- */
+    @keyframes comeFromLeft {
+        0%   { transform: translateX(-200px) rotate(-30deg) scale(0.5); opacity: 0; filter: blur(8px); }
+        60%  { transform: translateX(15px) rotate(3deg) scale(1.05); opacity: 1; filter: blur(0); }
+        80%  { transform: translateX(-6px) rotate(-1deg) scale(0.98); }
+        100% { transform: translateX(0) rotate(0) scale(1); opacity: 1; filter: blur(0); }
+    }
+    @keyframes comeFromTop {
+        0%   { transform: translateY(-200px) scale(0.4) rotate(20deg); opacity: 0; filter: blur(10px); }
+        55%  { transform: translateY(12px) scale(1.08) rotate(-2deg); opacity: 1; filter: blur(0); }
+        75%  { transform: translateY(-5px) scale(0.97) rotate(1deg); }
+        100% { transform: translateY(0) scale(1) rotate(0); opacity: 1; }
+    }
+    @keyframes comeFromBottom {
+        0%   { transform: translateY(200px) scale(0.4) rotate(-20deg); opacity: 0; filter: blur(10px); }
+        55%  { transform: translateY(-12px) scale(1.08) rotate(2deg); opacity: 1; filter: blur(0); }
+        75%  { transform: translateY(5px) scale(0.97) rotate(-1deg); }
+        100% { transform: translateY(0) scale(1) rotate(0); opacity: 1; }
+    }
+    @keyframes comeFromRight {
+        0%   { transform: translateX(200px) rotate(30deg) scale(0.5); opacity: 0; filter: blur(8px); }
+        60%  { transform: translateX(-15px) rotate(-3deg) scale(1.05); opacity: 1; filter: blur(0); }
+        80%  { transform: translateX(6px) rotate(1deg) scale(0.98); }
+        100% { transform: translateX(0) rotate(0) scale(1); opacity: 1; filter: blur(0); }
+    }
+
+    /* --- فتح الشاشة بستار ذهبي يُزاح --- */
+    @keyframes curtainReveal {
+        0%   { clip-path: inset(0 0 100% 0); opacity: 0; transform: scale(0.9); }
+        40%  { clip-path: inset(0 0 0% 0); opacity: 1; transform: scale(1.02); }
+        100% { clip-path: inset(0 0 0% 0); opacity: 1; transform: scale(1); }
+    }
+
+    /* --- بريق ذهبي متحرك على الشعار --- */
+    @keyframes goldShimmer {
+        0%   { background-position: -200% center; }
+        100% { background-position: 200% center; }
+    }
+
+    /* --- نبضة ذهبية حول البوكس --- */
+    @keyframes goldenPulseRing {
+        0%   { box-shadow: 0 0 0 0 rgba(212,175,55,0.7), 0 10px 40px rgba(0,0,0,0.4); }
+        50%  { box-shadow: 0 0 0 18px rgba(212,175,55,0), 0 10px 40px rgba(0,0,0,0.4); }
+        100% { box-shadow: 0 0 0 0 rgba(212,175,55,0), 0 10px 40px rgba(0,0,0,0.4); }
+    }
+
+    /* --- أيقونة الميزان تتأرجح --- */
+    @keyframes scaleBalance {
+        0%,100% { transform: rotate(0deg) scale(1); }
+        20%  { transform: rotate(-12deg) scale(1.1); }
+        40%  { transform: rotate(10deg) scale(1.05); }
+        60%  { transform: rotate(-6deg) scale(1.08); }
+        80%  { transform: rotate(4deg) scale(1.02); }
+    }
+
+    /* --- خط ذهبي يرسم نفسه --- */
+    @keyframes drawLine {
+        0%   { width: 0%; opacity: 0; }
+        60%  { opacity: 1; }
+        100% { width: 80%; opacity: 1; }
+    }
+
+    /* --- fade مع ارتفاع سلس --- */
+    @keyframes fadeInScale {
+        0%   { opacity: 0; transform: translateY(20px) scale(0.92); filter: blur(4px); }
+        60%  { opacity: 1; filter: blur(0); }
+        100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+
+    /* --- موجة هادئة دائمة --- */
+    @keyframes floatingWave {
+        0%,100% { transform: translateY(0px) rotate(0deg); }
+        30%  { transform: translateY(-8px) rotate(-2deg); }
+        70%  { transform: translateY(-4px) rotate(1deg); }
+    }
+
+    /* --- وميض ذهبي متكرر --- */
+    @keyframes goldGlow {
+        0%,100% { text-shadow: 0 0 10px rgba(212,175,55,0.3), 0 0 20px rgba(212,175,55,0.1); }
+        50%  { text-shadow: 0 0 20px rgba(212,175,55,0.8), 0 0 40px rgba(212,175,55,0.4), 0 0 60px rgba(212,175,55,0.2); }
+    }
+
+    /* --- نجمة تتفتت للخارج (particle burst) --- */
+    @keyframes starBurst {
+        0%   { opacity: 0; transform: scale(0) rotate(0deg); }
+        30%  { opacity: 1; }
+        60%  { transform: scale(1.3) rotate(180deg); opacity: 0.8; }
+        100% { transform: scale(0) rotate(360deg); opacity: 0; }
+    }
+
+    /* --- خلفية متدرجة متحركة --- */
+    @keyframes gradientShift {
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* ============================================================
+       تطبيق الأنيميشن على العناصر
+    ============================================================ */
+
+    /* حروف الشعار BAYA */
+    .letter-b {
+        animation: comeFromLeft 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        display: inline-block;
+        animation-delay: 0.1s;
+        opacity: 0;
+    }
+    .letter-a1 {
+        animation: comeFromTop 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        display: inline-block;
+        animation-delay: 0.25s;
+        opacity: 0;
+    }
+    .letter-y {
+        animation: comeFromBottom 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        display: inline-block;
+        animation-delay: 0.4s;
+        opacity: 0;
+    }
+    .letter-a2 {
+        animation: comeFromRight 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        display: inline-block;
+        animation-delay: 0.55s;
+        opacity: 0;
+    }
+
+    /* بريق ذهبي على حروف BAYA بعد الظهور */
+    .letter-b, .letter-a1, .letter-y, .letter-a2 {
+        background: linear-gradient(90deg, #d4af37 30%, #fff8dc 50%, #d4af37 70%);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: comeFromLeft 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+                   goldShimmer 3s linear 1.8s infinite;
+    }
+    .letter-a1 { animation: comeFromTop 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldShimmer 3s linear 2s infinite; }
+    .letter-y   { animation: comeFromBottom 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldShimmer 3s linear 2.2s infinite; }
+    .letter-a2  { animation: comeFromRight 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldShimmer 3s linear 2.4s infinite; }
+
+    /* fade in عام محسّن */
+    .fade-in-scale {
+        animation: fadeInScale 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        display: inline-block;
+        opacity: 0;
+    }
+
+    /* موجة هادئة دائمة */
+    .continuous-wave {
+        animation: floatingWave 4s ease-in-out infinite;
+        display: inline-block;
+    }
+
+    /* أيقونة الميزان */
+    .balance-icon {
+        animation: fadeInScale 0.8s ease-out forwards, scaleBalance 6s ease-in-out 2s infinite;
+        display: inline-block;
+        opacity: 0;
+    }
+
+    /* بوكس اللوجين - نبضة ذهبية متكررة */
+    .login-box-pulse {
+        animation: goldenPulseRing 2.5s ease-out infinite;
+    }
+
+    /* خط ذهبي يرسم نفسه تحت الشعار */
+    .gold-line {
+        display: block;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #d4af37, #fff8dc, #d4af37, transparent);
+        border-radius: 2px;
+        margin: 10px auto;
+        animation: drawLine 1.5s cubic-bezier(0.22, 1, 0.36, 1) 1.2s forwards;
+        width: 0%;
+        opacity: 0;
+    }
+
+    /* خلفية اللوجين متحركة */
+    .login-animated-bg {
+        background: linear-gradient(-45deg, #0d1b2a, #1a2c42, #162338, #0a1628, #1e3a5f);
+        background-size: 400% 400%;
+        animation: gradientShift 8s ease infinite;
+    }
+
+    /* وميض الزر الذهبي */
+    .stFormSubmitButton button, [data-testid="stFormSubmitButton"] button {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1) !important;
+    }
+    .stFormSubmitButton button::after, [data-testid="stFormSubmitButton"] button::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -75%;
+        width: 50%;
+        height: 200%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transform: skewX(-20deg);
+        animation: shimmerBtn 3s ease-in-out 2s infinite;
+    }
+    @keyframes shimmerBtn {
+        0%   { left: -75%; opacity: 0; }
+        10%  { opacity: 1; }
+        50%  { left: 125%; opacity: 1; }
+        51%,100% { left: 125%; opacity: 0; }
+    }
+
+    /* نجمة دوارة خلف الأيقونة */
+    .star-particle {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: #d4af37;
+        border-radius: 50%;
+        animation: starBurst 2s ease-out forwards;
+    }
+
+    /* premium-header محسّن مع حركة دخول */
+    .premium-header {
+        background: linear-gradient(135deg, #fdfbf7 0%, #fffef9 50%, #f9f5e8 100%);
+        padding: 12px 20px;
+        border-right: 5px solid #d4af37;
+        border-radius: 8px;
+        margin-top: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(212,175,55,0.15), 0 2px 6px rgba(0,0,0,0.05);
+        color: #1a2c42 !important;
+        font-weight: 800;
+        font-size: 22px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .premium-header::before {
+        content: '';
+        position: absolute;
+        top: 0; right: 0;
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.07) 50%, transparent 100%);
+        background-size: 200% auto;
+        animation: goldShimmer 4s linear infinite;
+    }
+    .premium-header:hover {
+        transform: translateX(-3px);
+        box-shadow: 0 6px 20px rgba(212,175,55,0.25), 0 3px 8px rgba(0,0,0,0.08);
+    }
+
+    .info-header {
+        background-color: #e8f0fe;
+        padding: 10px 15px;
+        border-right: 4px solid #1a2c42;
+        border-radius: 5px;
+        color: #1a2c42 !important;
+        font-weight: 600;
+        margin-bottom: 15px;
+        margin-top: 15px;
+        transition: all 0.3s ease;
+    }
+    .info-header:hover {
+        background-color: #d4e0fc;
+        transform: translateX(-2px);
+    }
+/* ============================================================
+       6. توافق الموبايل (Responsive & Mobile Friendly)
+    ============================================================ */
+    @media (max-width: 768px) {
+        /* 1. تقليل عرض القائمة الجانبية لتناسب الهواتف */
+        [data-testid="stSidebar"] { 
+            width: 280px !important; 
+            min-width: 280px !important;
+            max-width: 85vw !important;
+        }
+        
+        /* 2. تصغير أحجام الخطوط في شاشة تسجيل الدخول */
+        .login-box-pulse { padding: 25px 15px !important; }
+        .balance-icon { font-size: 45px !important; }
+        .login-box-pulse div[style*="font-size: 62px"] { font-size: 40px !important; }
+        .continuous-wave[style*="font-size: 28px"] { font-size: 20px !important; }
+        .login-box-pulse h3 { font-size: 15px !important; }
+        
+        /* 3. تصغير شعار BAYA في القائمة الجانبية */
+        div[style*="font-size: 50px"] { font-size: 38px !important; }
+        div[style*="font-size: 35px"] { font-size: 26px !important; }
+
+        /* 4. تصغير العناوين الرئيسية في التطبيق */
+        .premium-header { 
+            font-size: 18px !important; 
+            padding: 10px 12px !important; 
+        }
+        
+        /* 5. تصغير زر طي القائمة الجانبية الإضافي */
+        #sidebar-toggle-btn { 
+            padding: 10px 5px !important; 
+            font-size: 12px !important; 
+        }
+    }
+/* تقليل المسافة العلوية في الصفحة الرئيسية */
+.block-container {
+    padding-top: 1rem !important;
+    margin-top: 0 !important;
+}
+
+/* إخفاء المسافة فوق الهيدر */
+[data-testid="stAppViewContainer"] > .main {
+    padding-top: 0rem !important;
+}
+
+/* تقليل ارتفاع الهيدر الشفاف */
+[data-testid="stHeader"] {
+    height: 0rem !important;
+    min-height: 0 !important;
+}
+
 </style>
 """
 st.markdown(CSS_STYLE, unsafe_allow_html=True)
@@ -217,19 +551,23 @@ if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
 LOGIN_HTML = """
-<div style='text-align: center; background-color: #1a2c42; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden;'>
-    <div class='fade-in-scale' style='font-size: 65px; margin-bottom: 5px; animation-delay: 0.1s;'>⚖️</div>
-    <div style="direction: ltr; display: flex; justify-content: center; align-items: baseline; gap: 8px;">
-        <div style="font-size: 55px; font-weight: 900; color: #d4af37; display: flex; gap: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-            <span class='letter-b'>B</span>
-            <span class='letter-a1'>A</span>
-            <span class='letter-y'>Y</span>
-            <span class='letter-a2'>A</span>
+<div class='login-box-pulse' style='text-align: center; padding: 45px 35px; border-radius: 20px; overflow: hidden; position: relative; border: 1px solid rgba(212,175,55,0.25);'>
+    <div class='login-animated-bg' style='position:absolute;top:0;left:0;width:100%;height:100%;border-radius:20px;z-index:0;'></div>
+    <div style='position:relative;z-index:1;'>
+        <div class='balance-icon' style='font-size: 70px; margin-bottom: 8px; animation-delay: 0.1s; filter: drop-shadow(0 0 15px rgba(212,175,55,0.5));'>⚖️</div>
+        <div style="direction: ltr; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 4px; margin-bottom: 4px;">
+            <div style="font-size: 62px; font-weight: 900; display: flex; gap: 3px; letter-spacing: 2px; justify-content: center; width: 100%;">
+                <span class='letter-b' style='animation-delay: 0.2s;'>B</span>
+                <span class='letter-a1' style='animation-delay: 0.4s;'>A</span>
+                <span class='letter-y' style='animation-delay: 0.6s;'>Y</span>
+                <span class='letter-a2' style='animation-delay: 0.8s;'>A</span>
+            </div>
+            <span class='fade-in-scale continuous-wave' style='color: rgba(255,255,255,0.9); font-size: 28px; font-weight: 300; animation-delay: 1.2s; letter-spacing: 4px; text-align: center; display: block;'>Legal</span>
         </div>
-        <span class='fade-in-scale' style='color: white; font-size: 26px; font-weight: 600; animation-delay: 1.0s;'>Legal</span>
+        <span class='gold-line'></span>
+        <h3 class='fade-in-scale' style='color: rgba(255,255,255,0.95); margin-top: 18px; font-weight: 600; font-size: 17px; animation-delay: 1.5s;'>الجمعية التعاونية الزراعية بالناصرية</h3>
+        <p class='fade-in-scale' style='color: rgba(180,195,220,0.85); margin-top: 8px; font-size: 14px; animation-delay: 1.7s;'>✦ يرجى إدخال بيانات الاعتماد للمتابعة ✦</p>
     </div>
-    <h3 class='fade-in-scale' style='color: #fff; margin-top: 15px; font-weight: 400; animation-delay: 1.2s;'>الجمعية التعاونية الزراعية بالناصرية</h3>
-    <p class='fade-in-scale' style='color: #ccc; margin-top: 10px; animation-delay: 1.4s;'>يرجى إدخال بيانات الاعتماد للمتابعة</p>
 </div><br>
 """
 
@@ -440,6 +778,57 @@ SIDEBAR_HTML = """
 </div>
 """
 st.sidebar.markdown(SIDEBAR_HTML, unsafe_allow_html=True)
+
+# JavaScript لإضافة زر << / >> لطي/فتح الشريط الجانبي يدوياً
+SIDEBAR_TOGGLE_JS = """
+<script>
+(function() {
+    function addToggleBtn() {
+        if (document.getElementById('sidebar-toggle-btn')) return;
+        var btn = document.createElement('button');
+        btn.id = 'sidebar-toggle-btn';
+        btn.title = 'طي / فتح القائمة';
+
+        function isSidebarVisible() {
+            // إذا ظهر collapsedControl فالشريط مطوي
+            return !document.querySelector('[data-testid="collapsedControl"]');
+        }
+
+        function updateBtn() {
+            // الشريط على اليمين: مفتوح >> اضغط لطيه (<<) | مطوي << اضغط لفتحه (>>)
+            btn.innerHTML = isSidebarVisible() ? '&lt;&lt;' : '&gt;&gt;';
+        }
+
+        btn.onclick = function() {
+            var collapsedBtn = document.querySelector('[data-testid="collapsedControl"]');
+            var headerBtn = document.querySelector('[data-testid="stSidebarHeader"] button');
+            if (collapsedBtn) {
+                collapsedBtn.click(); // الشريط مطوي -> افتحه
+            } else if (headerBtn) {
+                headerBtn.click(); // الشريط مفتوح -> اطوه
+            }
+            setTimeout(updateBtn, 350);
+        };
+
+        var observer = new MutationObserver(updateBtn);
+        observer.observe(document.body, { childList: true, subtree: true });
+        document.body.appendChild(btn);
+        updateBtn();
+    }
+
+    setTimeout(addToggleBtn, 800);
+
+    // إعادة إضافة الزر بعد كل rerun لـ Streamlit
+    var pageObserver = new MutationObserver(function() {
+        if (!document.getElementById('sidebar-toggle-btn')) {
+            setTimeout(addToggleBtn, 400);
+        }
+    });
+    pageObserver.observe(document.body, { childList: true });
+})();
+</script>
+"""
+st.markdown(SIDEBAR_TOGGLE_JS, unsafe_allow_html=True)
 
 menu = ["📝 منظومة عقود البيع", "🤝 منظومة القسمة الرضائية", "🧮 حاسبة الأراضي", "📂 أرشيف العقود", "🖨️ إدارة المستندات (فردي)", "🔄 الاسترجاع من ملف (Backup)", "⚙️ إعدادات الأمان"]
 if 'active_menu' not in st.session_state: st.session_state.active_menu = menu[0]
