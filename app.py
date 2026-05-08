@@ -7,6 +7,7 @@ import json
 import zipfile
 from io import BytesIO
 from datetime import date
+import inheritance_calc  # استدعاء ملف حاسبة المواريث
 
 # ==========================================
 # 1. إعدادات الصفحة والتصميم CSS
@@ -35,24 +36,15 @@ CSS_STYLE = """
     a[href*="github.com"] { display: none !important; visibility: hidden !important; }
     footer { display: none !important; visibility: hidden !important; } 
     .viewerBadge_container, [data-testid="stViewerBadge"] { display: none !important; visibility: hidden !important; }
-
-    /* إخفاء رسالة Press Enter to apply */
     [data-testid="InputInstructions"] { display: none !important; visibility: hidden !important; }
 
     /* 3. تصميم القائمة الجانبية - ثابتة دائماً */
-    [data-testid="stSidebar"] { 
-        background-color: #1a2c42 !important; 
-        width: 340px !important; 
-        min-width: 340px !important;
-    }
-
-    /* إخفاء أزرار طي/فتح الشريط تماماً - الشريط ثابت */
+    [data-testid="stSidebar"] { background-color: #1a2c42 !important; width: 340px !important; min-width: 340px !important; }
     [data-testid="collapsedControl"] { display: none !important; }
     [data-testid="stSidebarHeader"] button { display: none !important; }
     [data-testid="stSidebarCollapseButton"] { display: none !important; }
 
     .stApp > header { direction: rtl !important; }
-    .stApp { direction: rtl !important; }
     
     [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; }
     
@@ -78,14 +70,21 @@ CSS_STYLE = """
     .premium-header {
         background: linear-gradient(90deg, #fdfbf7 0%, #ffffff 100%); padding: 12px 20px; border-right: 5px solid #d4af37; border-radius: 8px;
         margin-top: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); color: #1a2c42 !important; font-weight: 800; font-size: 22px; display: flex; align-items: center; gap: 10px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease; position: relative; overflow: hidden;
     }
-    .info-header { background-color: #e8f0fe; padding: 10px 15px; border-right: 4px solid #1a2c42; border-radius: 5px; color: #1a2c42 !important; font-weight: 600; margin-bottom: 15px; margin-top: 15px; }
+    .premium-header::before {
+        content: ''; position: absolute; top: 0; right: 0; width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.07) 50%, transparent 100%);
+        background-size: 200% auto; animation: goldShimmer 4s linear infinite;
+    }
+    .premium-header:hover { transform: translateX(-3px); box-shadow: 0 6px 20px rgba(212,175,55,0.25), 0 3px 8px rgba(0,0,0,0.08); }
+
+    .info-header { background-color: #e8f0fe; padding: 10px 15px; border-right: 4px solid #1a2c42; border-radius: 5px; color: #1a2c42 !important; font-weight: 600; margin-bottom: 15px; margin-top: 15px; transition: all 0.3s ease; }
+    .info-header:hover { background-color: #d4e0fc; transform: translateX(-2px); }
 
     /* ============================================================
        5. الأنيميشن الاحترافي المطوّر - BAYA Pro Animations
     ============================================================ */
-
-    /* --- الكيفريمز الأساسية المطورة --- */
     @keyframes comeFromLeft {
         0%   { transform: translateX(-200px) rotate(-30deg) scale(0.5); opacity: 0; filter: blur(8px); }
         60%  { transform: translateX(15px) rotate(3deg) scale(1.05); opacity: 1; filter: blur(0); }
@@ -110,28 +109,12 @@ CSS_STYLE = """
         80%  { transform: translateX(6px) rotate(1deg) scale(0.98); }
         100% { transform: translateX(0) rotate(0) scale(1); opacity: 1; filter: blur(0); }
     }
-
-    /* --- فتح الشاشة بستار ذهبي يُزاح --- */
-    @keyframes curtainReveal {
-        0%   { clip-path: inset(0 0 100% 0); opacity: 0; transform: scale(0.9); }
-        40%  { clip-path: inset(0 0 0% 0); opacity: 1; transform: scale(1.02); }
-        100% { clip-path: inset(0 0 0% 0); opacity: 1; transform: scale(1); }
-    }
-
-    /* --- بريق ذهبي متحرك على الشعار --- */
-    @keyframes goldShimmer {
-        0%   { background-position: -200% center; }
-        100% { background-position: 200% center; }
-    }
-
-    /* --- نبضة ذهبية حول البوكس --- */
+    @keyframes goldShimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
     @keyframes goldenPulseRing {
         0%   { box-shadow: 0 0 0 0 rgba(212,175,55,0.7), 0 10px 40px rgba(0,0,0,0.4); }
         50%  { box-shadow: 0 0 0 18px rgba(212,175,55,0), 0 10px 40px rgba(0,0,0,0.4); }
         100% { box-shadow: 0 0 0 0 rgba(212,175,55,0), 0 10px 40px rgba(0,0,0,0.4); }
     }
-
-    /* --- أيقونة الميزان تتأرجح --- */
     @keyframes scaleBalance {
         0%,100% { transform: rotate(0deg) scale(1); }
         20%  { transform: rotate(-12deg) scale(1.1); }
@@ -139,262 +122,73 @@ CSS_STYLE = """
         60%  { transform: rotate(-6deg) scale(1.08); }
         80%  { transform: rotate(4deg) scale(1.02); }
     }
-
-    /* --- خط ذهبي يرسم نفسه --- */
-    @keyframes drawLine {
-        0%   { width: 0%; opacity: 0; }
-        60%  { opacity: 1; }
-        100% { width: 80%; opacity: 1; }
-    }
-
-    /* --- fade مع ارتفاع سلس --- */
+    @keyframes drawLine { 0% { width: 0%; opacity: 0; } 60% { opacity: 1; } 100% { width: 80%; opacity: 1; } }
     @keyframes fadeInScale {
         0%   { opacity: 0; transform: translateY(20px) scale(0.92); filter: blur(4px); }
         60%  { opacity: 1; filter: blur(0); }
         100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
     }
-
-    /* --- موجة هادئة دائمة --- */
-    @keyframes floatingWave {
-        0%,100% { transform: translateY(0px) rotate(0deg); }
-        30%  { transform: translateY(-8px) rotate(-2deg); }
-        70%  { transform: translateY(-4px) rotate(1deg); }
-    }
-
-    /* --- وميض ذهبي متكرر --- */
-    @keyframes goldGlow {
-        0%,100% { text-shadow: 0 0 10px rgba(212,175,55,0.3), 0 0 20px rgba(212,175,55,0.1); }
-        50%  { text-shadow: 0 0 20px rgba(212,175,55,0.8), 0 0 40px rgba(212,175,55,0.4), 0 0 60px rgba(212,175,55,0.2); }
-    }
-
-    /* --- نجمة تتفتت للخارج (particle burst) --- */
+    @keyframes floatingWave { 0%,100% { transform: translateY(0px) rotate(0deg); } 30% { transform: translateY(-8px) rotate(-2deg); } 70% { transform: translateY(-4px) rotate(1deg); } }
     @keyframes starBurst {
         0%   { opacity: 0; transform: scale(0) rotate(0deg); }
         30%  { opacity: 1; }
         60%  { transform: scale(1.3) rotate(180deg); opacity: 0.8; }
         100% { transform: scale(0) rotate(360deg); opacity: 0; }
     }
+    @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
-    /* --- خلفية متدرجة متحركة --- */
-    @keyframes gradientShift {
-        0%   { background-position: 0% 50%; }
-        50%  { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-
-    /* ============================================================
-       تطبيق الأنيميشن على العناصر
-    ============================================================ */
-
-    /* حروف الشعار BAYA */
-    .letter-b {
-        animation: comeFromLeft 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        display: inline-block;
-        animation-delay: 0.1s;
-        opacity: 0;
-    }
-    .letter-a1 {
-        animation: comeFromTop 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        display: inline-block;
-        animation-delay: 0.25s;
-        opacity: 0;
-    }
-    .letter-y {
-        animation: comeFromBottom 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        display: inline-block;
-        animation-delay: 0.4s;
-        opacity: 0;
-    }
-    .letter-a2 {
-        animation: comeFromRight 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        display: inline-block;
-        animation-delay: 0.55s;
-        opacity: 0;
-    }
-
-    /* بريق ذهبي على حروف BAYA بعد الظهور */
+    /* تطبيق الأنيميشن */
+    .letter-b { animation: comeFromLeft 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; display: inline-block; animation-delay: 0.1s; opacity: 0; }
+    .letter-a1 { animation: comeFromTop 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; display: inline-block; animation-delay: 0.25s; opacity: 0; }
+    .letter-y { animation: comeFromBottom 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; display: inline-block; animation-delay: 0.4s; opacity: 0; }
+    .letter-a2 { animation: comeFromRight 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; display: inline-block; animation-delay: 0.55s; opacity: 0; }
     .letter-b, .letter-a1, .letter-y, .letter-a2 {
-        background: linear-gradient(90deg, #d4af37 30%, #fff8dc 50%, #d4af37 70%);
-        background-size: 200% auto;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        animation: comeFromLeft 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-                   goldShimmer 3s linear 1.8s infinite;
+        background: linear-gradient(90deg, #d4af37 30%, #fff8dc 50%, #d4af37 70%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        animation: comeFromLeft 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldShimmer 3s linear 1.8s infinite;
     }
     .letter-a1 { animation: comeFromTop 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldShimmer 3s linear 2s infinite; }
     .letter-y   { animation: comeFromBottom 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldShimmer 3s linear 2.2s infinite; }
     .letter-a2  { animation: comeFromRight 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldShimmer 3s linear 2.4s infinite; }
-
-    /* fade in عام محسّن */
-    .fade-in-scale {
-        animation: fadeInScale 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        display: inline-block;
-        opacity: 0;
-    }
-
-    /* موجة هادئة دائمة */
-    .continuous-wave {
-        animation: floatingWave 4s ease-in-out infinite;
-        display: inline-block;
-    }
-
-    /* أيقونة الميزان */
-    .balance-icon {
-        animation: fadeInScale 0.8s ease-out forwards, scaleBalance 6s ease-in-out 2s infinite;
-        display: inline-block;
-        opacity: 0;
-    }
-
-    /* بوكس اللوجين - نبضة ذهبية متكررة */
-    .login-box-pulse {
-        animation: goldenPulseRing 2.5s ease-out infinite;
-    }
-
-    /* خط ذهبي يرسم نفسه تحت الشعار */
-    .gold-line {
-        display: block;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, #d4af37, #fff8dc, #d4af37, transparent);
-        border-radius: 2px;
-        margin: 10px auto;
-        animation: drawLine 1.5s cubic-bezier(0.22, 1, 0.36, 1) 1.2s forwards;
-        width: 0%;
-        opacity: 0;
-    }
-
-    /* خلفية اللوجين متحركة */
-    .login-animated-bg {
-        background: linear-gradient(-45deg, #0d1b2a, #1a2c42, #162338, #0a1628, #1e3a5f);
-        background-size: 400% 400%;
-        animation: gradientShift 8s ease infinite;
-    }
-
+    .fade-in-scale { animation: fadeInScale 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; display: inline-block; opacity: 0; }
+    .continuous-wave { animation: floatingWave 4s ease-in-out infinite; display: inline-block; }
+    .balance-icon { animation: fadeInScale 0.8s ease-out forwards, scaleBalance 6s ease-in-out 2s infinite; display: inline-block; opacity: 0; }
+    .login-box-pulse { animation: goldenPulseRing 2.5s ease-out infinite; }
+    .gold-line { display: block; height: 2px; background: linear-gradient(90deg, transparent, #d4af37, #fff8dc, #d4af37, transparent); border-radius: 2px; margin: 10px auto; animation: drawLine 1.5s cubic-bezier(0.22, 1, 0.36, 1) 1.2s forwards; width: 0%; opacity: 0; }
+    .login-animated-bg { background: linear-gradient(-45deg, #0d1b2a, #1a2c42, #162338, #0a1628, #1e3a5f); background-size: 400% 400%; animation: gradientShift 8s ease infinite; }
+    
     /* وميض الزر الذهبي */
-    .stFormSubmitButton button, [data-testid="stFormSubmitButton"] button {
-        position: relative;
-        overflow: hidden;
-        transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1) !important;
-    }
+    .stFormSubmitButton button, [data-testid="stFormSubmitButton"] button { position: relative; overflow: hidden; transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1) !important; }
     .stFormSubmitButton button::after, [data-testid="stFormSubmitButton"] button::after {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -75%;
-        width: 50%;
-        height: 200%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        transform: skewX(-20deg);
-        animation: shimmerBtn 3s ease-in-out 2s infinite;
+        content: ''; position: absolute; top: -50%; left: -75%; width: 50%; height: 200%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transform: skewX(-20deg); animation: shimmerBtn 3s ease-in-out 2s infinite;
     }
-    @keyframes shimmerBtn {
-        0%   { left: -75%; opacity: 0; }
-        10%  { opacity: 1; }
-        50%  { left: 125%; opacity: 1; }
-        51%,100% { left: 125%; opacity: 0; }
-    }
+    @keyframes shimmerBtn { 0% { left: -75%; opacity: 0; } 10% { opacity: 1; } 50% { left: 125%; opacity: 1; } 51%,100% { left: 125%; opacity: 0; } }
 
-    /* نجمة دوارة خلف الأيقونة */
-    .star-particle {
-        position: absolute;
-        width: 6px;
-        height: 6px;
-        background: #d4af37;
-        border-radius: 50%;
-        animation: starBurst 2s ease-out forwards;
-    }
-
-    /* premium-header محسّن مع حركة دخول */
-    .premium-header {
-        background: linear-gradient(135deg, #fdfbf7 0%, #fffef9 50%, #f9f5e8 100%);
-        padding: 12px 20px;
-        border-right: 5px solid #d4af37;
-        border-radius: 8px;
-        margin-top: 15px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 15px rgba(212,175,55,0.15), 0 2px 6px rgba(0,0,0,0.05);
-        color: #1a2c42 !important;
-        font-weight: 800;
-        font-size: 22px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-    .premium-header::before {
-        content: '';
-        position: absolute;
-        top: 0; right: 0;
-        width: 100%; height: 100%;
-        background: linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.07) 50%, transparent 100%);
-        background-size: 200% auto;
-        animation: goldShimmer 4s linear infinite;
-    }
-    .premium-header:hover {
-        transform: translateX(-3px);
-        box-shadow: 0 6px 20px rgba(212,175,55,0.25), 0 3px 8px rgba(0,0,0,0.08);
-    }
-
-    .info-header {
-        background-color: #e8f0fe;
-        padding: 10px 15px;
-        border-right: 4px solid #1a2c42;
-        border-radius: 5px;
-        color: #1a2c42 !important;
-        font-weight: 600;
-        margin-bottom: 15px;
-        margin-top: 15px;
-        transition: all 0.3s ease;
-    }
-    .info-header:hover {
-        background-color: #d4e0fc;
-        transform: translateX(-2px);
-    }
-/* ============================================================
-       6. توافق الموبايل (Responsive & Mobile Friendly)
+    /* ============================================================
+       6. توافق الموبايل والمقاسات 
     ============================================================ */
     @media (max-width: 768px) {
-        /* 5. تصغير الشريط الجانبي على الموبايل */
-        [data-testid="stSidebar"] { 
-            width: 280px !important; 
-            min-width: 280px !important;
-            max-width: 85vw !important;
-        }
+        [data-testid="stSidebar"] { width: 280px !important; min-width: 280px !important; max-width: 85vw !important; }
         .login-box-pulse { padding: 25px 15px !important; }
         .balance-icon { font-size: 45px !important; }
         .login-box-pulse div[style*="font-size: 62px"] { font-size: 40px !important; }
         .continuous-wave[style*="font-size: 28px"] { font-size: 20px !important; }
         .login-box-pulse h3 { font-size: 15px !important; }
-        
-        /* 3. تصغير شعار BAYA في القائمة الجانبية */
         div[style*="font-size: 50px"] { font-size: 38px !important; }
         div[style*="font-size: 35px"] { font-size: 26px !important; }
-
-        /* 4. تصغير العناوين الرئيسية في التطبيق */
-        .premium-header { 
-            font-size: 18px !important; 
-            padding: 10px 12px !important; 
-        }
+        .premium-header { font-size: 18px !important; padding: 10px 12px !important; }
     }
-/* تقليل المسافة العلوية في الصفحة الرئيسية */
-.block-container {
-    padding-top: 3.5rem !important;
-    margin-top: 0 !important;
-}
+    .block-container { padding-top: 1.5rem !important; margin-top: 0 !important; }
+    [data-testid="stAppViewContainer"] > .main { padding-top: 0rem !important; }
+    [data-testid="stHeader"] { height: 3rem !important; min-height: 3rem !important; background: transparent !important; }
 
-/* مساحة كافية للهيدر عشان يظهر زر الوضع الداكن */
-[data-testid="stAppViewContainer"] > .main {
-    padding-top: 0rem !important;
-}
-
-/* إظهار الهيدر بارتفاع مناسب - عشان يظهر زر الإعدادات والوضع الداكن */
-[data-testid="stHeader"] {
-    height: 3rem !important;
-    min-height: 3rem !important;
-    background: transparent !important;
-}
+    /* =========================================
+       7. تصميم مربعات النتيجة المربعة للحاسبات (ف - ط - س)
+       ========================================= */
+    .calc-result-container { display: flex; justify-content: center; gap: 15px; margin-top: 15px; margin-bottom: 20px; direction: ltr; }
+    .calc-box { background-color: #ffffff; border: 2px solid #1a2c42; border-radius: 12px; width: 70px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .calc-top { background-color: #1a2c42; color: #d4af37; font-weight: 900; font-size: 22px; text-align: center; padding: 5px 0; border-bottom: 2px solid #1a2c42; }
+    .calc-bottom { color: #000000; font-weight: 800; font-size: 20px; text-align: center; padding: 10px 0; background-color: #f8f9fa; }
 
 </style>
 """
@@ -516,7 +310,8 @@ LOGIN_HTML = """
 """
 
 if not st.session_state.logged_in:
-    st.markdown("<br><br>", unsafe_allow_html=True)
+    # تم تقليل المسافة العلوية لرفع البوكس لأعلى
+    st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown(LOGIN_HTML, unsafe_allow_html=True)
@@ -723,9 +518,7 @@ SIDEBAR_HTML = """
 """
 st.sidebar.markdown(SIDEBAR_HTML, unsafe_allow_html=True)
 
-
-
-menu = ["📝 منظومة عقود البيع", "🤝 منظومة القسمة الرضائية", "🧮 حاسبة الأراضي", "📂 أرشيف العقود", "🖨️ إدارة المستندات (فردي)", "🔄 الاسترجاع من ملف (Backup)", "⚙️ إعدادات الأمان"]
+menu = ["📝 منظومة عقود البيع", "🤝 منظومة القسمة الرضائية", "🧮 حاسبة الأراضي", "⚖️ حاسبة المواريث", "📂 أرشيف العقود", "🖨️ إدارة المستندات (فردي)", "🔄 الاسترجاع من ملف (Backup)", "⚙️ إعدادات الأمان"]
 if 'active_menu' not in st.session_state: st.session_state.active_menu = menu[0]
 choice = st.sidebar.radio("القائمة:", menu, key="active_menu")
 
@@ -757,26 +550,93 @@ if choice == "🔄 الاسترجاع من ملف (Backup)":
         except Exception as e: st.error(f"❌ حدث خطأ في قراءة الملف: تأكد أنه ملف backup_data.json سليم.")
 
 elif choice == "🧮 حاسبة الأراضي":
-    st.title("🧮 حاسبة مساحات الأراضي الزراعية")
-    calc_col, _ = st.columns([1, 1]) 
-    with calc_col:
-        col_calc_op, _ = st.columns([2, 1])
-        with col_calc_op: calc_op = st.radio("نوع العملية:", ["➕ جمع المساحات", "➖ طرح المساحات"], horizontal=True)
-        st.write("### 🌾 المساحة الأولى:")
+    spacer1, main_col, spacer2 = st.columns([1, 2, 1])
+    with main_col:
+        st.markdown("<h3 style='text-align: center; color: #1a2c42;'>🧮 حاسبة مساحات الأراضي</h3>", unsafe_allow_html=True)
+        st.markdown("---")
+        
+        calc_op = st.radio("نوع العملية:", ["➕ جمع", "➖ طرح"], horizontal=True)
+        
+        st.markdown("<b>🌾 المساحة الأولى:</b>", unsafe_allow_html=True)
         c_s1, c_k1, c_f1 = st.columns(3)
-        with c_s1: val_s1 = st.number_input("سهم", min_value=0.0, max_value=23.99, step=0.5, key="c_s1")
-        with c_k1: val_k1 = st.number_input("قيراط", min_value=0, max_value=23, step=1, key="c_k1")
-        with c_f1: val_f1 = st.number_input("فدان", min_value=0, step=1, key="c_f1")
-        st.write("### 🌾 المساحة الثانية:")
+        with c_f1: val_f1 = st.number_input("فدان", min_value=0, step=1, key="cf1")
+        with c_k1: val_k1 = st.number_input("قيراط", min_value=0, max_value=23, step=1, key="ck1")
+        with c_s1: val_s1 = st.number_input("سهم", min_value=0.0, max_value=23.99, step=0.5, key="cs1")
+        
+        st.markdown("<b>🌾 المساحة الثانية:</b>", unsafe_allow_html=True)
         c_s2, c_k2, c_f2 = st.columns(3)
-        with c_s2: val_s2 = st.number_input("سهم ", min_value=0.0, max_value=23.99, step=0.5, key="c_s2")
-        with c_k2: val_k2 = st.number_input("قيراط ", min_value=0, max_value=23, step=1, key="c_k2")
-        with c_f2: val_f2 = st.number_input("فدان ", min_value=0, step=1, key="c_f2")
-        if st.button("🧮 احسب الناتج الآن", use_container_width=True, type="primary"):
-            tot1 = (val_f1 * 24 * 24) + (val_k1 * 24) + val_s1; tot2 = (val_f2 * 24 * 24) + (val_k2 * 24) + val_s2
+        with c_f2: val_f2 = st.number_input("فدان", min_value=0, step=1, key="cf2")
+        with c_k2: val_k2 = st.number_input("قيراط", min_value=0, max_value=23, step=1, key="ck2")
+        with c_s2: val_s2 = st.number_input("سهم", min_value=0.0, max_value=23.99, step=0.5, key="cs2")
+        
+        st.write("")
+        if st.button("🧮 احسب الناتج", use_container_width=True, type="primary"):
+            tot1 = (val_f1 * 24 * 24) + (val_k1 * 24) + val_s1
+            tot2 = (val_f2 * 24 * 24) + (val_k2 * 24) + val_s2
             res = tot1 + tot2 if "جمع" in calc_op else tot1 - tot2
-            if res < 0: st.error("⚠️ المساحة المطروحة أكبر!")
-            else: st.success(f"✅ النتيجة الصافية: {int(res // (24 * 24))} فدان، و {int((res % (24 * 24)) // 24)} قيراط، و {format_sahm(round(res % 24, 2))} سهم.")
+            
+            if res < 0:
+                st.error("⚠️ المساحة المطروحة أكبر من المساحة الأساسية!")
+            else:
+                f_res = int(res // (24 * 24))
+                k_res = int((res % (24 * 24)) // 24)
+                s_res = format_sahm(round(res % 24, 2))
+                
+                st.markdown("<div style='text-align: center; color: green; font-weight: bold;'>النتيجة الصافية</div>", unsafe_allow_html=True)
+                st.markdown(f"""
+                <div class="calc-result-container">
+                    <div class="calc-box"><div class="calc-top">ف</div><div class="calc-bottom">{f_res}</div></div>
+                    <div class="calc-box"><div class="calc-top">ط</div><div class="calc-bottom">{k_res}</div></div>
+                    <div class="calc-box"><div class="calc-top">س</div><div class="calc-bottom">{s_res}</div></div>
+                </div>
+                """, unsafe_allow_html=True)
+
+elif choice == "⚖️ حاسبة المواريث":
+    spacer1, main_col, spacer2 = st.columns([1, 2, 1])
+    with main_col:
+        st.markdown("<h3 style='text-align: center; color: #1a2c42;'>⚖️ حاسبة المواريث</h3>", unsafe_allow_html=True)
+        st.markdown("---")
+        
+        st.markdown("<b>🌾 مساحة التركة:</b>", unsafe_allow_html=True)
+        c_s, c_k, c_f = st.columns(3)
+        with c_f: area_f = st.number_input("فدان ", min_value=0, step=1, key="ih_f")
+        with c_k: area_k = st.number_input("قيراط ", min_value=0, max_value=23, step=1, key="ih_k")
+        with c_s: area_s = st.number_input("سهم ", min_value=0.0, max_value=23.99, step=0.01, format="%.2f", key="ih_s")
+        
+        st.markdown("<b>👥 بيانات الورثة:</b>", unsafe_allow_html=True)
+        w_c1, w_c2, w_c3 = st.columns(3)
+        with w_c1: has_wife = st.checkbox("يوجد زوجة")
+        with w_c2: has_father = st.checkbox("يوجد أب")
+        with w_c3: has_mother = st.checkbox("يوجد أم")
+        
+        c_c1, c_c2 = st.columns(2)
+        with c_c1: sons_count = st.number_input("عدد الأبناء (الذكور)", min_value=0, step=1)
+        with c_c2: daugh_count = st.number_input("عدد البنات", min_value=0, step=1)
+        
+        st.write("")
+        if st.button("⚖️ تقسيم التركة", type="primary", use_container_width=True):
+            if area_f == 0 and area_k == 0 and area_s == 0:
+                st.error("⚠️ يرجى إدخال مساحة التركة أولاً.")
+            elif not (has_wife or has_father or has_mother or sons_count > 0 or daugh_count > 0):
+                st.error("⚠️ يرجى تحديد الورثة.")
+            else:
+                results = inheritance_calc.calculate_shares(
+                    area_f, area_k, area_s, has_wife, has_father, has_mother, sons_count, daugh_count
+                )
+                
+                st.markdown("---")
+                names_ar = {'wife': 'نصيب الزوجة', 'father': 'نصيب الأب', 'mother': 'نصيب الأم', 'son': 'نصيب الابن الواحد', 'daughter': 'نصيب البنت الواحدة'}
+                
+                for key, data in results.items():
+                    if key in names_ar:
+                        st.markdown(f"<div style='text-align: center; color: #1a2c42; font-weight: bold; margin-top: 10px;'>{names_ar[key]}</div>", unsafe_allow_html=True)
+                        st.markdown(f"""
+                        <div class="calc-result-container">
+                            <div class="calc-box"><div class="calc-top">ف</div><div class="calc-bottom">{data['f']}</div></div>
+                            <div class="calc-box"><div class="calc-top">ط</div><div class="calc-bottom">{data['q']}</div></div>
+                            <div class="calc-box"><div class="calc-top">س</div><div class="calc-bottom">{data['s']}</div></div>
+                        </div>
+                        """, unsafe_allow_html=True)
 
 elif choice == "📝 منظومة عقود البيع":
     if st.session_state.current_archive_id is not None and st.session_state.get('loaded_doc_type') != 'sale': st.session_state.current_archive_id = None
