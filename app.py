@@ -79,7 +79,7 @@ CSS_STYLE = """
     }
     .premium-header:hover { transform: translateX(-3px); box-shadow: 0 6px 20px rgba(212,175,55,0.25), 0 3px 8px rgba(0,0,0,0.08); }
 
-    .info-header { background-color: #e8f0fe; padding: 10px 15px; border-right: 4px solid #1a2c42; border-radius: 5px; color: #1a2c42 !important; font-weight: 600; margin-bottom: 15px; margin-top: 15px; transition: all 0.3s ease; }
+    .info-header { background-color: #e8f0fe; padding: 10px 15px; border-right: 4px solid #1a2c42; border-radius: 5px; color: #1a2c42 !important; font-weight: 600; margin-bottom: 15px; margin-top: 15px; transition: all 0.3s ease; text-align: right !important; direction: rtl !important; display: block; }
     .info-header:hover { background-color: #d4e0fc; transform: translateX(-2px); }
 
     /* ============================================================
@@ -436,8 +436,14 @@ def generate_sale_zip(fd):
     context = build_sale_context(fd)
     zip_buffer = BytesIO()
     sale_folder = os.path.join("templates", "sale")
-    seller_name = fd["sellers"][0]['name'] if fd["sellers"] and fd["sellers"][0]['name'] else "بائع"
-    buyer_name = fd["buyers"][0]['name'] if fd["buyers"] and fd["buyers"][0]['name'] else "مشتري"
+    
+    # التعديل هنا: جلب الأسماء النهائية واستبدال علامة (/) بمسافة عشان الويندوز ميعتبرهاش فولدر
+    seller_name = context.get("اسم_البائع", "بائع").replace("/", " ").replace("\\", " ").strip()
+    buyer_name = context.get("اسم_المشتري", "مشتري").replace("/", " ").replace("\\", " ").strip()
+    
+    if not seller_name: seller_name = "بائع"
+    if not buyer_name: buyer_name = "مشتري"
+
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
         backup_str = json.dumps(fd, ensure_ascii=False, indent=4)
         zip_file.writestr("backup_data.json", backup_str)
@@ -728,7 +734,7 @@ elif choice == "📝 منظومة عقود البيع":
         with bhc_f: fd["b_total_f"] = st.number_input("فدان ", min_value=0, step=1, value=int(fd.get("b_total_f",0)), key="bt_f")
 
     st.markdown("---")
-    st.markdown('<div class="premium-header">🌾 بيانات المساحة والحدود</div>', unsafe_allow_html=True)
+    st.markdown('<div class="premium-header">🌾 بيانات المساحة والحدود المبيعة</div>', unsafe_allow_html=True)
     sc_txt, sc_s, sc_k, sc_f = st.columns([3, 1, 1, 1])
     with sc_txt: fd["sell_txt"] = st.text_input("المساحة بالحروف", value=fd.get("sell_txt", ""))
     with sc_s: fd["sell_s"] = st.number_input("سهم البيع", min_value=0.0, max_value=23.99, step=0.5, value=float(fd.get("sell_s",0.0)))
@@ -774,8 +780,13 @@ elif choice == "📝 منظومة عقود البيع":
     st.markdown("---")
     st.markdown('<div class="premium-header">⚙️ حفظ واستخراج ملفات البيع</div>', unsafe_allow_html=True)
     raw_json = json.dumps(fd, ensure_ascii=False)
-    prev_seller = fd["sellers"][0]['name'] if fd["sellers"] and fd["sellers"][0].get('name') else "بائع"
-    prev_buyer = fd["buyers"][0]['name'] if fd["buyers"] and fd["buyers"][0].get('name') else "مشتري"
+    
+    context = build_sale_context(fd)
+    prev_seller = context.get("اسم_البائع", "بائع").replace("/", " ").replace("\\", " ").strip()
+    if not prev_seller: prev_seller = "بائع"
+    
+    prev_buyer = context.get("اسم_المشتري", "مشتري").replace("/", " ").replace("\\", " ").strip()
+    if not prev_buyer: prev_buyer = "مشتري"
 
     if st.session_state.current_archive_id is None:
         if st.button("💾 حفظ معاملة البيع واستخراج الملفات (ZIP)", type="primary", use_container_width=True):
@@ -961,9 +972,14 @@ elif choice == "🖨️ إدارة المستندات (فردي)":
                     st.success(f"✅ تم تجهيز المستند ({selected_file}) بنجاح!")
                 except Exception as e: st.error(f"حدث خطأ: {e}")
             if 'ready_file_data' in st.session_state and st.session_state.get('ready_file_name') == selected_file:
-                fd_sale = st.session_state.sale_data
-                s_name = fd_sale["sellers"][0]['name'] if fd_sale["sellers"] and fd_sale["sellers"][0].get('name') else "بائع"
-                b_name = fd_sale["buyers"][0]['name'] if fd_sale["buyers"] and fd_sale["buyers"][0].get('name') else "مشتري"
+                
+                context = build_sale_context(st.session_state.sale_data)
+                s_name = context.get("اسم_البائع", "بائع").replace("/", " ").replace("\\", " ").strip()
+                if not s_name: s_name = "بائع"
+                
+                b_name = context.get("اسم_المشتري", "مشتري").replace("/", " ").replace("\\", " ").strip()
+                if not b_name: b_name = "مشتري"
+                
                 name_only, ext = os.path.splitext(selected_file)
                 indiv_file_name = f"{name_only}_{b_name}_مشتراه_من_{s_name}{ext}"
                 c_a, c_b = st.columns(2)
