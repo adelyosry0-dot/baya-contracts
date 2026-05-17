@@ -276,11 +276,16 @@ def format_custom_date(iso_str, mode="full"):
     if not iso_str: return ""
     try:
         d = date.fromisoformat(iso_str)
-        if mode == "my": return f"{d.month}/{d.year}" 
+        if mode == "my": 
+            return f"{d.month}/{d.year}" 
+        if mode == "short": # هذا هو الوضع الجديد للتاريخ الرقمي
+            return f"{d.day}/{d.month}/{d.year}"
+            
         days_ar = ["الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
         day_name = days_ar[d.weekday()]
         return f"{day_name} الموافق {d.day}/{d.month}/{d.year}"
-    except: return iso_str
+    except: 
+        return iso_str
 
 # ==========================================
 # 3. بوابة الدخول (Login Gate & Animation)
@@ -406,6 +411,7 @@ def build_sale_context(fd):
         formatted_buyers.append(b_copy)
     s1 = fd["sellers"][0] if fd["sellers"] else {}
     b1 = fd["buyers"][0] if fd["buyers"] else {}
+    
     return {
         "sellers": formatted_sellers, "buyers": formatted_buyers,
         "اسم_البائع": final_seller, "رقم_بطاقة_البائع": s1.get("id", ""), "عنوان_البائع": s1.get("address", ""), "مهنة_البائع": s1.get("job", ""), "سن_البائع": s1.get("age", ""), "تاريخ_إصدار_بطاقة_البائع": format_custom_date(s1.get("id_date"), "my"),
@@ -414,7 +420,12 @@ def build_sale_context(fd):
         "رقم_قضية_وراثة_البائع": fd.get("s_morath_case_num", ""), "سنة_قضية_وراثة_البائع": fd.get("s_morath_year", ""), "تاريخ_جلسة_وراثة_البائع": format_custom_date(fd.get("s_morath_date"), "full"),
         "رقم_قضية_وراثة_المشتري": fd.get("b_morath_case_num", ""), "سنة_قضية_وراثة_المشتري": fd.get("b_morath_year", ""), "تاريخ_جلسة_وراثة_المشتري": format_custom_date(fd.get("b_morath_date"), "full"),
         "الثمن_أرقام": fd.get("price_num", ""), "الثمن_حروف": fd.get("price_txt", ""), "يوجد_شرط_جزائي": fd.get("has_penalty", True), "الشرط_الجزائي_أرقام": fd.get("penalty_num", ""), "الشرط_الجزائي_حروف": fd.get("penalty_txt", ""),
-        "تاريخ_العقد": format_custom_date(fd.get("c_date"), "full"), "تاريخ_اليوم": format_custom_date(fd.get("t_date"), "full"),
+        
+        # التعديل هنا: متغير للعقد ومتغير جديد للأوراق الأخرى
+        "تاريخ_العقد": format_custom_date(fd.get("c_date"), "full"), 
+        "تاريخ_العقد_رقمي": format_custom_date(fd.get("c_date"), "short"), 
+        
+        "تاريخ_اليوم": format_custom_date(fd.get("t_date"), "full"),
         "مساحة_البيع_فدان": fd.get("sell_f",0), "مساحة_البيع_قيراط": fd.get("sell_k",0), "مساحة_البيع_سهم": format_sahm(fd.get("sell_s",0.0)), "مساحة_البيع_حروف": fd.get("sell_txt", ""), 
         "رقم_حيازة_البائع": fd.get("s_hayaza_no", ""), "إجمالي_فدان_البائع": fd.get("s_total_f",0), "إجمالي_قيراط_البائع": fd.get("s_total_k",0), "إجمالي_سهم_البائع": format_sahm(fd.get("s_total_s",0.0)),
         "رقم_حيازة_المشتري": fd.get("b_hayaza_no", ""), "إجمالي_فدان_المشتري": fd.get("b_total_f",0), "إجمالي_قيراط_المشتري": fd.get("b_total_k",0), "إجمالي_سهم_المشتري": format_sahm(fd.get("b_total_s",0.0)),
