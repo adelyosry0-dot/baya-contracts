@@ -1,4 +1,4 @@
-import streamlit as st
+﻿import streamlit as st
 from docxtpl import DocxTemplate
 import sqlite3
 import pandas as pd
@@ -39,45 +39,11 @@ CSS_STYLE = """
     .viewerBadge_container, [data-testid="stViewerBadge"] { display: none !important; visibility: hidden !important; }
     [data-testid="InputInstructions"] { display: none !important; visibility: hidden !important; }
 
-    /* 3. القائمة الجانبية — theme أخضر داكن */
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1e3d2f 0%, #163026 60%, #0f2218 100%) !important;
-        width: 300px !important; min-width: 300px !important;
-        border-left: 1px solid rgba(200,168,76,0.2) !important;
-    }
-    [data-testid="collapsedControl"] { display: none !important; }
-    [data-testid="stSidebarHeader"] button { display: none !important; }
-    [data-testid="stSidebarCollapseButton"] { display: none !important; }
-    .stApp > header { direction: rtl !important; }
-
-    [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; }
-    [data-testid="stSidebar"] div[role="radiogroup"] > label {
-        background-color: rgba(255,255,255,0.04);
-        padding: 0; min-height: 50px; width: 100%;
-        border-radius: 10px; margin-bottom: 8px;
-        transition: all 0.25s ease;
-        border: 1px solid rgba(200,168,76,0.15);
-        cursor: pointer; display: flex; align-items: center; justify-content: center;
-    }
-    [data-testid="stSidebar"] div[role="radiogroup"] > label p {
-        color: rgba(220,240,225,0.85) !important;
-        font-size: 14px; margin: 0 !important;
-        text-align: center; width: 100%;
-        font-weight: 600; white-space: normal !important; padding: 5px;
-    }
-    [data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
-        background-color: rgba(200,168,76,0.12);
-        border-color: rgba(200,168,76,0.5);
-        transform: translateX(-3px);
-    }
-    div[role="radiogroup"] > label:has(input:checked) {
-        background: linear-gradient(90deg, rgba(200,168,76,0.25), rgba(200,168,76,0.1)) !important;
-        border-color: #c9a84c !important;
-        border-right: 3px solid #c9a84c !important;
-    }
-    div[role="radiogroup"] > label:has(input:checked) p {
-        color: #e8d5a3 !important; font-weight: 800; font-size: 15px !important;
-    }
+    /* 3. إخفاء الـ sidebar بالكامل */
+    [data-testid="stSidebar"]              { display: none !important; }
+    [data-testid="collapsedControl"]       { display: none !important; }
+    [data-testid="stSidebarCollapseButton"]{ display: none !important; }
+    section[data-testid="stSidebar"]       { display: none !important; }
 
     /* 4. حقول الإدخال */
     .stTextInput input, .stNumberInput input, .stTextArea textarea {
@@ -205,14 +171,64 @@ CSS_STYLE = """
     }
     @keyframes shimmerBtn { 0%{left:-75%;opacity:0} 10%{opacity:1} 50%{left:125%;opacity:1} 51%,100%{left:125%;opacity:0} }
 
-    /* 8. الموبايل */
-    @media (max-width: 768px) {
-        [data-testid="stSidebar"] { width: 260px !important; min-width: 260px !important; max-width: 85vw !important; }
-        .premium-header { font-size: 18px !important; padding: 10px 12px !important; }
+    /* ===== الشريط العلوي الثابت ===== */
+    #baya-topbar {
+        position: sticky; top: 0; z-index: 9999;
+        background: linear-gradient(135deg,#1a3328 0%,#2d5a4e 50%,#1a3328 100%);
+        background-size: 200% 200%;
+        animation: gradientShift 8s ease infinite;
+        border-bottom: 2px solid rgba(201,168,76,0.3);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+        direction: rtl;
     }
-    .block-container { padding-top: 1.5rem !important; margin-top: 0 !important; }
-    [data-testid="stAppViewContainer"] > .main { padding-top: 0rem !important; }
-    [data-testid="stHeader"] { height: 3rem !important; min-height: 3rem !important; background: transparent !important; }
+    .topbar-inner { display:flex; align-items:center; padding:0 12px; overflow-x:auto; scrollbar-width:none; }
+    .topbar-inner::-webkit-scrollbar { display:none; }
+    .topbar-logo { display:flex; align-items:center; gap:6px; padding:10px 16px 10px 20px; border-left:1px solid rgba(201,168,76,0.2); flex-shrink:0; direction:ltr; }
+    .topbar-logo-icon { font-size:20px; animation:floatingWave 4s ease-in-out infinite; }
+    .topbar-logo-text { font-size:17px; font-weight:900; letter-spacing:2px;
+        background:linear-gradient(90deg,#c9a84c,#f0d98a,#c9a84c); background-size:200% auto;
+        -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+        animation:goldShimmer 3s linear infinite; }
+    .topbar-logo-sub { font-size:8px; color:rgba(200,230,215,0.4); letter-spacing:2px; display:block; }
+    .topbar-nav { display:flex; flex:1; align-items:center; }
+    .tnav-btn {
+        display:inline-flex; align-items:center; gap:5px;
+        padding:0 13px; height:52px; font-size:12px; font-weight:600;
+        color:rgba(220,240,230,0.6); background:transparent;
+        border:none; border-bottom:3px solid transparent; border-top:3px solid transparent;
+        cursor:pointer; white-space:nowrap; font-family:"Cairo",sans-serif;
+        transition:all 0.25s cubic-bezier(0.22,1,0.36,1);
+        position:relative; flex-shrink:0; outline:none;
+    }
+    .tnav-btn::after {
+        content:''; position:absolute; bottom:-2px; left:50%; right:50%;
+        height:3px; background:#c9a84c; border-radius:2px 2px 0 0;
+        transition:all 0.3s cubic-bezier(0.22,1,0.36,1);
+    }
+    .tnav-btn:hover { color:#e8d5a3; background:rgba(255,255,255,0.06); }
+    .tnav-btn:hover::after { left:8%; right:8%; }
+    .tnav-btn.active { color:#c9a84c; background:rgba(201,168,76,0.1); font-weight:800; }
+    .tnav-btn.active::after { left:0; right:0; }
+    .tnav-icon { font-size:15px; transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+    .tnav-btn:hover .tnav-icon, .tnav-btn.active .tnav-icon { transform:translateY(-2px) scale(1.15); }
+    .topbar-logout { padding:5px 12px; height:30px; font-size:11px; font-weight:700;
+        color:rgba(220,180,180,0.7); background:rgba(255,255,255,0.05);
+        border:1px solid rgba(255,100,100,0.2); border-radius:6px;
+        cursor:pointer; font-family:"Cairo",sans-serif; transition:all 0.2s ease; flex-shrink:0; }
+    .topbar-logout:hover { background:rgba(200,50,50,0.15); border-color:rgba(255,100,100,0.5); color:#ffaaaa; }
+    @keyframes pageSlideIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    .page-content { animation: pageSlideIn 0.3s cubic-bezier(0.22,1,0.36,1); }
+
+    /* 8. layout */
+    [data-testid="stHeader"] { display:none !important; }
+    .block-container { padding-top:0 !important; padding-right:1rem !important; padding-left:1rem !important; max-width:100% !important; }
+    [data-testid="stAppViewContainer"] > .main { padding-top:0 !important; }
+    @media (max-width:768px) {
+        .tnav-btn { padding:0 9px; font-size:11px; height:46px; }
+        .topbar-logo { padding:8px 10px; }
+        .topbar-logo-text { font-size:14px; }
+        .premium-header { font-size:18px !important; padding:10px 12px !important; }
+    }
 
     /* 9. مربعات الحاسبة */
     .calc-result-container { display: flex; justify-content: center; gap: 15px; margin-top: 15px; margin-bottom: 20px; direction: ltr; }
@@ -654,47 +670,84 @@ def generate_kesma_zip(kd):
     return zip_buffer.getvalue()
 
 # ==========================================
-# 6. القائمة الجانبية (Sidebar) مع الأنيميشن
+# 6. الشريط العلوي الثابت
 # ==========================================
-SIDEBAR_HTML = """
-<div style='text-align:center;padding:20px 16px 18px;border-bottom:1px solid rgba(201,168,76,0.15);margin-bottom:16px;position:relative;overflow:hidden;'>
-    <div style='position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;border:1px solid rgba(201,168,76,0.08);animation:spinSlow 25s linear infinite;'></div>
-    <div style='position:relative;z-index:1;'>
-        <div class='continuous-wave' style='font-size:44px;margin-bottom:4px;filter:drop-shadow(0 0 12px rgba(201,168,76,0.4));'>⚖️</div>
-        <div style='direction:ltr;display:flex;justify-content:center;align-items:baseline;gap:4px;'>
-            <div style='font-size:30px;font-weight:900;display:flex;gap:1px;letter-spacing:1px;'>
-                <span class='letter-b'>B</span>
-                <span class='letter-a1'>A</span>
-                <span class='letter-y'>Y</span>
-                <span class='letter-a2'>A</span>
-            </div>
-            <span class='fade-in-scale' style='font-size:14px;font-weight:600;color:#c9a84c;letter-spacing:2px;'>Legal</span>
-        </div>
-        <div style='height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,0.4),transparent);margin:8px auto;width:80%;'></div>
-        <div style='font-size:10px;color:rgba(200,230,210,0.5);letter-spacing:2px;'>N A S R I Y A</div>
-    </div>
-</div>
-"""
-st.sidebar.markdown(SIDEBAR_HTML, unsafe_allow_html=True)
-
-menu = ["🏠 الرئيسية", "📝 منظومة عقود البيع", "🤝 منظومة القسمة الرضائية", "📖 سجل 2 خدمات", "🚨 سجل المحاضر", "🧮 حاسبة الأراضي", "⚖️ حاسبة المواريث", "📂 أرشيف العقود", "🖨️ إدارة المستندات (فردي)", "🔄 الاسترجاع من ملف (Backup)", "⚙️ إعدادات الأمان"]
+MENU_ITEMS = [
+    ("🏠", "الرئيسية",   "🏠 الرئيسية"),
+    ("📝", "عقود البيع", "📝 منظومة عقود البيع"),
+    ("🤝", "القسمة",     "🤝 منظومة القسمة الرضائية"),
+    ("📖", "سجل 2",      "📖 سجل 2 خدمات"),
+    ("🚨", "المحاضر",    "🚨 سجل المحاضر"),
+    ("🧮", "الحاسبات",   "🧮 الحاسبات"),
+    ("📂", "الأرشيف",    "📂 أرشيف العقود"),
+    ("🖨️","المستندات",  "🖨️ إدارة المستندات (فردي)"),
+    ("🔄", "استرجاع",    "🔄 الاسترجاع من ملف (Backup)"),
+    ("⚙️", "الإعدادات", "⚙️ إعدادات الأمان"),
+]
 
 if "active_menu" not in st.session_state:
     st.session_state.active_menu = "🏠 الرئيسية"
-    
-choice = st.sidebar.radio("", menu, key="active_menu")
 
-st.sidebar.markdown("""
-<div style='margin-top:8px;padding-top:12px;border-top:1px solid rgba(201,168,76,0.15);'></div>
+# ---- شريط التنقل ----
+_active = st.session_state.get("active_menu","🏠 الرئيسية")
+_btns = ""
+for _ico,_lbl,_key in MENU_ITEMS:
+    _cls = "tnav-btn active" if _active==_key else "tnav-btn"
+    _btns += '<button class="'+_cls+'"><span class="tnav-icon">'+_ico+'</span>'+_lbl+'</button>'
+
+st.markdown(
+    '<div id="baya-topbar"><div class="topbar-inner">'
+    '<div class="topbar-logo"><span class="topbar-logo-icon">⚖️</span>'
+    '<div><div class="topbar-logo-text">BAYA</div>'
+    '<span class="topbar-logo-sub">L E G A L</span></div></div>'
+    '<div class="topbar-nav">'+_btns+'</div>'
+    '</div></div>',
+    unsafe_allow_html=True
+)
+
+# ---- أزرار التنقل الفعلية ----
+_cols = st.columns(len(MENU_ITEMS)+1)
+for _i,(_ico,_lbl,_key) in enumerate(MENU_ITEMS):
+    with _cols[_i]:
+        if st.button(_lbl, key="nb_"+str(_i), use_container_width=True):
+            st.session_state.active_menu = _key
+            st.rerun()
+with _cols[-1]:
+    if st.button("🚪 خروج", key="nb_logout", use_container_width=True):
+        st.session_state.logged_in = False
+        st.rerun()
+
+st.markdown("""
+<style>
+div[data-testid="stHorizontalBlock"]:has(button[data-testid="baseButton-secondary"]) {
+    position:fixed !important; bottom:-200px !important;
+    opacity:0 !important; pointer-events:all !important;
+    z-index:99998 !important; width:100% !important;
+    left:0 !important; background:#2d5a4e !important;
+    border-top:1px solid rgba(201,168,76,0.3) !important;
+    padding:4px 8px !important; display:flex !important;
+    gap:4px !important; transition:bottom 0.3s ease !important;
+}
+div[data-testid="stHorizontalBlock"]:has(button[data-testid="baseButton-secondary"]):hover {
+    bottom:0 !important; opacity:1 !important;
+}
+div[data-testid="stHorizontalBlock"]:has(button[data-testid="baseButton-secondary"]) button {
+    background:rgba(255,255,255,0.08) !important;
+    color:rgba(220,240,230,0.8) !important;
+    border:1px solid rgba(201,168,76,0.15) !important;
+    border-radius:8px !important; font-size:11px !important;
+    font-weight:600 !important; font-family:"Cairo",sans-serif !important;
+    height:36px !important; transition:all 0.2s ease !important;
+}
+div[data-testid="stHorizontalBlock"]:has(button[data-testid="baseButton-secondary"]) button:hover {
+    background:rgba(201,168,76,0.15) !important;
+    border-color:#c9a84c !important; color:#e8d5a3 !important;
+}
+</style>
 """, unsafe_allow_html=True)
-if st.sidebar.button("🚪 تسجيل الخروج", type="primary", use_container_width=True):
-    st.session_state.logged_in = False
-    st.rerun()
-st.sidebar.markdown("""
-<div style='text-align:center;margin-top:12px;font-size:9px;color:rgba(200,220,210,0.35);letter-spacing:1px;'>
-BAYA Legal · Nasriya
-</div>
-""", unsafe_allow_html=True)
+
+choice = st.session_state.get("active_menu","🏠 الرئيسية")
+st.markdown('<div class="page-content">', unsafe_allow_html=True)
 
 # ==========================================
 # 7. واجهات البرنامج الرئيسية
@@ -721,78 +774,80 @@ elif choice == "🔄 الاسترجاع من ملف (Backup)":
                 st.rerun()
         except Exception as e: st.error(f"❌ حدث خطأ في قراءة الملف: تأكد أنه ملف backup_data.json سليم.")
 
-elif choice == "🧮 حاسبة الأراضي":
-    spacer1, main_col, spacer2 = st.columns([1, 2, 1])
-    with main_col:
-        st.markdown("<h3 style='text-align: center; color: #1a2c42;'>🧮 حاسبة مساحات الأراضي</h3>", unsafe_allow_html=True)
-        st.markdown("---")
-        calc_op = st.radio("نوع العملية:", ["➕ جمع", "➖ طرح"], horizontal=True)
-        st.markdown("<b>🌾 المساحة الأولى:</b>", unsafe_allow_html=True)
-        c_s1, c_k1, c_f1 = st.columns(3)
-        with c_f1: val_f1 = st.number_input("فدان", min_value=0, step=1, key="cf1")
-        with c_k1: val_k1 = st.number_input("قيراط", min_value=0, max_value=23, step=1, key="ck1")
-        with c_s1: val_s1 = st.number_input("سهم", min_value=0.0, max_value=23.99, step=0.5, key="cs1")
-        st.markdown("<b>🌾 المساحة الثانية:</b>", unsafe_allow_html=True)
-        c_s2, c_k2, c_f2 = st.columns(3)
-        with c_f2: val_f2 = st.number_input("فدان", min_value=0, step=1, key="cf2")
-        with c_k2: val_k2 = st.number_input("قيراط", min_value=0, max_value=23, step=1, key="ck2")
-        with c_s2: val_s2 = st.number_input("سهم", min_value=0.0, max_value=23.99, step=0.5, key="cs2")
-        st.write("")
-        if st.button("🧮 احسب الناتج", use_container_width=True, type="primary"):
-            tot1 = (val_f1 * 24 * 24) + (val_k1 * 24) + val_s1
-            tot2 = (val_f2 * 24 * 24) + (val_k2 * 24) + val_s2
-            res = tot1 + tot2 if "جمع" in calc_op else tot1 - tot2
-            if res < 0: st.error("⚠️ المساحة المطروحة أكبر من المساحة الأساسية!")
-            else:
-                f_res = int(res // (24 * 24))
-                k_res = int((res % (24 * 24)) // 24)
-                s_res = format_sahm(round(res % 24, 2))
-                st.markdown("<div style='text-align: center; color: green; font-weight: bold;'>النتيجة الصافية</div>", unsafe_allow_html=True)
-                st.markdown(f"""
-                <div class="calc-result-container">
-                    <div class="calc-box"><div class="calc-top">ف</div><div class="calc-bottom">{f_res}</div></div>
-                    <div class="calc-box"><div class="calc-top">ط</div><div class="calc-bottom">{k_res}</div></div>
-                    <div class="calc-box"><div class="calc-top">س</div><div class="calc-bottom">{s_res}</div></div>
-                </div>
-                """, unsafe_allow_html=True)
-
-elif choice == "⚖️ حاسبة المواريث":
-    spacer1, main_col, spacer2 = st.columns([1, 2, 1])
-    with main_col:
-        st.markdown("<h3 style='text-align: center; color: #1a2c42;'>⚖️ حاسبة المواريث</h3>", unsafe_allow_html=True)
-        st.markdown("---")
-        st.markdown("<b>🌾 مساحة التركة:</b>", unsafe_allow_html=True)
-        c_s, c_k, c_f = st.columns(3)
-        with c_f: area_f = st.number_input("فدان ", min_value=0, step=1, key="ih_f")
-        with c_k: area_k = st.number_input("قيراط ", min_value=0, max_value=23, step=1, key="ih_k")
-        with c_s: area_s = st.number_input("سهم ", min_value=0.0, max_value=23.99, step=0.01, format="%.2f", key="ih_s")
-        st.markdown("<b>👥 بيانات الورثة:</b>", unsafe_allow_html=True)
-        w_c1, w_c2, w_c3 = st.columns(3)
-        with w_c1: has_wife = st.checkbox("يوجد زوجة")
-        with w_c2: has_father = st.checkbox("يوجد أب")
-        with w_c3: has_mother = st.checkbox("يوجد أم")
-        c_c1, c_c2 = st.columns(2)
-        with c_c1: sons_count = st.number_input("عدد الأبناء (الذكور)", min_value=0, step=1)
-        with c_c2: daugh_count = st.number_input("عدد البنات", min_value=0, step=1)
-        st.write("")
-        if st.button("⚖️ تقسيم التركة", type="primary", use_container_width=True):
-            if area_f == 0 and area_k == 0 and area_s == 0: st.error("⚠️ يرجى إدخال مساحة التركة أولاً.")
-            elif not (has_wife or has_father or has_mother or sons_count > 0 or daugh_count > 0): st.error("⚠️ يرجى تحديد الورثة.")
-            else:
-                results = inheritance_calc.calculate_shares(area_f, area_k, area_s, has_wife, has_father, has_mother, sons_count, daugh_count)
-                st.markdown("---")
-                names_ar = {'wife': 'نصيب الزوجة', 'father': 'نصيب الأب', 'mother': 'نصيب الأم', 'son': 'نصيب الابن الواحد', 'daughter': 'نصيب البنت الواحدة'}
-                for key, data in results.items():
-                    if key in names_ar:
-                        st.markdown(f"<div style='text-align: center; color: #1a2c42; font-weight: bold; margin-top: 10px;'>{names_ar[key]}</div>", unsafe_allow_html=True)
-                        st.markdown(f"""
-                        <div class="calc-result-container">
-                            <div class="calc-box"><div class="calc-top">ف</div><div class="calc-bottom">{data['f']}</div></div>
-                            <div class="calc-box"><div class="calc-top">ط</div><div class="calc-bottom">{data['q']}</div></div>
-                            <div class="calc-box"><div class="calc-top">س</div><div class="calc-bottom">{data['s']}</div></div>
-                        </div>
-                        """, unsafe_allow_html=True)
-
+elif choice == "🧮 الحاسبات":
+    tab_land,tab_inh=st.tabs(["🌾 حاسبة الأراضي","⚖️ حاسبة المواريث"])
+    with tab_land:
+        spacer1, main_col, spacer2 = st.columns([1, 2, 1])
+        with main_col:
+            st.markdown("<h4 style='text-align:center;color:#2d5a4e;margin-top:12px'>🌾 حاسبة مساحات الأراضي</h4>", unsafe_allow_html=True)
+            st.markdown("---")
+            calc_op = st.radio("نوع العملية:", ["➕ جمع", "➖ طرح"], horizontal=True)
+            st.markdown("<b>🌾 المساحة الأولى:</b>", unsafe_allow_html=True)
+            c_s1, c_k1, c_f1 = st.columns(3)
+            with c_f1: val_f1 = st.number_input("فدان", min_value=0, step=1, key="cf1")
+            with c_k1: val_k1 = st.number_input("قيراط", min_value=0, max_value=23, step=1, key="ck1")
+            with c_s1: val_s1 = st.number_input("سهم", min_value=0.0, max_value=23.99, step=0.5, key="cs1")
+            st.markdown("<b>🌾 المساحة الثانية:</b>", unsafe_allow_html=True)
+            c_s2, c_k2, c_f2 = st.columns(3)
+            with c_f2: val_f2 = st.number_input("فدان", min_value=0, step=1, key="cf2")
+            with c_k2: val_k2 = st.number_input("قيراط", min_value=0, max_value=23, step=1, key="ck2")
+            with c_s2: val_s2 = st.number_input("سهم", min_value=0.0, max_value=23.99, step=0.5, key="cs2")
+            st.write("")
+            if st.button("🧮 احسب الناتج", use_container_width=True, type="primary"):
+                tot1 = (val_f1 * 24 * 24) + (val_k1 * 24) + val_s1
+                tot2 = (val_f2 * 24 * 24) + (val_k2 * 24) + val_s2
+                res = tot1 + tot2 if "جمع" in calc_op else tot1 - tot2
+                if res < 0: st.error("⚠️ المساحة المطروحة أكبر من المساحة الأساسية!")
+                else:
+                    f_res = int(res // (24 * 24))
+                    k_res = int((res % (24 * 24)) // 24)
+                    s_res = format_sahm(round(res % 24, 2))
+                    st.markdown("<div style='text-align:center;color:#2d5a4e;font-weight:bold;'>النتيجة الصافية</div>", unsafe_allow_html=True)
+                    st.markdown(f"""
+                    <div class="calc-result-container">
+                        <div class="calc-box"><div class="calc-top">ف</div><div class="calc-bottom">{f_res}</div></div>
+                        <div class="calc-box"><div class="calc-top">ط</div><div class="calc-bottom">{k_res}</div></div>
+                        <div class="calc-box"><div class="calc-top">س</div><div class="calc-bottom">{s_res}</div></div>
+                    </div>
+                    """, unsafe_allow_html=True)
+    
+    with tab_inh:
+        spacer1, main_col, spacer2 = st.columns([1, 2, 1])
+        with main_col:
+            st.markdown("<h4 style='text-align:center;color:#2d5a4e;margin-top:12px'>⚖️ حاسبة المواريث</h4>", unsafe_allow_html=True)
+            st.markdown("---")
+            st.markdown("<b>🌾 مساحة التركة:</b>", unsafe_allow_html=True)
+            c_s, c_k, c_f = st.columns(3)
+            with c_f: area_f = st.number_input("فدان ", min_value=0, step=1, key="ih_f")
+            with c_k: area_k = st.number_input("قيراط ", min_value=0, max_value=23, step=1, key="ih_k")
+            with c_s: area_s = st.number_input("سهم ", min_value=0.0, max_value=23.99, step=0.01, format="%.2f", key="ih_s")
+            st.markdown("<b>👥 بيانات الورثة:</b>", unsafe_allow_html=True)
+            w_c1, w_c2, w_c3 = st.columns(3)
+            with w_c1: has_wife = st.checkbox("يوجد زوجة")
+            with w_c2: has_father = st.checkbox("يوجد أب")
+            with w_c3: has_mother = st.checkbox("يوجد أم")
+            c_c1, c_c2 = st.columns(2)
+            with c_c1: sons_count = st.number_input("عدد الأبناء (الذكور)", min_value=0, step=1)
+            with c_c2: daugh_count = st.number_input("عدد البنات", min_value=0, step=1)
+            st.write("")
+            if st.button("⚖️ تقسيم التركة", type="primary", use_container_width=True):
+                if area_f == 0 and area_k == 0 and area_s == 0: st.error("⚠️ يرجى إدخال مساحة التركة أولاً.")
+                elif not (has_wife or has_father or has_mother or sons_count > 0 or daugh_count > 0): st.error("⚠️ يرجى تحديد الورثة.")
+                else:
+                    results = inheritance_calc.calculate_shares(area_f, area_k, area_s, has_wife, has_father, has_mother, sons_count, daugh_count)
+                    st.markdown("---")
+                    names_ar = {'wife': 'نصيب الزوجة', 'father': 'نصيب الأب', 'mother': 'نصيب الأم', 'son': 'نصيب الابن الواحد', 'daughter': 'نصيب البنت الواحدة'}
+                    for key, data in results.items():
+                        if key in names_ar:
+                            st.markdown("<div style='text-align:center;color:#2d5a4e;font-weight:bold;margin-top:10px;'>" + names_ar[key] + "</div>", unsafe_allow_html=True)
+                            st.markdown(f"""
+                            <div class="calc-result-container">
+                                <div class="calc-box"><div class="calc-top">ف</div><div class="calc-bottom">{data['f']}</div></div>
+                                <div class="calc-box"><div class="calc-top">ط</div><div class="calc-bottom">{data['q']}</div></div>
+                                <div class="calc-box"><div class="calc-top">س</div><div class="calc-bottom">{data['s']}</div></div>
+                            </div>
+                            """, unsafe_allow_html=True)
+    
 elif choice == "📝 منظومة عقود البيع":
     if st.session_state.current_archive_id is not None and st.session_state.get('loaded_doc_type') != 'sale': st.session_state.current_archive_id = None
     col_title, col_btn = st.columns([3, 1])
@@ -1213,3 +1268,5 @@ elif choice == "📖 سجل 2 خدمات":
 
 elif choice == "🚨 سجل المحاضر":
     reports_manager.show_page()
+
+st.markdown('</div>', unsafe_allow_html=True)
