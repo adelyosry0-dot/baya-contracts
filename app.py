@@ -273,13 +273,14 @@ if not st.session_state.logged_in:
     st.markdown("""
 <style>
 .stApp { background: radial-gradient(circle at center, #163026 0%, #0a1f14 100%) !important; }
+/* رفع الشاشة لأعلى عن طريق تقليل المسافة العلوية */
+.block-container { padding-top: 3rem !important; } 
+
 [data-testid="stForm"] {
     background: rgba(255, 255, 255, 0.03) !important;
-    backdrop-filter: blur(15px) !important;
-    -webkit-backdrop-filter: blur(15px) !important;
+    backdrop-filter: blur(15px) !important; -webkit-backdrop-filter: blur(15px) !important;
     border: 1px solid rgba(201, 168, 76, 0.2) !important;
-    border-radius: 20px !important;
-    padding: 40px 30px !important;
+    border-radius: 20px !important; padding: 40px 30px !important;
     box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 20px rgba(201,168,76,0.05) !important;
     overflow: visible !important; 
 }
@@ -287,9 +288,7 @@ if not st.session_state.logged_in:
 [data-testid="stForm"] input {
     background: rgba(0, 0, 0, 0.3) !important;
     border: 1px solid rgba(201, 168, 76, 0.3) !important;
-    color: #fff !important;
-    border-radius: 8px !important;
-    text-align: right !important;
+    color: #fff !important; border-radius: 8px !important; text-align: right !important;
 }
 [data-testid="stForm"] input:focus { border-color: #c9a84c !important; box-shadow: 0 0 10px rgba(201,168,76,0.3) !important; }
 [data-testid="stFormSubmitButton"] button {
@@ -316,13 +315,10 @@ if not st.session_state.logged_in:
 .letter-a2 { animation: comeFromRight  0.9s cubic-bezier(0.34,1.56,0.64,1) forwards, goldShimmer 3s linear 2.4s infinite; animation-delay: 0.7s; }
 </style>
 """, unsafe_allow_html=True)
-
-    st.markdown("<div style='height: 6vh;'></div>", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 1.2, 1]) 
     with col2:
         with st.form("login_form"):
-            # هذا الجزء تم محاذاته بدقة لمنع اعتباره كود برمجي
             st.markdown("""
 <div style="text-align:center; margin-bottom: 25px;">
 <div style="font-size:60px; filter:drop-shadow(0 0 15px rgba(201,168,76,0.6)); margin-bottom:5px;">⚖️</div>
