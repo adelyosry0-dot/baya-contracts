@@ -1,15 +1,256 @@
 import streamlit as st
-import sqlite3
 from datetime import date
 
-DAYS_AR = ["الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
+# ==========================================
+# دالة آمنة لإعادة التحميل تتوافق مع سيرفرات السحابة
+# ==========================================
+def safe_rerun():
+    if hasattr(st, "rerun"):
+        st.rerun()
+    elif hasattr(st, "experimental_rerun"):
+        st.experimental_rerun()
+
+# ==========================================
+# قائمة الأقسام
+# ==========================================
+MENU_ITEMS = [
+    ("🏠", "الرئيسية",    "🏠 الرئيسية"),
+    ("📝", "عقود البيع",  "📝 منظومة عقود البيع"),
+    ("🤝", "القسمة",      "🤝 منظومة القسمة الرضائية"),
+    ("📖", "سجل 2",       "📖 سجل 2 خدمات"),
+    ("🚨", "المحاضر",     "🚨 سجل المحاضر"),
+    ("🧮", "الحاسبات",    "🧮 الحاسبات"),
+    ("📂", "الأرشيف",     "📂 أرشيف العقود"),
+    ("🖨️", "المستندات",  "🖨️ إدارة المستندات (فردي)"),
+    ("🔄", "استرجاع",     "🔄 الاسترجاع من ملف (Backup)"),
+    ("⚙️", "الإعدادات",  "⚙️ إعدادات الأمان"),
+]
+
+DAYS_AR   = ["الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت","الأحد"]
 MONTHS_AR = {1:"يناير",2:"فبراير",3:"مارس",4:"أبريل",5:"مايو",6:"يونيو",
              7:"يوليو",8:"أغسطس",9:"سبتمبر",10:"أكتوبر",11:"نوفمبر",12:"ديسمبر"}
-MONTHS_SHORT = {1:"يناير",2:"فبراير",3:"مارس",4:"أبريل",5:"مايو",6:"يونيو",
-                7:"يوليو",8:"أغسطس",9:"سبتمبر",10:"أكتوبر",11:"نوفمبر",12:"ديسمبر"}
 
-def get_stats():
+# ==========================================
+# CSS الشامل 
+# ==========================================
+NAVBAR_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap');
+
+/* إخفاء القائمة العلوية وزر Deploy نهائياً */
+[data-testid="stHeader"], header[data-testid="stHeader"], .stApp > header, 
+[data-testid="stAppDeployButton"], .stAppDeployButton, [data-testid="stToolbar"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+}
+
+/* مؤشر التحميل */
+[data-testid="stStatusWidget"] {
+    position: fixed !important; bottom: 30px !important; left: 30px !important;
+    top: auto !important; right: auto !important;
+    background: rgba(13, 35, 24, 0.95) !important; backdrop-filter: blur(10px) !important;
+    border-radius: 12px !important; border: 1px solid rgba(201,168,76,0.5) !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important; z-index: 999999 !important;
+}
+[data-testid="stStatusWidget"] * { color: #f0d98a !important; }
+
+/* محاذاة النصوص */
+.stMarkdown, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4, .stMarkdown h5, .stMarkdown p, label {
+    text-align: right !important; direction: rtl !important;
+}
+.hero-brand-name, .hero-brand-sub, .hero-date-box, .hero-stat-n { direction: ltr !important; }
+
+/* مساحة المحتوى الكلية */
+.block-container { 
+    max-width: 1150px !important; margin: 0 auto !important; padding-top: 8rem !important; 
+} 
+
+/* الشريط الأخضر الثابت */
+div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) {
+    position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important;
+    z-index: 999990 !important;
+    background: linear-gradient(135deg, #0a1f14 0%, #1e3d2f 50%, #0d2318 100%) !important;
+    padding: 0 !important; 
+    box-shadow: 0 4px 25px rgba(0,0,0,0.4) !important;
+    border-bottom: 2px solid rgba(201,168,76,0.6) !important;
+    height: 95px !important; 
+    display: flex !important; align-items: center !important; justify-content: center !important;
+}
+
+div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > label { display: none !important; }
+
+/* حاوية الأقسام في منتصف الشريط */
+div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] {
+    display: flex !important; flex-direction: row !important;
+    justify-content: center !important; 
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important; 
+    direction: rtl !important;
+    width: 100% !important;
+    padding: 0 !important; margin: 0 auto !important;
+}
+div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] > label > div:first-child { display: none !important; }
+
+/* تصميم الأقسام (زجاجي شفاف) */
+div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] > label {
+    flex: 0 0 auto !important; width: auto !important;
+    background: rgba(255, 255, 255, 0.08) !important; 
+    backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 10px !important; padding: 10px 18px !important;
+    cursor: pointer !important; transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1) !important; 
+    margin: 0 !important;
+    display: inline-flex !important; align-items: center !important; justify-content: center !important;
+}
+div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] > label p {
+    color: rgba(255,255,255,0.85) !important; font-size: 14px !important; font-weight: 600 !important; font-family: 'Cairo' !important; margin: 0 !important;
+    transition: all 0.3s !important;
+}
+div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] > label:hover { 
+    transform: translateY(-5px) !important; 
+    box-shadow: 0 8px 18px rgba(0,0,0,0.3) !important; 
+    background: rgba(201, 168, 76, 0.2) !important; 
+    border-color: rgba(201, 168, 76, 0.6) !important; 
+}
+div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] > label:hover p { color: #f0d98a !important; }
+
+/* القسم النشط */
+div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] > label:has(input:checked) {
+    background: linear-gradient(90deg, #c9a84c, #f0d98a) !important; 
+    border-color: #f0d98a !important; 
+    box-shadow: 0 4px 15px rgba(201,168,76,0.4) !important; 
+    transform: translateY(-2px) !important;
+}
+div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] > label:has(input:checked) p { 
+    color: #1a3328 !important; font-weight: 900 !important; 
+}
+
+/* =========================================
+   تثبيت الأزرار الجانبية (المظهر والخروج)
+   ========================================= */
+div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div {
+    position: fixed !important; top: 26px !important; left: 20px !important; z-index: 999999 !important; width: auto !important;
+}
+div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div button {
+    background: rgba(220, 53, 69, 0.15) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(220, 53, 69, 0.3) !important; border-radius: 10px !important; height: 42px !important; padding: 0 15px !important; transition: all 0.3s ease !important;
+}
+div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div button p {
+    color: #ffadad !important; font-weight: bold !important; font-family: 'Cairo', sans-serif !important; margin: 0 !important;
+}
+div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div button:hover {
+    background: rgba(220, 53, 69, 0.3) !important; transform: translateY(-3px) !important; border-color: rgba(220, 53, 69, 0.5) !important;
+}
+
+div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div {
+    position: fixed !important; top: 26px !important; left: 120px !important; z-index: 999999 !important; width: auto !important;
+}
+div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div button {
+    background: rgba(255, 255, 255, 0.08) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important; border-radius: 10px !important; height: 42px !important; padding: 0 15px !important; transition: all 0.3s ease !important;
+}
+div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div button p {
+    color: #fff !important; font-weight: bold !important; font-family: 'Cairo', sans-serif !important; margin: 0 !important;
+}
+div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div button:hover {
+    background: rgba(255, 255, 255, 0.2) !important; transform: translateY(-3px) !important; border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* اللوجو على اليمين */
+.nav-logo-box {
+    position: fixed; top: 32px; right: 30px; z-index: 999999 !important; 
+    display: flex; align-items: center; gap: 8px; direction: ltr; pointer-events: none;
+}
+.nav-logo-box .icon { font-size: 28px; }
+.nav-logo-box .text {
+    font-size: 24px; font-weight: 900; letter-spacing: 2px; font-family: 'Cairo';
+    background: linear-gradient(90deg,#c9a84c,#f0d98a,#c9a84c); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+/* الأنيميشن الخاص بالمستطيل الرئيسي */
+@keyframes fadeInScale {
+    0% { opacity: 0; transform: translateY(20px) scale(0.95); filter: blur(4px); }
+    100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+.fade-in-scale { animation: fadeInScale 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+/* المستطيل العريض للرئيسية */
+.hero-banner {
+    display: flex; flex-direction: row; justify-content: space-between; align-items: center;
+    background: #ffffff; padding: 35px 30px 20px 30px !important; 
+    border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+    border: 1px solid rgba(201,168,76,0.3); border-bottom: 4px solid #c9a84c; 
+    margin-top: -15px !important; margin-bottom: 30px; direction: rtl; width: 100%; flex-wrap: wrap; gap: 20px;
+}
+.hb-right { display: flex; flex-direction: column; align-items: flex-start; }
+.hb-middle { display: flex; gap: 15px; flex-grow: 1; justify-content: center; }
+.hb-left { flex-shrink: 0; }
+.hero-brand-name { font-size: 36px; font-weight: 900; color: #2d5a4e; letter-spacing: 3px; line-height: 1; direction: ltr; }
+.hero-brand-sub { font-size: 10px; color: #a09585; letter-spacing: 5px; direction: ltr; margin-top: 5px; font-weight: 700; }
+.hero-live-badge { display: inline-flex; align-items: center; gap: 6px; background: #eef6f1; border: 1px solid #c9e8d3; border-radius: 20px; padding: 4px 12px; font-size: 11px; color: #2d5a4e; font-weight: bold; margin-bottom: 12px; }
+.hero-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #28a745; }
+.hero-date-box { text-align: center; direction: ltr; background: #fdfbf7; padding: 10px 25px; border-radius: 12px; border: 1px solid #eee; }
+.hero-date-num { font-size: 34px; font-weight: 900; color: #c9a84c; line-height: 1; }
+.hero-date-txt { font-size: 11px; color: #666; margin-top: 4px; font-weight: bold; }
+.hero-stat-box { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; padding: 12px 18px; text-align: center; min-width: 100px; }
+.hero-stat-n { font-size: 24px; font-weight: 900; color: #2d5a4e; line-height: 1; }
+.hero-stat-n.gr { color: #c9a84c; }
+.hero-stat-l { font-size: 10px; color: #6c757d; margin-top: 5px; font-weight: 800; }
+
+/* للموبايل */
+@media (max-width:768px) {
+    .block-container { padding-top: 10rem !important; }
+    div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div { top: 10px !important; left: 10px !important; }
+    div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div { top: 10px !important; left: 85px !important; }
+    div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div button,
+    div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div button { height: 35px !important; padding: 0 10px !important; }
+    div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div button p,
+    div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div button p { font-size: 11px !important; }
+    div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] { gap: 6px !important; padding: 50px 5px 10px 5px !important; }
+    div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] > label { padding: 6px 10px !important; }
+    div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] > label p { font-size: 12px !important; }
+    .nav-logo-box { display: none !important; } 
+    .hero-banner { flex-direction: column !important; padding: 20px 15px !important; text-align: center !important; margin-top: 15px !important; gap: 15px !important; }
+    .hb-right { align-items: center !important; width: 100% !important; justify-content: center !important; }
+    .hero-brand-name { font-size: 28px !important; }
+    .hb-middle { width: 100% !important; margin: 10px 0 !important; }
+    .hero-stats { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; width: 100% !important; }
+    .hero-stat-box { min-width: auto !important; padding: 10px !important; }
+    .hb-left { width: 100% !important; display: flex; justify-content: center; }
+}
+</style>
+"""
+
+# ==========================================
+# CSS الوضع الداكن 
+# ==========================================
+DARK_MODE_CSS = """
+<style>
+.stApp, .block-container { background-color: #121418 !important; color: #e0e0e0 !important; }
+h1, h2, h3, h4, span, label { color: #f0f2f6 !important; }
+p:not(div[data-testid="stRadio"] p):not(button p) { color: #d0d4dc !important; }
+.hero-banner, .hero-stat-box, .hero-date-box, div[data-testid="stExpander"] > div { background: #1e2128 !important; border-color: #333945 !important; }
+.hero-stat-n { color: #7ecba1 !important; }
+.hero-stat-l { color: #a0aab5 !important; }
+.hero-brand-name { color: #7ecba1 !important; }
+div[data-testid="stVerticalBlock"] > div { background-color: transparent !important; }
+.stTextInput input, .stNumberInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] { background-color: #2a2e37 !important; color: #ffffff !important; border-color: #4b5263 !important; }
+.stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus { border-color: #7ecba1 !important; box-shadow: 0 0 8px rgba(126, 203, 161, 0.4) !important; }
+table th { background: #262a33 !important; color: #c9a84c !important; border-color: #3d4452 !important; }
+table td { color: #d0d4dc !important; border-color: #3d4452 !important; background-color: #1e2128 !important;}
+tr:hover td { background-color: #2a2e37 !important; }
+.calc-top { background: #262a33 !important; color: #c9a84c !important; }
+.calc-bottom { background: #1e2128 !important; color: #f0f2f6 !important; }
+.calc-box { border-color: #4b5263 !important; }
+</style>
+"""
+
+def _get_stats():
     try:
+        import sqlite3
         conn = sqlite3.connect('contracts_database.db')
         c = conn.cursor()
         c.execute("SELECT COUNT(*) FROM archive WHERE seller_name NOT LIKE '[قسمة]%'")
@@ -17,227 +258,96 @@ def get_stats():
         c.execute("SELECT COUNT(*) FROM archive WHERE seller_name LIKE '[قسمة]%'")
         kesma = c.fetchone()[0]
         today = date.today()
-        month_start = str(today.year) + "-" + str(today.month).zfill(2) + "-01"
-        c.execute("SELECT COUNT(*) FROM archive WHERE contract_date >= ?", (month_start,))
+        m_start = str(today.year)+"-"+str(today.month).zfill(2)+"-01"
+        c.execute("SELECT COUNT(*) FROM archive WHERE contract_date >= ?", (m_start,))
         this_month = c.fetchone()[0]
-        total = sales + kesma
         conn.close()
-        sales_pct = round((sales / total) * 100) if total > 0 else 79
-        kesma_pct = 100 - sales_pct
-        return sales, kesma, total, this_month, sales_pct, kesma_pct
+        return sales, kesma, sales+kesma, this_month
     except:
-        return 0, 0, 0, 0, 79, 21
+        return 0, 0, 0, 0
 
-def get_recent(limit=3):
-    try:
-        conn = sqlite3.connect('contracts_database.db')
-        c = conn.cursor()
-        c.execute("SELECT contract_date, seller_name, buyer_name FROM archive ORDER BY id DESC LIMIT ?", (limit,))
-        rows = c.fetchall()
-        conn.close()
-        return rows
-    except:
-        return []
+def show(default="🏠 الرئيسية"):
+    st.markdown(NAVBAR_CSS, unsafe_allow_html=True)
+    
+    if 'dark_mode' not in st.session_state:
+        st.session_state.dark_mode = False
+    
+    if st.session_state.dark_mode:
+        st.markdown(DARK_MODE_CSS, unsafe_allow_html=True)
 
-def get_monthly_counts():
-    try:
-        conn = sqlite3.connect('contracts_database.db')
-        c = conn.cursor()
-        today = date.today()
-        months = []
-        for i in range(5, -1, -1):
-            m = today.month - i
-            y = today.year
-            while m <= 0:
-                m += 12
-                y -= 1
-            months.append((y, m))
-        counts = []
-        for y, m in months:
-            start = str(y) + "-" + str(m).zfill(2) + "-01"
-            nm = m + 1
-            ny = y
-            if nm > 12:
-                nm = 1
-                ny += 1
-            end = str(ny) + "-" + str(nm).zfill(2) + "-01"
-            c.execute("SELECT COUNT(*) FROM archive WHERE contract_date >= ? AND contract_date < ?", (start, end))
-            counts.append(c.fetchone()[0])
-        conn.close()
-        return counts, months
-    except:
-        return [3, 5, 2, 6, 4, 7], [(2025,12),(2026,1),(2026,2),(2026,3),(2026,4),(2026,5)]
+    if "active_menu" not in st.session_state:
+        st.session_state.active_menu = default
 
-def show_page():
-    sales, kesma, total, this_month, sales_pct, kesma_pct = get_stats()
-    recent = get_recent(3)
-    monthly_counts, monthly_labels = get_monthly_counts()
+    # أزرار (الخروج والمظهر) المستقلة
+    st.markdown('<div id="logout-marker" style="display:none;"></div>', unsafe_allow_html=True)
+    if st.button("🚪 خروج"):
+        st.session_state.logged_in = False
+        safe_rerun()
+        
+    st.markdown('<div id="theme-marker" style="display:none;"></div>', unsafe_allow_html=True)
+    theme_lbl = "☀️ فاتح" if st.session_state.dark_mode else "🌗 المظهر"
+    if st.button(theme_lbl):
+        st.session_state.dark_mode = not st.session_state.dark_mode
+        safe_rerun()
 
-    max_c = max(monthly_counts) if max(monthly_counts) > 0 else 1
-    bar_heights = [max(8, int((cnt / max_c) * 64)) for cnt in monthly_counts]
-    bar_classes = ["hi"] * 5 + ["top"]
+    # قائمة الأقسام العادية
+    labels = [icon+" "+label for icon,label,key in MENU_ITEMS]
+    keys   = [key for icon,label,key in MENU_ITEMS]
+    
+    current_key = st.session_state.get("active_menu", default)
+    try:    current_idx = keys.index(current_key)
+    except: current_idx = 0
 
-    # ---- بناء الأعمدة البيانية ----
-    bars_html = ""
-    for i in range(len(bar_heights)):
-        h   = bar_heights[i]
-        cls = bar_classes[i]
-        lbl = monthly_labels[i]
-        short = MONTHS_SHORT[lbl[1]][:3]
-        delay = 0.5 + i * 0.05
-        bars_html += f'<div class="bc_h"><div class="bfill_h {cls}" style="height:{h}px;animation-delay:{delay}s"></div><div class="bml_h">{short}</div></div>'
-
-    # ---- بناء آخر المعاملات ----
-    recent_html = ""
-    icons_list = ["📝", "🤝", "📋"]
-    tags_list  = [("tg","بيع"), ("tb","قسمة"), ("tw","بيع")]
-
-    for i, row in enumerate(recent[:3]):
-        date_str = row[0]
-        seller   = row[1]
-        is_kesma = "[قسمة]" in seller
-        icon     = "🤝" if is_kesma else icons_list[i % 3]
-        tag_cls  = "tb" if is_kesma else tags_list[i % 3][0]
-        tag_lbl  = "قسمة" if is_kesma else tags_list[i % 3][1]
-        bg       = "bg-a" if is_kesma else "bg-g"
-        clean    = seller.replace("[قسمة]","").replace("[بيع]","").strip()
-        if len(clean) > 18:
-            clean = clean[:18] + "..."
-        recent_html += f'<div class="ritem_h"><div class="ri-dot_h {bg}">{icon}</div><div class="ri-info_h"><div class="ri-name_h">{clean}</div><div class="ri-time_h">{date_str}</div></div><div class="ri-tag_h {tag_cls}">{tag_lbl}</div></div>'
-
-    if not recent_html:
-        recent_html = '<div class="ritem_h"><div class="ri-info_h"><div class="ri-name_h" style="color:#a89880">لا توجد معاملات بعد</div></div></div>'
-
-    # ---- إرسال CSS (تم إضافة الـ Media Queries للموبايل) ----
     st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
-@keyframes barUp_h{from{transform:scaleY(0)}to{transform:scaleY(1)}}
-@keyframes slideRight_h{from{width:0}to{width:var(--pw)}}
+        <div class="nav-logo-box">
+            <span class="icon">⚖️</span>
+            <span class="text">BAYA</span>
+        </div>
+    """, unsafe_allow_html=True)
 
-.hw-body{padding:16px 0 0; background:transparent;}
-.sec-label_h{font-size:10px;font-weight:700;color:#8a7d6e;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;direction:rtl;}
-.sec-label_h::before{content:'';width:16px;height:2px;background:#c9a84c;border-radius:2px}
-.sec-label_h::after{content:'';flex:1;height:1px;background:#e5ddd4}
-.nav-grid_h{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:20px;direction:rtl;}
-.ncard_h{background:#fff;border-radius:14px;border:1.5px solid #ede7de;padding:15px 10px 13px;cursor:default;text-align:center;transition:all 0.25s cubic-bezier(0.22,1,0.36,1);position:relative;overflow:hidden}
-.ncard_h::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;transform:scaleX(0);transform-origin:right;transition:transform 0.3s ease}
-.ncard_h:hover::before{transform:scaleX(1)}
-.ncard_h.green::before{background:#2d5a4e}.ncard_h.amber::before{background:#c9a84c}
-.ncard_h.terr::before{background:#a0522d}.ncard_h.sage::before{background:#7b9e87}
-.ncard_h.warm::before{background:#c4804a}.ncard_h.muted::before{background:#8b7355}
-.ncard_h:hover{border-color:#c9a84c;transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,0.08)}
-.nc-icon_h{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;margin:0 auto 9px}
-.bg-g{background:#e8f2ed}.bg-a{background:#fdf5e3}.bg-t{background:#f5ece6}
-.bg-s{background:#eef4f0}.bg-w{background:#faeee4}.bg-m{background:#f2ede6}
-.nc-title_h{font-size:13px;font-weight:700;color:#2c2416;line-height:1.3}
-.nc-sub_h{font-size:10px;color:#a89880;margin-top:2px}
-.lower_h{display:grid;grid-template-columns:5fr 4fr;gap:15px;margin-bottom:14px;direction:rtl;}
-.chart-box_h{background:#fff;border-radius:14px;border:1.5px solid #ede7de;padding:14px}
-.chart-head_h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.ch-title_h{font-size:11px;font-weight:700;color:#6b5e50;letter-spacing:0.5px}
-.ch-leg{display:flex;gap:8px}
-.ld{display:flex;align-items:center;gap:3px;font-size:9px;color:#a89880}
-.ld span{width:7px;height:7px;border-radius:2px}
-.ld-g{background:#2d5a4e}.ld-a{background:#c9a84c}
-.bars-area_h{display:flex;align-items:flex-end;gap:6px;height:68px}
-.bc_h{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
-.bfill_h{width:100%;border-radius:4px 4px 0 0;background:#ddd6cc;transform-origin:bottom;animation:barUp_h 0.8s cubic-bezier(0.22,1,0.36,1) both}
-.bfill_h.hi{background:#2d5a4e}.bfill_h.top{background:#c9a84c}
-.bml_h{font-size:8px;color:#b5a898}
-.recent-box_h{background:#fff;border-radius:14px;border:1.5px solid #ede7de;padding:14px}
-.rb-title_h{font-size:11px;font-weight:700;color:#6b5e50;letter-spacing:0.5px;margin-bottom:10px}
-.ritem_h{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid #f5f0ea}
-.ritem_h:last-child{border-bottom:none;padding-bottom:0}
-.ri-dot_h{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-.ri-info_h{flex:1;min-width:0;text-align:right;}
-.ri-name_h{font-size:11px;font-weight:700;color:#2c2416;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ri-time_h{font-size:9px;color:#b5a898;margin-top:1px}
-.ri-tag_h{font-size:9px;padding:2px 6px;border-radius:6px;font-weight:700;flex-shrink:0}
-.tg{background:#e8f2ed;color:#1a3d31}.tb{background:#fdf5e3;color:#6b4c00}.tw{background:#f5ece6;color:#6b2e10}
-.prog-sect{background:#fff;border-radius:14px;border:1.5px solid #ede7de;padding:14px;margin-bottom:14px;direction:rtl;}
-.prog-title_h{font-size:11px;font-weight:700;color:#6b5e50;letter-spacing:0.5px;margin-bottom:12px;text-align:right;}
-.prog-row_h{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.prog-row_h:last-child{margin-bottom:0}
-.prog-icon_h{font-size:14px;width:26px;text-align:center;flex-shrink:0}
-.prog-label_h{font-size:11px;font-weight:600;color:#4a3d30;width:90px;flex-shrink:0;text-align:right;}
-.prog-bar-bg_h{flex:1;height:8px;background:#f0ebe4;border-radius:4px;overflow:hidden}
-.prog-bar-fill_h{height:100%;border-radius:4px;animation:slideRight_h 1s cubic-bezier(0.22,1,0.36,1) both}
-.pf-green{background:#2d5a4e;animation-delay:0.5s}
-.pf-amber{background:#c9a84c;animation-delay:0.6s}
-.prog-val_h{font-size:11px;font-weight:700;color:#6b5e50;width:32px;text-align:left;direction:ltr;flex-shrink:0}
+    selected_label = st.radio(
+        "navbar_radio",
+        labels,
+        index=current_idx,
+        key="_navbar_radio",
+        horizontal=True,
+        label_visibility="collapsed"
+    )
 
-/* ====================================================
-   🔥 أكواد الموبايل (Responsive Design for Mobile) 🔥
-   ==================================================== */
-@media (max-width: 768px) {
-    /* رص الكروت 2 في الصف بدلا من 3 */
-    .nav-grid_h { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+    selected_idx = labels.index(selected_label)
+    new_key = keys[selected_idx]
     
-    /* وضع الإحصائيات وآخر المعاملات فوق بعض بدلا من جنب بعض */
-    .lower_h { grid-template-columns: 1fr !important; gap: 15px !important; }
-    
-    .hw-body { padding: 5px 0 0 !important; }
-}
-@media (max-width: 480px) {
-    /* للموبايلات الصغيرة جداً ممكن نخليها كارت واحد في الصف (اختياري) لكن 2 أشيك */
-    /* .nav-grid_h { grid-template-columns: 1fr !important; } */
-}
-</style>
-""", unsafe_allow_html=True)
+    if new_key != st.session_state.get("active_menu"):
+        st.session_state.active_menu = new_key
+        safe_rerun()
 
-    # ---- Body: بطاقات الأقسام ----
-    st.markdown(
-        '<div class="hw-body">'
-        '<div class="sec-label_h" style="margin-top:4px">الأقسام الرئيسية</div>'
-        '<div class="nav-grid_h">'
-        '<div class="ncard_h green"><div class="nc-icon_h bg-g">&#x1F4DD;</div><div class="nc-title_h">عقود البيع</div><div class="nc-sub_h">إنشاء وإدارة</div></div>'
-        '<div class="ncard_h amber"><div class="nc-icon_h bg-a">&#x1F91D;</div><div class="nc-title_h">القسمة الرضائية</div><div class="nc-sub_h">توزيع الميراث</div></div>'
-        '<div class="ncard_h terr"><div class="nc-icon_h bg-t">&#x1F4C2;</div><div class="nc-title_h">الأرشيف</div><div class="nc-sub_h">المعاملات</div></div>'
-        '<div class="ncard_h sage"><div class="nc-icon_h bg-s">&#x1F33E;</div><div class="nc-title_h">حاسبة الأراضي</div><div class="nc-sub_h">فدان . قيراط</div></div>'
-        '<div class="ncard_h warm"><div class="nc-icon_h bg-w">&#x2696;&#xFE0F;</div><div class="nc-title_h">المواريث</div><div class="nc-sub_h">توزيع التركات</div></div>'
-        '<div class="ncard_h muted"><div class="nc-icon_h bg-m">&#x1F6A8;</div><div class="nc-title_h">سجل المحاضر</div><div class="nc-sub_h">متابعة</div></div>'
-        '</div>',
-        unsafe_allow_html=True
-    )
+    if st.session_state.active_menu == "🏠 الرئيسية":
+        sales, kesma, total, this_month = _get_stats()
+        today     = date.today()
+        day_name  = DAYS_AR[today.weekday()]
+        month_name= MONTHS_AR[today.month]
 
-    # ---- Chart + Recent ----
-    st.markdown(
-        '<div class="lower_h">'
-        '<div class="chart-box_h">'
-        '<div class="chart-head_h">'
-        '<div class="ch-title_h">نشاط آخر 6 أشهر</div>'
-        '<div class="ch-leg">'
-        '<div class="ld"><span class="ld-g"></span>عقود</div>'
-        '<div class="ld"><span class="ld-a"></span>الشهر الحالي</div>'
-        '</div></div>'
-        '<div class="bars-area_h">' + bars_html + '</div>'
-        '</div>'
-        '<div class="recent-box_h">'
-        '<div class="rb-title_h">آخر المعاملات</div>'
-        + recent_html +
-        '</div>'
-        '</div>',
-        unsafe_allow_html=True
-    )
+        st.markdown(f"""
+        <div class="hero-banner fade-in-scale">
+        <div class="hb-right">
+        <div class="hero-live-badge"><div class="hero-live-dot"></div> النظام نشط</div>
+        <div class="hero-brand-name">BAYA <span style="color:#c9a84c;">LEGAL</span></div>
+        <div class="hero-brand-sub">N A S R I Y A  ·  A G R I C U L T U R E</div>
+        </div>
+        <div class="hb-middle">
+        <div class="hero-stats">
+        <div class="hero-stat-box"><div class="hero-stat-n">{sales}</div><div class="hero-stat-l">عقود بيع</div></div>
+        <div class="hero-stat-box"><div class="hero-stat-n gr">{kesma}</div><div class="hero-stat-l">قسمات</div></div>
+        <div class="hero-stat-box"><div class="hero-stat-n">{total}</div><div class="hero-stat-l">إجمالي المعاملات</div></div>
+        <div class="hero-stat-box"><div class="hero-stat-n gr">{this_month}</div><div class="hero-stat-l">نشاط هذا الشهر</div></div>
+        </div>
+        </div>
+        <div class="hb-left hero-date-box">
+        <div class="hero-date-num">{today.day}</div>
+        <div class="hero-date-txt">{month_name} {today.year}</div>
+        <div class="hero-date-txt">{day_name}</div>
+        </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    # ---- Progress Bars ----
-    st.markdown(
-        '<div class="prog-sect">'
-        '<div class="prog-title_h">نسبة أنواع المعاملات</div>'
-        '<div class="prog-row_h">'
-        '<div class="prog-icon_h">&#x1F4DD;</div>'
-        '<div class="prog-label_h">عقود بيع</div>'
-        '<div class="prog-bar-bg_h"><div class="prog-bar-fill_h pf-green" style="--pw:' + str(sales_pct) + '%;"></div></div>'
-        '<div class="prog-val_h">' + str(sales_pct) + '%</div>'
-        '</div>'
-        '<div class="prog-row_h">'
-        '<div class="prog-icon_h">&#x1F91D;</div>'
-        '<div class="prog-label_h">قسمات</div>'
-        '<div class="prog-bar-bg_h"><div class="prog-bar-fill_h pf-amber" style="--pw:' + str(kesma_pct) + '%;"></div></div>'
-        '<div class="prog-val_h">' + str(kesma_pct) + '%</div>'
-        '</div>'
-        '</div>'
-        '</div>',
-        unsafe_allow_html=True
-    )
+    return st.session_state.active_menu
