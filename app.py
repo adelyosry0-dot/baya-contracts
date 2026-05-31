@@ -11,6 +11,7 @@ import inheritance_calc
 import register_services
 import reports_manager
 import home_page
+import navbar
 
 # ==========================================
 # 1. إعدادات الصفحة والتصميم CSS
@@ -21,220 +22,72 @@ CSS_STYLE = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap');
 
-    /* 1. الخط الأساسي والاتجاه */
     .stApp { direction: rtl; text-align: right; }
     html, body, p, label, h1, h2, h3, h4, h5, h6, input, textarea, button, .stMarkdown, .stText {
         font-family: 'Cairo', sans-serif !important;
     }
-    i, .material-icons, .material-symbols-rounded, [data-testid="stIconMaterial"], svg {
-        font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
-    }
     .stMarkdown p { text-align: right !important; direction: rtl !important; }
 
-    /* 2. إخفاء زوائد Streamlit */
-    [data-testid="stHeader"] { background: transparent !important; }
-    .stAppDeployButton { display: none !important; visibility: hidden !important; }
-    a[href*="github.com"] { display: none !important; visibility: hidden !important; }
-    footer { display: none !important; visibility: hidden !important; }
-    .viewerBadge_container, [data-testid="stViewerBadge"] { display: none !important; visibility: hidden !important; }
-    [data-testid="InputInstructions"] { display: none !important; visibility: hidden !important; }
+    /* أنيميشنات تسجيل الدخول */
+    @keyframes comeFromLeft  { 0%{transform:translateX(-200px) rotate(-30deg) scale(0.5);opacity:0;filter:blur(8px)} 60%{transform:translateX(15px) rotate(3deg) scale(1.05);opacity:1;filter:blur(0)} 100%{transform:translateX(0) rotate(0) scale(1);opacity:1} }
+    @keyframes comeFromTop   { 0%{transform:translateY(-200px) scale(0.4) rotate(20deg);opacity:0;filter:blur(10px)} 55%{transform:translateY(12px) scale(1.08) rotate(-2deg);opacity:1;filter:blur(0)} 100%{transform:translateY(0) scale(1) rotate(0);opacity:1} }
+    @keyframes comeFromBottom{ 0%{transform:translateY(200px) scale(0.4) rotate(-20deg);opacity:0;filter:blur(10px)} 55%{transform:translateY(-12px) scale(1.08) rotate(2deg);opacity:1;filter:blur(0)} 100%{transform:translateY(0) scale(1) rotate(0);opacity:1} }
+    @keyframes comeFromRight { 0%{transform:translateX(200px) rotate(30deg) scale(0.5);opacity:0;filter:blur(8px)} 60%{transform:translateX(-15px) rotate(-3deg) scale(1.05);opacity:1;filter:blur(0)} 100%{transform:translateX(0) rotate(0) scale(1);opacity:1} }
+    @keyframes goldShimmer   { 0%{background-position:-200% center} 100%{background-position:200% center} }
+    @keyframes goldShimmer2  { 0%{background-position:-200% center} 100%{background-position:200% center} }
+    @keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+    @keyframes floatingWave  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+    @keyframes spinSlow      { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    @keyframes goldenPulseRing { 0%{box-shadow:0 0 0 0 rgba(201,168,76,0.6),0 10px 40px rgba(0,0,0,0.4)} 50%{box-shadow:0 0 0 18px rgba(201,168,76,0),0 10px 40px rgba(0,0,0,0.4)} 100%{box-shadow:0 0 0 0 rgba(201,168,76,0),0 10px 40px rgba(0,0,0,0.4)} }
+    @keyframes scaleBalance  { 0%,100%{transform:rotate(0deg) scale(1)} 20%{transform:rotate(-12deg) scale(1.1)} 40%{transform:rotate(10deg) scale(1.05)} 60%{transform:rotate(-6deg) scale(1.08)} 80%{transform:rotate(4deg) scale(1.02)} }
+    @keyframes drawLine      { 0%{width:0%;opacity:0} 60%{opacity:1} 100%{width:80%;opacity:1} }
+    @keyframes fadeInScale   { 0%{opacity:0;transform:translateY(20px) scale(0.92);filter:blur(4px)} 60%{opacity:1;filter:blur(0)} 100%{opacity:1;transform:translateY(0) scale(1)} }
+    @keyframes shimmerBtn    { 0%{left:-75%;opacity:0} 10%{opacity:1} 50%{left:125%;opacity:1} 51%,100%{left:125%;opacity:0} }
 
-    /* 3. إخفاء الـ sidebar بالكامل */
-    [data-testid="stSidebar"]              { display: none !important; }
-    [data-testid="collapsedControl"]       { display: none !important; }
-    [data-testid="stSidebarCollapseButton"]{ display: none !important; }
-    section[data-testid="stSidebar"]       { display: none !important; }
+    .letter-b,.letter-a1,.letter-y,.letter-a2 {
+        background:linear-gradient(90deg,#c9a84c 30%,#f0d98a 50%,#c9a84c 70%);
+        background-size:200% auto; -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .letter-b  { animation:comeFromLeft   1.1s cubic-bezier(0.34,1.56,0.64,1) forwards,goldShimmer 3s linear 1.8s infinite; display:inline-block; opacity:0; animation-delay:0.2s; }
+    .letter-a1 { animation:comeFromTop    1.1s cubic-bezier(0.34,1.56,0.64,1) forwards,goldShimmer 3s linear 2.0s infinite; display:inline-block; opacity:0; animation-delay:0.4s; }
+    .letter-y  { animation:comeFromBottom 1.1s cubic-bezier(0.34,1.56,0.64,1) forwards,goldShimmer 3s linear 2.2s infinite; display:inline-block; opacity:0; animation-delay:0.6s; }
+    .letter-a2 { animation:comeFromRight  1.1s cubic-bezier(0.34,1.56,0.64,1) forwards,goldShimmer 3s linear 2.4s infinite; display:inline-block; opacity:0; animation-delay:0.8s; }
+    .fade-in-scale   { animation:fadeInScale 0.9s cubic-bezier(0.22,1,0.36,1) forwards; display:inline-block; opacity:0; }
+    .continuous-wave { animation:floatingWave 4s ease-in-out infinite; display:inline-block; }
+    .balance-icon    { animation:fadeInScale 0.8s ease-out forwards,scaleBalance 6s ease-in-out 2s infinite; display:inline-block; opacity:0; }
+    .login-box-pulse { animation:goldenPulseRing 2.5s ease-out infinite; }
+    .gold-line       { display:block; height:2px; background:linear-gradient(90deg,transparent,#c9a84c,#f0d98a,#c9a84c,transparent); border-radius:2px; margin:10px auto; animation:drawLine 1.5s cubic-bezier(0.22,1,0.36,1) 1.2s forwards; width:0%; opacity:0; }
+    .login-animated-bg { background:linear-gradient(-45deg,#0d2318,#1e3d2f,#163026,#0a1f14,#1a3828); background-size:400% 400%; animation:gradientShift 8s ease infinite; }
+    .stFormSubmitButton button { position:relative; overflow:hidden; transition:all 0.4s cubic-bezier(0.22,1,0.36,1) !important; }
+    .stFormSubmitButton button::after { content:''; position:absolute; top:-50%; left:-75%; width:50%; height:200%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent); transform:skewX(-20deg); animation:shimmerBtn 3s ease-in-out 2s infinite; }
 
-    /* 4. حقول الإدخال */
-    .stTextInput input, .stNumberInput input, .stTextArea textarea {
-        transition: all 0.3s ease; border: 1px solid #ccc;
+    /* حقول الإدخال */
+    .stTextInput input:hover,.stNumberInput input:hover,.stTextArea textarea:hover {
+        border-color:#c9a84c !important; box-shadow:0 0 8px rgba(201,168,76,0.25) !important; background-color:#fdfbf7 !important;
     }
-    .stTextInput input:hover, .stNumberInput input:hover, .stTextArea textarea:hover {
-        border-color: #c9a84c !important;
-        box-shadow: 0 0 8px rgba(201,168,76,0.25) !important;
-        background-color: #fdfbf7 !important;
+    .stTextInput input:focus,.stNumberInput input:focus,.stTextArea textarea:focus {
+        border-color:#2d5a4e !important; box-shadow:0 0 8px rgba(45,90,78,0.25) !important;
     }
-    .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus {
-        border-color: #2d5a4e !important;
-        box-shadow: 0 0 8px rgba(45,90,78,0.25) !important;
-    }
+    .delete-btn button { background-color:#ffebee !important; color:#cc0000 !important; border:1px solid #ffcdd2 !important; }
+    .delete-btn button:hover { background-color:#ffcdd2 !important; border-color:#cc0000 !important; }
 
-    .delete-btn button { background-color: #ffebee !important; color: #cc0000 !important; border: 1px solid #ffcdd2 !important; padding: 2px 10px !important; }
-    .delete-btn button:hover { background-color: #ffcdd2 !important; border-color: #cc0000 !important; }
+    /* headers */
+    .premium-header { background:linear-gradient(90deg,#f7f3ee 0%,#ffffff 100%); padding:12px 20px; border-right:5px solid #c9a84c; margin:15px 0 20px; color:#1e3d2f !important; font-weight:800; font-size:22px; display:block !important; text-align:right !important; direction:rtl !important; width:100% !important; transition:transform 0.3s ease; position:relative; overflow:hidden; }
+    .premium-header:hover { transform:translateX(-3px); }
+    .info-header { background-color:#eef6f1; padding:10px 15px; border-right:4px solid #2d5a4e; border-radius:5px; color:#1e3d2f !important; font-weight:600; margin:15px 0; transition:all 0.3s ease; display:block !important; text-align:right !important; direction:rtl !important; width:100% !important; }
+    .info-header:hover { background-color:#ddf0e6; transform:translateX(-2px); }
 
-    /* 5. ألوان المتقاسمين */
-    div[data-testid="stExpander"]:nth-child(1n) summary { border-right: 5px solid #2d5a4e !important; background-color: #f0f7f4 !important; }
-    div[data-testid="stExpander"]:nth-child(2n) summary { border-right: 5px solid #c9a84c !important; background-color: #fdf8ed !important; }
-    div[data-testid="stExpander"]:nth-child(3n) summary { border-right: 5px solid #7b9e87 !important; background-color: #f2f7f4 !important; }
-    div[data-testid="stExpander"]:nth-child(4n) summary { border-right: 5px solid #a0522d !important; background-color: #faf4ef !important; }
-    div[data-testid="stExpander"]:nth-child(5n) summary { border-right: 5px solid #3d7a5e !important; background-color: #eef6f1 !important; }
+    /* expanders */
+    div[data-testid="stExpander"]:nth-child(1n) summary { border-right:5px solid #2d5a4e !important; background-color:#f0f7f4 !important; }
+    div[data-testid="stExpander"]:nth-child(2n) summary { border-right:5px solid #c9a84c !important; background-color:#fdf8ed !important; }
+    div[data-testid="stExpander"]:nth-child(3n) summary { border-right:5px solid #7b9e87 !important; background-color:#f2f7f4 !important; }
+    div[data-testid="stExpander"]:nth-child(4n) summary { border-right:5px solid #a0522d !important; background-color:#faf4ef !important; }
 
-    /* 6. premium-header بالثيم الجديد */
-    .premium-header {
-        background: linear-gradient(90deg, #f7f3ee 0%, #ffffff 100%);
-        padding: 12px 20px; border-right: 5px solid #c9a84c; border-radius: 0;
-        margin-top: 15px; margin-bottom: 20px;
-        color: #1e3d2f !important; font-weight: 800; font-size: 22px;
-        display: block !important; text-align: right !important; direction: rtl !important; width: 100% !important;
-        transition: transform 0.3s ease; position: relative; overflow: hidden;
-    }
-    .premium-header::before {
-        content: ''; position: absolute; top: 0; right: 0; width: 100%; height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(201,168,76,0.07), transparent);
-        background-size: 200% auto; animation: goldShimmer2 4s linear infinite;
-    }
-    .premium-header:hover { transform: translateX(-3px); }
-
-    .info-header {
-        background-color: #eef6f1; padding: 10px 15px;
-        border-right: 4px solid #2d5a4e; border-radius: 5px;
-        color: #1e3d2f !important; font-weight: 600;
-        margin-bottom: 15px; margin-top: 15px; transition: all 0.3s ease;
-        display: block !important; text-align: right !important; direction: rtl !important; width: 100% !important;
-    }
-    .info-header:hover { background-color: #ddf0e6; transform: translateX(-2px); }
-
-    /* 7. أنيميشن تسجيل الدخول */
-    @keyframes comeFromLeft {
-        0%   { transform: translateX(-200px) rotate(-30deg) scale(0.5); opacity: 0; filter: blur(8px); }
-        60%  { transform: translateX(15px) rotate(3deg) scale(1.05); opacity: 1; filter: blur(0); }
-        80%  { transform: translateX(-6px) rotate(-1deg) scale(0.98); }
-        100% { transform: translateX(0) rotate(0) scale(1); opacity: 1; filter: blur(0); }
-    }
-    @keyframes comeFromTop {
-        0%   { transform: translateY(-200px) scale(0.4) rotate(20deg); opacity: 0; filter: blur(10px); }
-        55%  { transform: translateY(12px) scale(1.08) rotate(-2deg); opacity: 1; filter: blur(0); }
-        75%  { transform: translateY(-5px) scale(0.97) rotate(1deg); }
-        100% { transform: translateY(0) scale(1) rotate(0); opacity: 1; }
-    }
-    @keyframes comeFromBottom {
-        0%   { transform: translateY(200px) scale(0.4) rotate(-20deg); opacity: 0; filter: blur(10px); }
-        55%  { transform: translateY(-12px) scale(1.08) rotate(2deg); opacity: 1; filter: blur(0); }
-        75%  { transform: translateY(5px) scale(0.97) rotate(-1deg); }
-        100% { transform: translateY(0) scale(1) rotate(0); opacity: 1; }
-    }
-    @keyframes comeFromRight {
-        0%   { transform: translateX(200px) rotate(30deg) scale(0.5); opacity: 0; filter: blur(8px); }
-        60%  { transform: translateX(-15px) rotate(-3deg) scale(1.05); opacity: 1; filter: blur(0); }
-        80%  { transform: translateX(6px) rotate(1deg) scale(0.98); }
-        100% { transform: translateX(0) rotate(0) scale(1); opacity: 1; filter: blur(0); }
-    }
-    @keyframes goldShimmer2 { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
-    @keyframes goldShimmer  { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
-    @keyframes goldenPulseRing {
-        0%   { box-shadow: 0 0 0 0 rgba(201,168,76,0.6), 0 10px 40px rgba(0,0,0,0.4); }
-        50%  { box-shadow: 0 0 0 18px rgba(201,168,76,0), 0 10px 40px rgba(0,0,0,0.4); }
-        100% { box-shadow: 0 0 0 0 rgba(201,168,76,0), 0 10px 40px rgba(0,0,0,0.4); }
-    }
-    @keyframes scaleBalance {
-        0%,100% { transform: rotate(0deg) scale(1); }
-        20%  { transform: rotate(-12deg) scale(1.1); }
-        40%  { transform: rotate(10deg) scale(1.05); }
-        60%  { transform: rotate(-6deg) scale(1.08); }
-        80%  { transform: rotate(4deg) scale(1.02); }
-    }
-    @keyframes drawLine { 0% { width: 0%; opacity: 0; } 60% { opacity: 1; } 100% { width: 80%; opacity: 1; } }
-    @keyframes fadeInScale {
-        0%   { opacity: 0; transform: translateY(20px) scale(0.92); filter: blur(4px); }
-        60%  { opacity: 1; filter: blur(0); }
-        100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-    }
-    @keyframes floatingWave { 0%,100% { transform: translateY(0px) rotate(0deg); } 30% { transform: translateY(-8px) rotate(-2deg); } 70% { transform: translateY(-4px) rotate(1deg); } }
-    @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-    @keyframes spinSlow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-
-    .letter-b { animation: comeFromLeft 1.1s cubic-bezier(0.34,1.56,0.64,1) forwards; display: inline-block; animation-delay: 0.1s; opacity: 0; }
-    .letter-a1 { animation: comeFromTop 1.1s cubic-bezier(0.34,1.56,0.64,1) forwards; display: inline-block; animation-delay: 0.25s; opacity: 0; }
-    .letter-y  { animation: comeFromBottom 1.1s cubic-bezier(0.34,1.56,0.64,1) forwards; display: inline-block; animation-delay: 0.4s; opacity: 0; }
-    .letter-a2 { animation: comeFromRight 1.1s cubic-bezier(0.34,1.56,0.64,1) forwards; display: inline-block; animation-delay: 0.55s; opacity: 0; }
-    .letter-b, .letter-a1, .letter-y, .letter-a2 {
-        background: linear-gradient(90deg, #c9a84c 30%, #f0d98a 50%, #c9a84c 70%);
-        background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-        animation: comeFromLeft 1.1s cubic-bezier(0.34,1.56,0.64,1) forwards, goldShimmer 3s linear 1.8s infinite;
-    }
-    .letter-a1 { animation: comeFromTop 1.1s cubic-bezier(0.34,1.56,0.64,1) forwards, goldShimmer 3s linear 2s infinite; }
-    .letter-y  { animation: comeFromBottom 1.1s cubic-bezier(0.34,1.56,0.64,1) forwards, goldShimmer 3s linear 2.2s infinite; }
-    .letter-a2 { animation: comeFromRight 1.1s cubic-bezier(0.34,1.56,0.64,1) forwards, goldShimmer 3s linear 2.4s infinite; }
-
-    .fade-in-scale { animation: fadeInScale 0.9s cubic-bezier(0.22,1,0.36,1) forwards; display: inline-block; opacity: 0; }
-    .continuous-wave { animation: floatingWave 4s ease-in-out infinite; display: inline-block; }
-    .balance-icon { animation: fadeInScale 0.8s ease-out forwards, scaleBalance 6s ease-in-out 2s infinite; display: inline-block; opacity: 0; }
-    .login-box-pulse { animation: goldenPulseRing 2.5s ease-out infinite; }
-    .gold-line { display: block; height: 2px; background: linear-gradient(90deg, transparent, #c9a84c, #f0d98a, #c9a84c, transparent); border-radius: 2px; margin: 10px auto; animation: drawLine 1.5s cubic-bezier(0.22,1,0.36,1) 1.2s forwards; width: 0%; opacity: 0; }
-    .login-animated-bg { background: linear-gradient(-45deg, #0d2318, #1e3d2f, #163026, #0a1f14, #1a3828); background-size: 400% 400%; animation: gradientShift 8s ease infinite; }
-
-    .stFormSubmitButton button, [data-testid="stFormSubmitButton"] button { position: relative; overflow: hidden; transition: all 0.4s cubic-bezier(0.22,1,0.36,1) !important; }
-    .stFormSubmitButton button::after, [data-testid="stFormSubmitButton"] button::after {
-        content: ''; position: absolute; top: -50%; left: -75%; width: 50%; height: 200%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        transform: skewX(-20deg); animation: shimmerBtn 3s ease-in-out 2s infinite;
-    }
-    @keyframes shimmerBtn { 0%{left:-75%;opacity:0} 10%{opacity:1} 50%{left:125%;opacity:1} 51%,100%{left:125%;opacity:0} }
-
-    /* ===== الشريط العلوي الثابت ===== */
-    #baya-topbar {
-        position: sticky; top: 0; z-index: 9999;
-        background: linear-gradient(135deg,#1a3328 0%,#2d5a4e 50%,#1a3328 100%);
-        background-size: 200% 200%;
-        animation: gradientShift 8s ease infinite;
-        border-bottom: 2px solid rgba(201,168,76,0.3);
-        box-shadow: 0 4px 24px rgba(0,0,0,0.35);
-        direction: rtl;
-    }
-    .topbar-inner { display:flex; align-items:center; padding:0 12px; overflow-x:auto; scrollbar-width:none; }
-    .topbar-inner::-webkit-scrollbar { display:none; }
-    .topbar-logo { display:flex; align-items:center; gap:6px; padding:10px 16px 10px 20px; border-left:1px solid rgba(201,168,76,0.2); flex-shrink:0; direction:ltr; }
-    .topbar-logo-icon { font-size:20px; animation:floatingWave 4s ease-in-out infinite; }
-    .topbar-logo-text { font-size:17px; font-weight:900; letter-spacing:2px;
-        background:linear-gradient(90deg,#c9a84c,#f0d98a,#c9a84c); background-size:200% auto;
-        -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-        animation:goldShimmer 3s linear infinite; }
-    .topbar-logo-sub { font-size:8px; color:rgba(200,230,215,0.4); letter-spacing:2px; display:block; }
-    .topbar-nav { display:flex; flex:1; align-items:center; }
-    .tnav-btn {
-        display:inline-flex; align-items:center; gap:5px;
-        padding:0 13px; height:52px; font-size:12px; font-weight:600;
-        color:rgba(220,240,230,0.6); background:transparent;
-        border:none; border-bottom:3px solid transparent; border-top:3px solid transparent;
-        cursor:pointer; white-space:nowrap; font-family:"Cairo",sans-serif;
-        transition:all 0.25s cubic-bezier(0.22,1,0.36,1);
-        position:relative; flex-shrink:0; outline:none;
-    }
-    .tnav-btn::after {
-        content:''; position:absolute; bottom:-2px; left:50%; right:50%;
-        height:3px; background:#c9a84c; border-radius:2px 2px 0 0;
-        transition:all 0.3s cubic-bezier(0.22,1,0.36,1);
-    }
-    .tnav-btn:hover { color:#e8d5a3; background:rgba(255,255,255,0.06); }
-    .tnav-btn:hover::after { left:8%; right:8%; }
-    .tnav-btn.active { color:#c9a84c; background:rgba(201,168,76,0.1); font-weight:800; }
-    .tnav-btn.active::after { left:0; right:0; }
-    .tnav-icon { font-size:15px; transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1); }
-    .tnav-btn:hover .tnav-icon, .tnav-btn.active .tnav-icon { transform:translateY(-2px) scale(1.15); }
-    .topbar-logout { padding:5px 12px; height:30px; font-size:11px; font-weight:700;
-        color:rgba(220,180,180,0.7); background:rgba(255,255,255,0.05);
-        border:1px solid rgba(255,100,100,0.2); border-radius:6px;
-        cursor:pointer; font-family:"Cairo",sans-serif; transition:all 0.2s ease; flex-shrink:0; }
-    .topbar-logout:hover { background:rgba(200,50,50,0.15); border-color:rgba(255,100,100,0.5); color:#ffaaaa; }
-    @keyframes pageSlideIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-    .page-content { animation: pageSlideIn 0.3s cubic-bezier(0.22,1,0.36,1); }
-
-    /* 8. layout */
-    [data-testid="stHeader"] { display:none !important; }
-    .block-container { padding-top:0 !important; padding-right:1rem !important; padding-left:1rem !important; max-width:100% !important; }
-    [data-testid="stAppViewContainer"] > .main { padding-top:0 !important; }
-    @media (max-width:768px) {
-        .tnav-btn { padding:0 9px; font-size:11px; height:46px; }
-        .topbar-logo { padding:8px 10px; }
-        .topbar-logo-text { font-size:14px; }
-        .premium-header { font-size:18px !important; padding:10px 12px !important; }
-    }
-
-    /* 9. مربعات الحاسبة */
-    .calc-result-container { display: flex; justify-content: center; gap: 15px; margin-top: 15px; margin-bottom: 20px; direction: ltr; }
-    .calc-box { background-color: #ffffff; border: 2px solid #2d5a4e; border-radius: 12px; width: 70px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.08); }
-    .calc-top { background-color: #2d5a4e; color: #c9a84c; font-weight: 900; font-size: 22px; text-align: center; padding: 5px 0; }
-    .calc-bottom { color: #1e3d2f; font-weight: 800; font-size: 20px; text-align: center; padding: 10px 0; background-color: #f7f3ee; }
+    /* حاسبة */
+    .calc-result-container { display:flex; justify-content:center; gap:15px; margin:15px 0 20px; direction:ltr; }
+    .calc-box { background:#fff; border:2px solid #2d5a4e; border-radius:12px; width:70px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 4px 6px rgba(0,0,0,0.08); }
+    .calc-top { background:#2d5a4e; color:#c9a84c; font-weight:900; font-size:22px; text-align:center; padding:5px 0; }
+    .calc-bottom { color:#1e3d2f; font-weight:800; font-size:20px; text-align:center; padding:10px 0; background:#f7f3ee; }
 </style>
 """
 st.markdown(CSS_STYLE, unsafe_allow_html=True)
@@ -416,38 +269,79 @@ def shorten_name(full_name, limit=3):
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
-LOGIN_HTML = """
-<div class='login-box-pulse' style='text-align:center;padding:45px 35px;border-radius:20px;overflow:hidden;position:relative;border:1px solid rgba(201,168,76,0.25);'>
-    <div class='login-animated-bg' style='position:absolute;top:0;left:0;width:100%;height:100%;border-radius:20px;z-index:0;'></div>
-    <div style='position:absolute;top:-40px;right:-30px;width:160px;height:160px;border-radius:50%;border:1px solid rgba(201,168,76,0.08);animation:spinSlow 30s linear infinite;z-index:0;'></div>
-    <div style='position:absolute;bottom:-50px;left:-20px;width:200px;height:200px;border-radius:50%;border:1px solid rgba(201,168,76,0.06);animation:spinSlow 45s linear infinite reverse;z-index:0;'></div>
-    <div style='position:relative;z-index:1;'>
-        <div class='balance-icon' style='font-size:70px;margin-bottom:8px;animation-delay:0.1s;filter:drop-shadow(0 0 18px rgba(201,168,76,0.5));'>⚖️</div>
-        <div style="direction:ltr;display:flex;justify-content:center;align-items:center;flex-direction:column;gap:4px;margin-bottom:4px;">
-            <div style="font-size:62px;font-weight:900;display:flex;gap:3px;letter-spacing:2px;justify-content:center;width:100%;">
-                <span class='letter-b' style='animation-delay:0.2s;'>B</span>
-                <span class='letter-a1' style='animation-delay:0.4s;'>A</span>
-                <span class='letter-y' style='animation-delay:0.6s;'>Y</span>
-                <span class='letter-a2' style='animation-delay:0.8s;'>A</span>
-            </div>
-            <span class='fade-in-scale continuous-wave' style='color:rgba(220,245,230,0.9);font-size:26px;font-weight:300;animation-delay:1.2s;letter-spacing:5px;display:block;'>Legal</span>
-        </div>
-        <span class='gold-line'></span>
-        <h3 class='fade-in-scale' style='color:rgba(220,245,230,0.95);margin-top:18px;font-weight:600;font-size:17px;animation-delay:1.5s;'>الجمعية التعاونية الزراعية بالناصرية</h3>
-        <p class='fade-in-scale' style='color:rgba(180,220,200,0.75);margin-top:8px;font-size:13px;animation-delay:1.7s;'>✦ تم التصميم بواسطة عادل جمعة ✦</p>
-    </div>
-</div><br>
-"""
-
 if not st.session_state.logged_in:
-    st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 2, 1])
+    st.markdown("""
+<style>
+.stApp { background: radial-gradient(circle at center, #163026 0%, #0a1f14 100%) !important; }
+[data-testid="stForm"] {
+    background: rgba(255, 255, 255, 0.03) !important;
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+    border: 1px solid rgba(201, 168, 76, 0.2) !important;
+    border-radius: 20px !important;
+    padding: 40px 30px !important;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 20px rgba(201,168,76,0.05) !important;
+    overflow: visible !important; 
+}
+[data-testid="stForm"] label { color: rgba(220,240,230,0.9) !important; font-weight: bold !important; font-family: 'Cairo' !important; }
+[data-testid="stForm"] input {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(201, 168, 76, 0.3) !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    text-align: right !important;
+}
+[data-testid="stForm"] input:focus { border-color: #c9a84c !important; box-shadow: 0 0 10px rgba(201,168,76,0.3) !important; }
+[data-testid="stFormSubmitButton"] button {
+    background: linear-gradient(90deg, #c9a84c, #f0d98a, #c9a84c) !important;
+    background-size: 200% auto !important; border: none !important; color: #0a1f14 !important;
+    font-weight: 900 !important; font-size: 16px !important; border-radius: 8px !important;
+    margin-top: 15px !important; box-shadow: 0 0 20px rgba(201,168,76,0.4) !important; transition: 0.5s !important;
+}
+[data-testid="stFormSubmitButton"] button:hover { background-position: right center !important; transform: translateY(-2px) !important; }
+
+@keyframes comeFromLeft  { 0%{transform:translateX(-150px) rotate(-45deg) scale(0.5);opacity:0;filter:blur(8px)} 60%{transform:translateX(10px) rotate(5deg) scale(1.1);opacity:1;filter:blur(0)} 100%{transform:translateX(0) rotate(0) scale(1);opacity:1} }
+@keyframes comeFromTop   { 0%{transform:translateY(-150px) scale(0.4) rotate(30deg);opacity:0;filter:blur(10px)} 55%{transform:translateY(10px) scale(1.1) rotate(-3deg);opacity:1;filter:blur(0)} 100%{transform:translateY(0) scale(1) rotate(0);opacity:1} }
+@keyframes comeFromBottom{ 0%{transform:translateY(150px) scale(0.4) rotate(-30deg);opacity:0;filter:blur(10px)} 55%{transform:translateY(-10px) scale(1.1) rotate(3deg);opacity:1;filter:blur(0)} 100%{transform:translateY(0) scale(1) rotate(0);opacity:1} }
+@keyframes comeFromRight { 0%{transform:translateX(150px) rotate(45deg) scale(0.5);opacity:0;filter:blur(8px)} 60%{transform:translateX(-10px) rotate(-5deg) scale(1.1);opacity:1;filter:blur(0)} 100%{transform:translateX(0) rotate(0) scale(1);opacity:1} }
+@keyframes goldShimmer   { 0%{background-position:-200% center} 100%{background-position:200% center} }
+
+.letter-b, .letter-a1, .letter-y, .letter-a2 {
+    background: linear-gradient(90deg, #c9a84c 30%, #f0d98a 50%, #c9a84c 70%);
+    background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: inline-block; opacity: 0;
+}
+.letter-b  { animation: comeFromLeft   0.9s cubic-bezier(0.34,1.56,0.64,1) forwards, goldShimmer 3s linear 1.8s infinite; animation-delay: 0.1s; }
+.letter-a1 { animation: comeFromTop    0.9s cubic-bezier(0.34,1.56,0.64,1) forwards, goldShimmer 3s linear 2.0s infinite; animation-delay: 0.3s; }
+.letter-y  { animation: comeFromBottom 0.9s cubic-bezier(0.34,1.56,0.64,1) forwards, goldShimmer 3s linear 2.2s infinite; animation-delay: 0.5s; }
+.letter-a2 { animation: comeFromRight  0.9s cubic-bezier(0.34,1.56,0.64,1) forwards, goldShimmer 3s linear 2.4s infinite; animation-delay: 0.7s; }
+</style>
+""", unsafe_allow_html=True)
+
+    st.markdown("<div style='height: 6vh;'></div>", unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 1.2, 1]) 
     with col2:
-        st.markdown(LOGIN_HTML, unsafe_allow_html=True)
         with st.form("login_form"):
+            # هذا الجزء تم محاذاته بدقة لمنع اعتباره كود برمجي
+            st.markdown("""
+<div style="text-align:center; margin-bottom: 25px;">
+<div style="font-size:60px; filter:drop-shadow(0 0 15px rgba(201,168,76,0.6)); margin-bottom:5px;">⚖️</div>
+<div style="font-size:48px; font-weight:900; letter-spacing:4px; display:flex; justify-content:center; gap:3px; margin-bottom:10px; direction:ltr;">
+<span class="letter-b">B</span>
+<span class="letter-a1">A</span>
+<span class="letter-y">Y</span>
+<span class="letter-a2">A</span>
+</div>
+<div style="color:#e0e0e0; font-size:15px; font-weight:bold;">الجمعية التعاونية الزراعية بالناصرية</div>
+<div style="color:#888; font-size:11px; margin-top:8px;">✦ تم التصميم بواسطة عادل جمعة ✦</div>
+<hr style="border-color: rgba(201,168,76,0.2); margin-top:15px; margin-bottom:10px;">
+</div>
+""", unsafe_allow_html=True)
+            
             username_input = st.text_input("👤 اسم المستخدم (أو رقم الهاتف)")
             password_input = st.text_input("🔑 كلمة المرور", type="password")
             submit_login = st.form_submit_button("تسجيل الدخول 🔓", use_container_width=True)
+            
             if submit_login:
                 if check_login(username_input, password_input):
                     st.session_state.logged_in = True
@@ -670,84 +564,9 @@ def generate_kesma_zip(kd):
     return zip_buffer.getvalue()
 
 # ==========================================
-# 6. الشريط العلوي الثابت
+# 6. الشريط العلوي
 # ==========================================
-MENU_ITEMS = [
-    ("🏠", "الرئيسية",   "🏠 الرئيسية"),
-    ("📝", "عقود البيع", "📝 منظومة عقود البيع"),
-    ("🤝", "القسمة",     "🤝 منظومة القسمة الرضائية"),
-    ("📖", "سجل 2",      "📖 سجل 2 خدمات"),
-    ("🚨", "المحاضر",    "🚨 سجل المحاضر"),
-    ("🧮", "الحاسبات",   "🧮 الحاسبات"),
-    ("📂", "الأرشيف",    "📂 أرشيف العقود"),
-    ("🖨️","المستندات",  "🖨️ إدارة المستندات (فردي)"),
-    ("🔄", "استرجاع",    "🔄 الاسترجاع من ملف (Backup)"),
-    ("⚙️", "الإعدادات", "⚙️ إعدادات الأمان"),
-]
-
-if "active_menu" not in st.session_state:
-    st.session_state.active_menu = "🏠 الرئيسية"
-
-# ---- شريط التنقل ----
-_active = st.session_state.get("active_menu","🏠 الرئيسية")
-_btns = ""
-for _ico,_lbl,_key in MENU_ITEMS:
-    _cls = "tnav-btn active" if _active==_key else "tnav-btn"
-    _btns += '<button class="'+_cls+'"><span class="tnav-icon">'+_ico+'</span>'+_lbl+'</button>'
-
-st.markdown(
-    '<div id="baya-topbar"><div class="topbar-inner">'
-    '<div class="topbar-logo"><span class="topbar-logo-icon">⚖️</span>'
-    '<div><div class="topbar-logo-text">BAYA</div>'
-    '<span class="topbar-logo-sub">L E G A L</span></div></div>'
-    '<div class="topbar-nav">'+_btns+'</div>'
-    '</div></div>',
-    unsafe_allow_html=True
-)
-
-# ---- أزرار التنقل الفعلية ----
-_cols = st.columns(len(MENU_ITEMS)+1)
-for _i,(_ico,_lbl,_key) in enumerate(MENU_ITEMS):
-    with _cols[_i]:
-        if st.button(_lbl, key="nb_"+str(_i), use_container_width=True):
-            st.session_state.active_menu = _key
-            st.rerun()
-with _cols[-1]:
-    if st.button("🚪 خروج", key="nb_logout", use_container_width=True):
-        st.session_state.logged_in = False
-        st.rerun()
-
-st.markdown("""
-<style>
-div[data-testid="stHorizontalBlock"]:has(button[data-testid="baseButton-secondary"]) {
-    position:fixed !important; bottom:-200px !important;
-    opacity:0 !important; pointer-events:all !important;
-    z-index:99998 !important; width:100% !important;
-    left:0 !important; background:#2d5a4e !important;
-    border-top:1px solid rgba(201,168,76,0.3) !important;
-    padding:4px 8px !important; display:flex !important;
-    gap:4px !important; transition:bottom 0.3s ease !important;
-}
-div[data-testid="stHorizontalBlock"]:has(button[data-testid="baseButton-secondary"]):hover {
-    bottom:0 !important; opacity:1 !important;
-}
-div[data-testid="stHorizontalBlock"]:has(button[data-testid="baseButton-secondary"]) button {
-    background:rgba(255,255,255,0.08) !important;
-    color:rgba(220,240,230,0.8) !important;
-    border:1px solid rgba(201,168,76,0.15) !important;
-    border-radius:8px !important; font-size:11px !important;
-    font-weight:600 !important; font-family:"Cairo",sans-serif !important;
-    height:36px !important; transition:all 0.2s ease !important;
-}
-div[data-testid="stHorizontalBlock"]:has(button[data-testid="baseButton-secondary"]) button:hover {
-    background:rgba(201,168,76,0.15) !important;
-    border-color:#c9a84c !important; color:#e8d5a3 !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
-choice = st.session_state.get("active_menu","🏠 الرئيسية")
-st.markdown('<div class="page-content">', unsafe_allow_html=True)
+choice = navbar.show()
 
 # ==========================================
 # 7. واجهات البرنامج الرئيسية
@@ -775,13 +594,14 @@ elif choice == "🔄 الاسترجاع من ملف (Backup)":
         except Exception as e: st.error(f"❌ حدث خطأ في قراءة الملف: تأكد أنه ملف backup_data.json سليم.")
 
 elif choice == "🧮 الحاسبات":
-    tab_land,tab_inh=st.tabs(["🌾 حاسبة الأراضي","⚖️ حاسبة المواريث"])
-    with tab_land:
+    _t1, _t2 = st.tabs(["🌾 حاسبة الأراضي", "⚖️ حاسبة المواريث"])
+    with _t1:
         spacer1, main_col, spacer2 = st.columns([1, 2, 1])
         with main_col:
             st.markdown("<h4 style='text-align:center;color:#2d5a4e;margin-top:12px'>🌾 حاسبة مساحات الأراضي</h4>", unsafe_allow_html=True)
             st.markdown("---")
-            calc_op = st.radio("نوع العملية:", ["➕ جمع", "➖ طرح"], horizontal=True)
+            # تم التبديل لـ selectbox لحل مشكلة الاختفاء
+            calc_op = st.selectbox("نوع العملية:", ["➕ جمع", "➖ طرح"])
             st.markdown("<b>🌾 المساحة الأولى:</b>", unsafe_allow_html=True)
             c_s1, c_k1, c_f1 = st.columns(3)
             with c_f1: val_f1 = st.number_input("فدان", min_value=0, step=1, key="cf1")
@@ -811,7 +631,7 @@ elif choice == "🧮 الحاسبات":
                     </div>
                     """, unsafe_allow_html=True)
     
-    with tab_inh:
+    with _t2:
         spacer1, main_col, spacer2 = st.columns([1, 2, 1])
         with main_col:
             st.markdown("<h4 style='text-align:center;color:#2d5a4e;margin-top:12px'>⚖️ حاسبة المواريث</h4>", unsafe_allow_html=True)
@@ -1268,5 +1088,3 @@ elif choice == "📖 سجل 2 خدمات":
 
 elif choice == "🚨 سجل المحاضر":
     reports_manager.show_page()
-
-st.markdown('</div>', unsafe_allow_html=True)

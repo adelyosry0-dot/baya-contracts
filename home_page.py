@@ -16,7 +16,6 @@ def get_stats():
         sales = c.fetchone()[0]
         c.execute("SELECT COUNT(*) FROM archive WHERE seller_name LIKE '[قسمة]%'")
         kesma = c.fetchone()[0]
-        today = date.today()
         month_start = str(today.year) + "-" + str(today.month).zfill(2) + "-01"
         c.execute("SELECT COUNT(*) FROM archive WHERE contract_date >= ?", (month_start,))
         this_month = c.fetchone()[0]
@@ -74,8 +73,6 @@ def show_page():
     monthly_counts, monthly_labels = get_monthly_counts()
 
     today = date.today()
-    day_name = DAYS_AR[today.weekday()]
-    month_name = MONTHS_AR[today.month]
 
     max_c = max(monthly_counts) if max(monthly_counts) > 0 else 1
     bar_heights = [max(8, int((cnt / max_c) * 64)) for cnt in monthly_counts]
@@ -129,31 +126,10 @@ def show_page():
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
 @keyframes fadeUp_h{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeIn_h{from{opacity:0}to{opacity:1}}
-@keyframes dotPulse_h{0%,100%{opacity:0.4;transform:scale(1)}50%{opacity:1;transform:scale(1.4)}}
-@keyframes spinSlow_h{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes barUp_h{from{transform:scaleY(0)}to{transform:scaleY(1)}}
 @keyframes slideRight_h{from{width:0}to{width:var(--pw)}}
-.hw{font-family:'Cairo',sans-serif;direction:rtl;background:#f7f3ee;border-radius:16px;overflow:hidden}
-.hw-hero{background:#2d5a4e;padding:26px 22px 20px;position:relative;overflow:hidden}
-.hero-deco{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
-.hex_d{position:absolute;width:90px;height:90px;opacity:0.07}
-.hx1{top:-20px;right:-15px;animation:spinSlow_h 25s linear infinite}
-.hx2{top:15px;right:80px;width:50px;height:50px;animation:spinSlow_h 18s linear infinite reverse;opacity:0.05}
-.hx3{bottom:-30px;left:20px;width:110px;height:110px;animation:spinSlow_h 35s linear infinite;opacity:0.06}
-.hero-top{position:relative;z-index:2;display:flex;align-items:flex-start;justify-content:space-between}
-.brand-badge_h{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:3px 10px 3px 6px;font-size:11px;color:rgba(220,240,230,0.8);margin-bottom:10px;animation:fadeIn_h 0.6s both}
-.bdot{width:6px;height:6px;border-radius:50%;background:#7ecba1;animation:dotPulse_h 2s ease-in-out infinite}
-.logo-en_h{font-size:38px;font-weight:900;color:#e8d5a3;letter-spacing:2px;line-height:1}
-.logo-ar_h{font-size:11px;color:rgba(200,230,215,0.65);letter-spacing:3px;margin-top:4px}
-.hero-date-box{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:10px 14px;text-align:center;direction:ltr}
-.hd-num{font-size:36px;font-weight:900;color:#e8d5a3;line-height:1}
-.hd-txt{font-size:10px;color:rgba(200,225,210,0.65);margin-top:2px}
-.hero-bottom{position:relative;z-index:2;display:flex;gap:8px;margin-top:16px}
-.mini-stat{flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 8px;text-align:center}
-.ms-n{font-size:22px;font-weight:900;color:#e8d5a3;line-height:1}
-.ms-n.gr{color:#c9e8d3}
-.ms-l{font-size:9px;color:rgba(200,225,210,0.6);margin-top:2px;font-weight:600}
+@keyframes dotPulse_h{0%,100%{opacity:0.4;transform:scale(1)}50%{opacity:1;transform:scale(1.4)}}
+
 .hw-body{padding:16px 14px 0;background:#f7f3ee}
 .sec-label_h{font-size:10px;font-weight:700;color:#8a7d6e;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .sec-label_h::before{content:'';width:16px;height:2px;background:#c9a84c;border-radius:2px}
@@ -208,36 +184,7 @@ def show_page():
 </style>
 """, unsafe_allow_html=True)
 
-    # ---- Hero ----
-    st.markdown(
-        '<div class="hw">'
-        '<div class="hw-hero">'
-        '<div class="hero-deco">'
-        '<div class="hex_d hx1"><svg viewBox="0 0 100 100" fill="none"><polygon points="50,5 93,27.5 93,72.5 50,95 7,72.5 7,27.5" stroke="white" stroke-width="2" fill="none"/></svg></div>'
-        '<div class="hex_d hx2"><svg viewBox="0 0 100 100" fill="none"><polygon points="50,5 93,27.5 93,72.5 50,95 7,72.5 7,27.5" stroke="white" stroke-width="2" fill="none"/></svg></div>'
-        '<div class="hex_d hx3"><svg viewBox="0 0 100 100" fill="none"><polygon points="50,5 93,27.5 93,72.5 50,95 7,72.5 7,27.5" stroke="white" stroke-width="2" fill="none"/></svg></div>'
-        '</div>'
-        '<div class="hero-top">'
-        '<div>'
-        '<div class="brand-badge_h"><div class="bdot"></div> النظام نشط</div>'
-        '<div class="logo-en_h">BAYA</div>'
-        '<div class="logo-ar_h">L E G A L  .  N A S R I Y A</div>'
-        '</div>'
-        '<div class="hero-date-box">'
-        '<div class="hd-num">' + str(today.day) + '</div>'
-        '<div class="hd-txt">' + month_name + ' ' + str(today.year) + '</div>'
-        '<div class="hd-txt">' + day_name + '</div>'
-        '</div>'
-        '</div>'
-        '<div class="hero-bottom">'
-        '<div class="mini-stat"><div class="ms-n">' + str(sales) + '</div><div class="ms-l">عقود بيع</div></div>'
-        '<div class="mini-stat"><div class="ms-n gr">' + str(kesma) + '</div><div class="ms-l">قسمات</div></div>'
-        '<div class="mini-stat"><div class="ms-n">' + str(total) + '</div><div class="ms-l">إجمالي</div></div>'
-        '<div class="mini-stat"><div class="ms-n gr">' + str(this_month) + '</div><div class="ms-l">هذا الشهر</div></div>'
-        '</div>'
-        '</div>',
-        unsafe_allow_html=True
-    )
+    # Hero منقول لـ navbar.py
 
     # ---- Body: بطاقات الأقسام ----
     st.markdown(
