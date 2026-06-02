@@ -2,15 +2,6 @@ import streamlit as st
 from datetime import date
 
 # ==========================================
-# دالة آمنة لإعادة التحميل تتوافق مع سيرفرات السحابة
-# ==========================================
-def safe_rerun():
-    if hasattr(st, "rerun"):
-        st.rerun()
-    elif hasattr(st, "experimental_rerun"):
-        st.experimental_rerun()
-
-# ==========================================
 # قائمة الأقسام
 # ==========================================
 MENU_ITEMS = [
@@ -31,7 +22,7 @@ MONTHS_AR = {1:"يناير",2:"فبراير",3:"مارس",4:"أبريل",5:"ما
              7:"يوليو",8:"أغسطس",9:"سبتمبر",10:"أكتوبر",11:"نوفمبر",12:"ديسمبر"}
 
 # ==========================================
-# CSS الشامل 
+# CSS الشامل (تم إرجاع التوسيط المثالي للمستطيلات)
 # ==========================================
 NAVBAR_CSS = """
 <style>
@@ -62,26 +53,28 @@ NAVBAR_CSS = """
 }
 .hero-brand-name, .hero-brand-sub, .hero-date-box, .hero-stat-n { direction: ltr !important; }
 
-/* مساحة المحتوى الكلية */
+/* مساحة المحتوى الكلية لتوسيع الإحصائيات لأعلى */
 .block-container { 
     max-width: 1150px !important; margin: 0 auto !important; padding-top: 8rem !important; 
 } 
 
-/* الشريط الأخضر الثابت */
+/* ==============================================
+   الشريط الأخضر الثابت (توسيط الأقسام بالمسطرة أفقياً ورأسياً)
+   ============================================== */
 div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) {
     position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important;
     z-index: 999990 !important;
     background: linear-gradient(135deg, #0a1f14 0%, #1e3d2f 50%, #0d2318 100%) !important;
-    padding: 0 !important; 
+    padding: 0 !important; /* بدون حواف لضمان التوسيط الدقيق */
     box-shadow: 0 4px 25px rgba(0,0,0,0.4) !important;
     border-bottom: 2px solid rgba(201,168,76,0.6) !important;
-    height: 95px !important; 
+    height: 95px !important; /* ارتفاع ثابت لمركزة العناصر داخله */
     display: flex !important; align-items: center !important; justify-content: center !important;
 }
 
 div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > label { display: none !important; }
 
-/* حاوية الأقسام في منتصف الشريط */
+/* حاوية الأقسام في منتصف الشريط تماماً */
 div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] {
     display: flex !important; flex-direction: row !important;
     justify-content: center !important; 
@@ -131,32 +124,64 @@ div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radio
 /* =========================================
    تثبيت الأزرار الجانبية (المظهر والخروج)
    ========================================= */
+/* حاوية زر الخروج */
 div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div {
-    position: fixed !important; top: 26px !important; left: 20px !important; z-index: 999999 !important; width: auto !important;
+    position: fixed !important;
+    top: 26px !important;
+    left: 20px !important;
+    z-index: 999999 !important;
+    width: auto !important;
 }
 div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div button {
-    background: rgba(220, 53, 69, 0.15) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(220, 53, 69, 0.3) !important; border-radius: 10px !important; height: 42px !important; padding: 0 15px !important; transition: all 0.3s ease !important;
+    background: rgba(220, 53, 69, 0.15) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(220, 53, 69, 0.3) !important;
+    border-radius: 10px !important;
+    height: 42px !important;
+    padding: 0 15px !important;
+    transition: all 0.3s ease !important;
 }
 div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div button p {
-    color: #ffadad !important; font-weight: bold !important; font-family: 'Cairo', sans-serif !important; margin: 0 !important;
+    color: #ffadad !important;
+    font-weight: bold !important;
+    font-family: 'Cairo', sans-serif !important;
+    margin: 0 !important;
 }
 div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div button:hover {
-    background: rgba(220, 53, 69, 0.3) !important; transform: translateY(-3px) !important; border-color: rgba(220, 53, 69, 0.5) !important;
+    background: rgba(220, 53, 69, 0.3) !important;
+    transform: translateY(-3px) !important;
+    border-color: rgba(220, 53, 69, 0.5) !important;
 }
 
+/* حاوية زر المظهر */
 div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div {
-    position: fixed !important; top: 26px !important; left: 120px !important; z-index: 999999 !important; width: auto !important;
+    position: fixed !important;
+    top: 26px !important;
+    left: 120px !important; 
+    z-index: 999999 !important;
+    width: auto !important;
 }
 div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div button {
-    background: rgba(255, 255, 255, 0.08) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important; border-radius: 10px !important; height: 42px !important; padding: 0 15px !important; transition: all 0.3s ease !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 10px !important;
+    height: 42px !important;
+    padding: 0 15px !important;
+    transition: all 0.3s ease !important;
 }
 div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div button p {
-    color: #fff !important; font-weight: bold !important; font-family: 'Cairo', sans-serif !important; margin: 0 !important;
+    color: #fff !important;
+    font-weight: bold !important;
+    font-family: 'Cairo', sans-serif !important;
+    margin: 0 !important;
 }
 div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div button:hover {
-    background: rgba(255, 255, 255, 0.2) !important; transform: translateY(-3px) !important; border-color: rgba(255, 255, 255, 0.4) !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-3px) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
 }
 
 /* اللوجو على اليمين */
@@ -167,23 +192,30 @@ div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div button:hover {
 .nav-logo-box .icon { font-size: 28px; }
 .nav-logo-box .text {
     font-size: 24px; font-weight: 900; letter-spacing: 2px; font-family: 'Cairo';
-    background: linear-gradient(90deg,#c9a84c,#f0d98a,#c9a84c); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background: linear-gradient(90deg,#c9a84c,#f0d98a,#c9a84c);
+    background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
 
-/* الأنيميشن الخاص بالمستطيل الرئيسي */
+/* ==============================================
+   الأنيميشن الخاص بالمستطيل الرئيسي
+   ============================================== */
 @keyframes fadeInScale {
     0% { opacity: 0; transform: translateY(20px) scale(0.95); filter: blur(4px); }
     100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
-.fade-in-scale { animation: fadeInScale 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.fade-in-scale {
+    animation: fadeInScale 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
 
 /* المستطيل العريض للرئيسية */
 .hero-banner {
     display: flex; flex-direction: row; justify-content: space-between; align-items: center;
-    background: #ffffff; padding: 35px 30px 20px 30px !important; 
+    background: #ffffff; 
+    padding: 35px 30px 20px 30px !important; 
     border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.06);
     border: 1px solid rgba(201,168,76,0.3); border-bottom: 4px solid #c9a84c; 
-    margin-top: -15px !important; margin-bottom: 30px; direction: rtl; width: 100%; flex-wrap: wrap; gap: 20px;
+    margin-top: -15px !important; 
+    margin-bottom: 30px; direction: rtl; width: 100%; flex-wrap: wrap; gap: 20px;
 }
 .hb-right { display: flex; flex-direction: column; align-items: flex-start; }
 .hb-middle { display: flex; gap: 15px; flex-grow: 1; justify-content: center; }
@@ -200,26 +232,8 @@ div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div button:hover {
 .hero-stat-n.gr { color: #c9a84c; }
 .hero-stat-l { font-size: 10px; color: #6c757d; margin-top: 5px; font-weight: 800; }
 
-/* للموبايل */
-@media (max-width:768px) {
-    .block-container { padding-top: 10rem !important; }
-    div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div { top: 10px !important; left: 10px !important; }
-    div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div { top: 10px !important; left: 85px !important; }
-    div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div button,
-    div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div button { height: 35px !important; padding: 0 10px !important; }
-    div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div button p,
-    div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div button p { font-size: 11px !important; }
-    div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] { gap: 6px !important; padding: 50px 5px 10px 5px !important; }
-    div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] > label { padding: 6px 10px !important; }
-    div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] > label p { font-size: 12px !important; }
-    .nav-logo-box { display: none !important; } 
-    .hero-banner { flex-direction: column !important; padding: 20px 15px !important; text-align: center !important; margin-top: 15px !important; gap: 15px !important; }
-    .hb-right { align-items: center !important; width: 100% !important; justify-content: center !important; }
-    .hero-brand-name { font-size: 28px !important; }
-    .hb-middle { width: 100% !important; margin: 10px 0 !important; }
-    .hero-stats { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; width: 100% !important; }
-    .hero-stat-box { min-width: auto !important; padding: 10px !important; }
-    .hb-left { width: 100% !important; display: flex; justify-content: center; }
+@media (max-width:1450px) { 
+    .nav-logo-box { display: none; } 
 }
 </style>
 """
@@ -278,17 +292,19 @@ def show(default="🏠 الرئيسية"):
     if "active_menu" not in st.session_state:
         st.session_state.active_menu = default
 
+    # ==================================
     # أزرار (الخروج والمظهر) المستقلة
+    # ==================================
     st.markdown('<div id="logout-marker" style="display:none;"></div>', unsafe_allow_html=True)
     if st.button("🚪 خروج"):
         st.session_state.logged_in = False
-        safe_rerun()
+        st.rerun() 
         
     st.markdown('<div id="theme-marker" style="display:none;"></div>', unsafe_allow_html=True)
     theme_lbl = "☀️ فاتح" if st.session_state.dark_mode else "🌗 المظهر"
     if st.button(theme_lbl):
         st.session_state.dark_mode = not st.session_state.dark_mode
-        safe_rerun()
+        st.rerun()
 
     # قائمة الأقسام العادية
     labels = [icon+" "+label for icon,label,key in MENU_ITEMS]
@@ -319,7 +335,7 @@ def show(default="🏠 الرئيسية"):
     
     if new_key != st.session_state.get("active_menu"):
         st.session_state.active_menu = new_key
-        safe_rerun()
+        st.rerun()
 
     if st.session_state.active_menu == "🏠 الرئيسية":
         sales, kesma, total, this_month = _get_stats()
@@ -334,13 +350,11 @@ def show(default="🏠 الرئيسية"):
         <div class="hero-brand-name">BAYA <span style="color:#c9a84c;">LEGAL</span></div>
         <div class="hero-brand-sub">N A S R I Y A  ·  A G R I C U L T U R E</div>
         </div>
-        <div class="hb-middle">
-        <div class="hero-stats">
+        <div class="hb-middle hero-stats">
         <div class="hero-stat-box"><div class="hero-stat-n">{sales}</div><div class="hero-stat-l">عقود بيع</div></div>
         <div class="hero-stat-box"><div class="hero-stat-n gr">{kesma}</div><div class="hero-stat-l">قسمات</div></div>
         <div class="hero-stat-box"><div class="hero-stat-n">{total}</div><div class="hero-stat-l">إجمالي المعاملات</div></div>
         <div class="hero-stat-box"><div class="hero-stat-n gr">{this_month}</div><div class="hero-stat-l">نشاط هذا الشهر</div></div>
-        </div>
         </div>
         <div class="hb-left hero-date-box">
         <div class="hero-date-num">{today.day}</div>

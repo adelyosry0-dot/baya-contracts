@@ -1,10 +1,8 @@
 import streamlit as st
-st.set_page_config(layout="wide", page_title="منظومة الإدارة الزراعية", page_icon="🌾")
-
 import sqlite3
 import pandas as pd
 import re
-import io
+import os
 from datetime import date
 
 # ==========================================
@@ -39,7 +37,6 @@ def generate_smart_name(name):
     words = norm.split()
     return " ".join(words[:4]) if len(words) >= 4 else norm
 
-# دالة لتوحيد أسماء المحاصيل القديمة (الإدخال اليدوي) مع الجديدة (القوائم)
 def unify_crop_name(c):
     if not c: return ""
     c_str = str(c).strip()
@@ -47,9 +44,6 @@ def unify_crop_name(c):
     if 'جواف' in c_str: return 'الجوافة'
     if 'مانج' in c_str: return 'المانجو'
     if 'برتقال' in c_str: return 'البرتقال'
-    if 'كوس' in c_str: return 'الكوسة'
-    if 'باذنجان' in c_str: return 'الباذنجان'
-    if 'طماط' in c_str: return 'الطماطم'
     
     c_norm = normalize_arabic_name(c_str)
     c_no_al = c_norm[2:] if c_norm.startswith('ال') else c_norm
@@ -76,7 +70,7 @@ def fmt_s(val):
     except: return "0"
 
 # ==========================================
-# 3. تهيئة وتحديث قاعدة البيانات
+# 3. تهيئة قاعدة البيانات
 # ==========================================
 def init_db():
     conn = sqlite3.connect('contracts_database.db')
@@ -104,27 +98,18 @@ def init_db():
 def convert_df_to_csv(df):
     return df.to_csv(index=False, encoding='utf-8-sig').encode('utf-8-sig')
 
-def get_hayaza_by_name(cursor, name_txt):
-    norm_n = normalize_arabic_name(name_txt)
-    smart_n = generate_smart_name(name_txt)
-    cursor.execute("SELECT hayaza_no FROM services_reg WHERE normalized_name=? OR smart_name=? OR name=?", (norm_n, smart_n, name_txt))
-    res = cursor.fetchone()
-    return res[0] if res else None
-
 # ==========================================
-# 4. بناء واجهات الطباعة والتصميم (الجداول المحورية - Pivot)
+# 4. بناء واجهات الطباعة والتصميم
 # ==========================================
 def build_pivot_data(raw_data, main_crops=None):
     records = {}
     found_crops = set()
     for r in raw_data:
         name, hod, h_no, crop, f, q, s = r
-        
         unified_crop = unify_crop_name(crop)
         
         if h_no not in records:
             records[h_no] = {'الاسم': name, 'الحوض': hod, 'رقم الحيازة': h_no}
-        
         if unified_crop not in records[h_no]:
             records[h_no][unified_crop] = {'f': 0, 'q': 0, 's': 0.0}
         
@@ -194,63 +179,31 @@ h2 {{ text-align:center; color:#2d5a4e; margin-bottom: 10px; }}
     return html.encode('utf-8')
 
 def generate_scrollable_multi_header_table(records, ordered_crops):
-    if not records:
-        return "<div style='text-align:center; padding:20px;'>لا توجد بيانات لعرضها</div>"
-        
+    if not records: return "<div style='text-align:center; padding:20px;'>لا توجد بيانات لعرضها</div>"
     thead = "<tr><th rowspan='2' style='padding: 12px; border: 1px solid #3d6b5e; min-width:150px;'>الاسم</th><th rowspan='2' style='padding: 12px; border: 1px solid #3d6b5e;'>الحيازة</th><th rowspan='2' style='padding: 12px; border: 1px solid #3d6b5e;'>الحوض</th>"
-    for c in ordered_crops:
-        thead += f"<th colspan='3' style='padding: 12px; border: 1px solid #3d6b5e; text-align:center;'>{c}</th>"
+    for c in ordered_crops: thead += f"<th colspan='3' style='padding: 12px; border: 1px solid #3d6b5e; text-align:center;'>{c}</th>"
     thead += "</tr><tr>"
-    for c in ordered_crops:
-        thead += "<th style='padding: 8px; border: 1px solid #3d6b5e; text-align:center;'>س</th><th style='padding: 8px; border: 1px solid #3d6b5e; text-align:center;'>ط</th><th style='padding: 8px; border: 1px solid #3d6b5e; text-align:center;'>ف</th>"
+    for c in ordered_crops: thead += "<th style='padding: 8px; border: 1px solid #3d6b5e; text-align:center;'>س</th><th style='padding: 8px; border: 1px solid #3d6b5e; text-align:center;'>ط</th><th style='padding: 8px; border: 1px solid #3d6b5e; text-align:center;'>ف</th>"
     thead += "</tr>"
-    
     tbody = ""
     for h_no, data in records.items():
         tbody += "<tr style='background-color:#fff; transition:0.2s;' onmouseover=\"this.style.backgroundColor='#eef6f1'\" onmouseout=\"this.style.backgroundColor='#fff'\">"
         tbody += f"<td style='padding:10px; border:1px solid #ddd; color:#222;'>{data['الاسم']}</td><td style='padding:10px; border:1px solid #ddd; color:#222;'>{h_no}</td><td style='padding:10px; border:1px solid #ddd; color:#222;'>{data['الحوض']}</td>"
         for c in ordered_crops:
-            if c in data:
-                tbody += f"<td style='padding:10px; border:1px solid #ddd; color:#222;'>{fmt_s(data[c]['s'])}</td><td style='padding:10px; border:1px solid #ddd; color:#222;'>{data[c]['q']}</td><td style='padding:10px; border:1px solid #ddd; color:#222;'>{data[c]['f']}</td>"
-            else:
-                tbody += "<td style='padding:10px; border:1px solid #ddd; color:#222;'></td><td style='padding:10px; border:1px solid #ddd; color:#222;'></td><td style='padding:10px; border:1px solid #ddd; color:#222;'></td>"
+            if c in data: tbody += f"<td style='padding:10px; border:1px solid #ddd; color:#222;'>{fmt_s(data[c]['s'])}</td><td style='padding:10px; border:1px solid #ddd; color:#222;'>{data[c]['q']}</td><td style='padding:10px; border:1px solid #ddd; color:#222;'>{data[c]['f']}</td>"
+            else: tbody += "<td style='padding:10px; border:1px solid #ddd; color:#222;'></td><td style='padding:10px; border:1px solid #ddd; color:#222;'></td><td style='padding:10px; border:1px solid #ddd; color:#222;'></td>"
         tbody += "</tr>"
-        
-    html = f"""
-    <div style="max-height: 500px; overflow-y: auto; overflow-x: auto; border: 1px solid #ddd; border-radius: 8px; direction: rtl; margin-bottom: 20px;">
-    <table style="width: 100%; border-collapse: collapse; text-align: center; font-family: 'Cairo', sans-serif; font-size: 15px;">
-        <thead style="position: sticky; top: 0; background-color: #2d5a4e; color: #c9a84c; z-index: 2; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-            {thead}
-        </thead>
-        <tbody>{tbody}</tbody>
-    </table>
-    </div>
-    """
-    return html
+    return f"""<div style="max-height: 500px; overflow-y: auto; overflow-x: auto; border: 1px solid #ddd; border-radius: 8px; direction: rtl; margin-bottom: 20px;"><table style="width: 100%; border-collapse: collapse; text-align: center; font-family: 'Cairo', sans-serif; font-size: 15px;"><thead style="position: sticky; top: 0; background-color: #2d5a4e; color: #c9a84c; z-index: 2; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">{thead}</thead><tbody>{tbody}</tbody></table></div>"""
 
 def get_area_box_html(f, q, s):
     return f"""<div style="display:inline-flex; gap:8px; direction:rtl;">
-<div style="border:1px solid #2d5a4e; border-radius:6px; padding:2px 12px; text-align:center; background:#fff; min-width:40px; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-<span style="font-size:11px; color:#555; display:block; border-bottom:1px solid #eee; margin-bottom:2px;">سهم</span>
-<strong style="font-size:16px; color:#2d5a4e;">{fmt_s(s)}</strong>
-</div>
-<div style="border:1px solid #2d5a4e; border-radius:6px; padding:2px 12px; text-align:center; background:#fff; min-width:40px; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-<span style="font-size:11px; color:#555; display:block; border-bottom:1px solid #eee; margin-bottom:2px;">قيراط</span>
-<strong style="font-size:16px; color:#2d5a4e;">{int(q)}</strong>
-</div>
-<div style="border:1px solid #2d5a4e; border-radius:6px; padding:2px 12px; text-align:center; background:#fff; min-width:40px; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-<span style="font-size:11px; color:#555; display:block; border-bottom:1px solid #eee; margin-bottom:2px;">فدان</span>
-<strong style="font-size:16px; color:#2d5a4e;">{int(f)}</strong>
-</div>
+<div style="border:1px solid #2d5a4e; border-radius:6px; padding:2px 12px; text-align:center; background:#fff; min-width:40px; box-shadow:0 1px 3px rgba(0,0,0,0.1);"><span style="font-size:11px; color:#555; display:block; border-bottom:1px solid #eee; margin-bottom:2px;">سهم</span><strong style="font-size:16px; color:#2d5a4e;">{fmt_s(s)}</strong></div>
+<div style="border:1px solid #2d5a4e; border-radius:6px; padding:2px 12px; text-align:center; background:#fff; min-width:40px; box-shadow:0 1px 3px rgba(0,0,0,0.1);"><span style="font-size:11px; color:#555; display:block; border-bottom:1px solid #eee; margin-bottom:2px;">قيراط</span><strong style="font-size:16px; color:#2d5a4e;">{int(q)}</strong></div>
+<div style="border:1px solid #2d5a4e; border-radius:6px; padding:2px 12px; text-align:center; background:#fff; min-width:40px; box-shadow:0 1px 3px rgba(0,0,0,0.1);"><span style="font-size:11px; color:#555; display:block; border-bottom:1px solid #eee; margin-bottom:2px;">فدان</span><strong style="font-size:16px; color:#2d5a4e;">{int(f)}</strong></div>
 </div>"""
 
 def generate_scrollable_styled_table(df):
-    html = """
-    <div style="max-height: 500px; overflow-y: auto; overflow-x: auto; border: 1px solid #ddd; border-radius: 8px; direction: rtl; margin-bottom: 20px;">
-    <table style="width: 100%; border-collapse: collapse; text-align: center; font-family: 'Cairo', sans-serif; font-size: 15px;">
-        <thead style="position: sticky; top: 0; background-color: #2d5a4e; color: #c9a84c; z-index: 2; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-            <tr>
-    """
+    html = """<div style="max-height: 500px; overflow-y: auto; overflow-x: auto; border: 1px solid #ddd; border-radius: 8px; direction: rtl; margin-bottom: 20px;"><table style="width: 100%; border-collapse: collapse; text-align: center; font-family: 'Cairo', sans-serif; font-size: 15px;"><thead style="position: sticky; top: 0; background-color: #2d5a4e; color: #c9a84c; z-index: 2; box-shadow: 0 2px 5px rgba(0,0,0,0.1);"><tr>"""
     for col in df.columns: html += f"<th style='padding: 12px; border: 1px solid #3d6b5e;'>{col}</th>"
     html += "</tr></thead><tbody>"
     for i, row in df.iterrows():
@@ -272,38 +225,15 @@ def generate_print_html(df, title):
             val = row[col]
             rows += f"<td>{val if val != '' and val is not None else ''}</td>"
         rows += "</tr>"
-    
     headers = ''.join([f'<th>{col}</th>' for col in df.columns])
-    return f"""<!DOCTYPE html>
-<html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>{title}</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-body {{ font-family:'Cairo',sans-serif; background:#fff; color:#000; padding:20px; direction:rtl; }}
-table {{ width:100%; border-collapse:collapse; margin-top:15px; font-size:13px; text-align:center; }}
-th,td {{ border:1px solid #000; padding:6px; font-weight:bold; }}
-th {{ background:#2d5a4e; color:#c9a84c; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
-h2 {{ text-align:center; color:#2d5a4e; margin-bottom: 10px; }}
-.btn {{ display:block; width:200px; margin:0 auto 15px; padding:10px; background:#2d5a4e; color:#fff; text-align:center; cursor:pointer; border:none; font-size:16px; border-radius:5px; font-family:'Cairo'; }}
-@media print {{ 
-    .btn {{ display:none !important; }} 
-    @page {{ size: A4 portrait; margin: 0; }}
-    body {{ padding: 15mm; }}
-}}
-</style></head><body>
-<button class="btn" onclick="window.print()">🖨️ طباعة المستند الحالي</button>
-<h2>{title}</h2>
-<table><thead><tr>{headers}</tr></thead>
-<tbody>{rows}</tbody></table>
-</body></html>""".encode('utf-8')
+    return f"""<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>{title}</title><style>@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap'); body {{ font-family:'Cairo',sans-serif; background:#fff; color:#000; padding:20px; direction:rtl; }} table {{ width:100%; border-collapse:collapse; margin-top:15px; font-size:13px; text-align:center; }} th,td {{ border:1px solid #000; padding:6px; font-weight:bold; }} th {{ background:#2d5a4e; color:#c9a84c; -webkit-print-color-adjust: exact; print-color-adjust: exact; }} h2 {{ text-align:center; color:#2d5a4e; margin-bottom: 10px; }} .btn {{ display:block; width:200px; margin:0 auto 15px; padding:10px; background:#2d5a4e; color:#fff; text-align:center; cursor:pointer; border:none; font-size:16px; border-radius:5px; font-family:'Cairo'; }} @media print {{ .btn {{ display:none !important; }} @page {{ size: A4 portrait; margin: 0; }} body {{ padding: 15mm; }} }}</style></head><body><button class="btn" onclick="window.print()">🖨️ طباعة المستند الحالي</button><h2>{title}</h2><table><thead><tr>{headers}</tr></thead><tbody>{rows}</tbody></table></body></html>""".encode('utf-8')
 
 # ==========================================
-# 5. جسم الصفحة الرئيسي والتصميم الداخلي
+# 5. جسم الصفحة الرئيسي
 # ==========================================
 def show_page():
     init_db()
-    
-    if 'edit_id' not in st.session_state:
-        st.session_state['edit_id'] = None
+    if 'edit_id' not in st.session_state: st.session_state['edit_id'] = None
 
     st.markdown("""
     <style>
@@ -316,6 +246,8 @@ def show_page():
         div[data-testid="stDownloadButton"] button:hover { background-color: #163026 !important; color: #c9a84c !important; }
         button[kind="primary"] { height: 45px !important; background-color: #c9a84c !important; color: #2d5a4e !important; border: none !important; border-radius: 8px !important; font-weight: 900 !important; width: 100%; transition: 0.2s; }
         button[kind="primary"]:hover { background-color: #a08838 !important; color: #fff !important; }
+        .delete-btn { background-color: #ffebee !important; color: #cc0000 !important; border: 1px solid #ffcdd2 !important; font-weight: bold !important; border-radius: 8px !important; height: 45px !important; width: 100%; }
+        .delete-btn:hover { background-color: #ffcdd2 !important; border-color: #cc0000 !important; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -331,10 +263,8 @@ def show_page():
 
     with tab_comprehensive:
         st.markdown("### 🪪 الاستعلام السريع والملفات التعريفية")
-        
         c_search1, c_search2 = st.columns([3, 1])
-        with c_search1:
-            search_input = st.text_input("🔍 ابحث برقم الحيازة أو اسم الحائز الحالي\u200B:")
+        with c_search1: search_input = st.text_input("🔍 ابحث برقم الحيازة أو اسم الحائز الحالي\u200B:")
         with c_search2:
             st.markdown("<div style='margin-top:28px;'></div>", unsafe_allow_html=True)
             search_btn = st.button("🚀 تشغيل البحث الكلي", use_container_width=True, type="primary")
@@ -342,12 +272,10 @@ def show_page():
         if search_input:
             conn = sqlite3.connect('contracts_database.db')
             c = conn.cursor()
-            
             c.execute("SELECT * FROM services_reg")
             all_db_farmers = c.fetchall()
             c.execute("PRAGMA table_info(services_reg)")
             cols_map = {col[1]: i for i, col in enumerate(c.fetchall())}
-            
             s_norm = normalize_arabic_name(search_input)
             s_parts = s_norm.split()
             
@@ -356,12 +284,10 @@ def show_page():
                 h_no = str(r[cols_map['hayaza_no']])
                 db_name_raw = str(r[cols_map['name']])
                 db_name = normalize_arabic_name(db_name_raw)
-                
                 if search_input == h_no or s_norm in db_name or all(p in db_name for p in s_parts):
                     farmers.append(r)
             
-            if not farmers:
-                st.warning("⚠️ لم يتم العثور على أي حائز يطابق هذا البحث في سجل 2 خدمات.")
+            if not farmers: st.warning("⚠️ لم يتم العثور على أي حائز يطابق هذا البحث في سجل 2 خدمات.")
             else:
                 for f_row in farmers:
                     f_id = f_row[cols_map['id']]
@@ -386,14 +312,11 @@ def show_page():
 
                     total_sijil_sahms = (tot_f * 24 * 24) + (tot_q * 24) + tot_s
                     total_planted_sahms = sum((item[4]*24*24) + (item[5]*24) + float(item[6]) for item in all_items)
-                    
                     diff_sahms = total_sijil_sahms - total_planted_sahms
-                    audit_msg = ""
                     
-                    if total_sijil_sahms == 0 and total_planted_sahms == 0:
-                        audit_msg = "<span style='color:gray; font-weight:bold;'>⚪ الحيازة مصفّرة بالكامل ولا يوجد زراعات.</span>"
-                    elif diff_sahms == 0:
-                        audit_msg = "<span style='color:green; font-weight:bold;'>🟢 الحيازة منزرعة بالكامل (تطابق المساحات).</span>"
+                    audit_msg = ""
+                    if total_sijil_sahms == 0 and total_planted_sahms == 0: audit_msg = "<span style='color:gray; font-weight:bold;'>⚪ الحيازة مصفّرة بالكامل ولا يوجد زراعات.</span>"
+                    elif diff_sahms == 0: audit_msg = "<span style='color:green; font-weight:bold;'>🟢 الحيازة منزرعة بالكامل (تطابق المساحات).</span>"
                     elif diff_sahms > 0:
                         df_f = int(diff_sahms // (24 * 24))
                         df_q = int((diff_sahms % (24 * 24)) // 24)
@@ -410,15 +333,13 @@ def show_page():
                     if not basateen_items and not crop_items:
                         rows_html = "<tr><td colspan='4' style='text-align:center; padding:15px; color:#888;'>لا توجد زراعات مسجلة لهذا الحائز حتى الآن</td></tr>"
                     else:
-                        for b in basateen_items:
-                            rows_html += f"<tr><td style='padding:10px; border:1px solid #ddd; text-align:right; font-weight:bold;'>🌳 {unify_crop_name(b[2])}</td><td style='padding:6px; border:1px solid #ddd; text-align:center;'><div style='background:#f4f6f9; border:1px solid #ccc; border-radius:4px;'>{fmt_s(b[6])}</div></td><td style='padding:6px; border:1px solid #ddd; text-align:center;'><div style='background:#f4f6f9; border:1px solid #ccc; border-radius:4px;'>{int(b[5])}</div></td><td style='padding:6px; border:1px solid #ddd; text-align:center;'><div style='background:#f4f6f9; border:1px solid #ccc; border-radius:4px;'>{int(b[4])}</div></td></tr>"
-                        for cr in crop_items:
-                            rows_html += f"<tr><td style='padding:10px; border:1px solid #ddd; text-align:right; font-weight:bold;'>🌾 {unify_crop_name(cr[2])} ({cr[1]})</td><td style='padding:6px; border:1px solid #ddd; text-align:center;'><div style='background:#f4f6f9; border:1px solid #ccc; border-radius:4px;'>{fmt_s(cr[6])}</div></td><td style='padding:6px; border:1px solid #ddd; text-align:center;'><div style='background:#f4f6f9; border:1px solid #ccc; border-radius:4px;'>{int(cr[5])}</div></td><td style='padding:6px; border:1px solid #ddd; text-align:center;'><div style='background:#f4f6f9; border:1px solid #ccc; border-radius:4px;'>{int(cr[4])}</div></td></tr>"
+                        for b in basateen_items: rows_html += f"<tr><td style='padding:10px; border:1px solid #ddd; text-align:right; font-weight:bold;'>🌳 {unify_crop_name(b[2])}</td><td style='padding:6px; border:1px solid #ddd; text-align:center;'><div style='background:#f4f6f9; border:1px solid #ccc; border-radius:4px;'>{fmt_s(b[6])}</div></td><td style='padding:6px; border:1px solid #ddd; text-align:center;'><div style='background:#f4f6f9; border:1px solid #ccc; border-radius:4px;'>{int(b[5])}</div></td><td style='padding:6px; border:1px solid #ddd; text-align:center;'><div style='background:#f4f6f9; border:1px solid #ccc; border-radius:4px;'>{int(b[4])}</div></td></tr>"
+                        for cr in crop_items: rows_html += f"<tr><td style='padding:10px; border:1px solid #ddd; text-align:right; font-weight:bold;'>🌾 {unify_crop_name(cr[2])} ({cr[1]})</td><td style='padding:6px; border:1px solid #ddd; text-align:center;'><div style='background:#f4f6f9; border:1px solid #ccc; border-radius:4px;'>{fmt_s(cr[6])}</div></td><td style='padding:6px; border:1px solid #ddd; text-align:center;'><div style='background:#f4f6f9; border:1px solid #ccc; border-radius:4px;'>{int(cr[5])}</div></td><td style='padding:6px; border:1px solid #ddd; text-align:center;'><div style='background:#f4f6f9; border:1px solid #ccc; border-radius:4px;'>{int(cr[4])}</div></td></tr>"
 
                     rep_html = f'<div style="flex:1; text-align:center; border-left:1px solid #ddd;"><span style="color:#666; font-size:13px;">مفوض الورثة</span><br><strong style="font-size:16px; color:#2d5a4e;">{rep_name if rep_name else "—"}</strong></div>' if is_heir else ""
 
                     card_full_html = (
-                        '<div style="width:100%; border:2px solid #2d5a4e; border-radius:12px; overflow:hidden; direction:rtl; text-align:right; font-family:\'Cairo\', sans-serif; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.15); margin-bottom:20px;">'
+                        '<div style="width:100%; border:2px solid #2d5a4e; border-radius:12px; overflow:hidden; direction:rtl; text-align:right; font-family:\'Cairo\', sans-serif; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.15); margin-bottom:20px; -webkit-user-select: text; user-select: text;">'
                         '<div style="background:#2d5a4e; color:#fff; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">'
                         f'<div style="font-size:24px; font-weight:900; color:#c9a84c;">👤 {f_name}</div>'
                         '<div style="display:flex; gap:12px;">'
@@ -442,8 +363,7 @@ def show_page():
                     )
                     
                     st.markdown(card_full_html, unsafe_allow_html=True)
-                    
-                    col_spacer1, col_print, col_gap, col_edit, col_spacer2 = st.columns([1.5, 2.5, 0.5, 2.5, 1.5])
+                    col_print, col_gap, col_edit = st.columns([1, 0.2, 1])
                     
                     with col_print:
                         print_file = f"""<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>كارت الحائز - {f_name}</title>
@@ -451,32 +371,22 @@ def show_page():
                         @media print {{ @page {{ size: A4 portrait; margin: 15mm; }} button {{ display: none !important; }} }}</style></head>
                         <body><button onclick="window.print()" style="display:block; margin:0 auto 20px auto; padding:10px 20px; font-family:'Cairo'; font-size:16px; background:#2d5a4e; color:#fff; border:none; border-radius:5px; cursor:pointer;">🖨️ اضغط هنا لطباعة الكارت الفوري</button>
                         {card_full_html}</body></html>""".encode('utf-8')
-                        
                         st.download_button("🖨️ تحميل نسخة الطباعة (A4)", data=print_file, file_name=f"كارت_الطباعة_{h_no}.html", mime="text/html", use_container_width=True)
                     
-                    with col_gap:
-                        st.write("")
-                        
                     with col_edit:
                         if st.button("⚙️ إدارة وتعديل الملف الشامل", key=f"tgl_{h_no}", type="primary", use_container_width=True):
-                            if st.session_state['edit_id'] == str(h_no): 
-                                st.session_state['edit_id'] = None
-                            else: 
-                                st.session_state['edit_id'] = str(h_no)
-                                st.session_state[f'add_count_{h_no}'] = 1 
+                            st.session_state['edit_id'] = None if st.session_state['edit_id'] == str(f_id) else str(f_id)
+                            st.session_state[f'add_count_{f_id}'] = 1 
                             st.rerun()
 
-                    if st.session_state['edit_id'] == str(h_no):
-                        
-                        if f'add_count_{h_no}' not in st.session_state:
-                            st.session_state[f'add_count_{h_no}'] = 1
-
+                    if st.session_state['edit_id'] == str(f_id):
+                        if f'add_count_{f_id}' not in st.session_state: st.session_state[f'add_count_{f_id}'] = 1
                         with st.container():
-                            st.markdown(f"""
-                            <div style="padding:20px; background:#f4f6f9; border:2px solid #c9a84c; border-radius:12px; direction:rtl; text-align:right; margin-top:15px;">
-                            <h3 style="color:#2d5a4e; margin-top:0; border-bottom:2px solid #c9a84c; padding-bottom:10px;">🛠️ لوحة تحكم الحائز: {f_name}</h3>
-                            """, unsafe_allow_html=True)
+                            st.markdown(f"""<div style="padding:20px; background:#f4f6f9; border:2px solid #c9a84c; border-radius:12px; direction:rtl; text-align:right; margin-top:15px;">
+                            <h3 style="color:#2d5a4e; margin-top:0; border-bottom:2px solid #c9a84c; padding-bottom:10px;">🛠️ لوحة تحكم الحائز: {f_name}</h3>""", unsafe_allow_html=True)
                             
+                            total_planted_live = 0.0
+
                             st.markdown("##### 📝 1. البيانات الأساسية:")
                             if is_heir:
                                 c_b1, c_b2, c_rep = st.columns(3)
@@ -497,16 +407,10 @@ def show_page():
                             with c_b6: 
                                 hod_options = [""] + BASINS_LIST + ["أخرى (كتابة يدوية)"]
                                 current_hod = f_hod.strip()
-                                if current_hod and current_hod not in hod_options and current_hod != "nan":
-                                    hod_options.insert(1, current_hod)
-                                
+                                if current_hod and current_hod not in hod_options and current_hod != "nan": hod_options.insert(1, current_hod)
                                 hod_idx = hod_options.index(current_hod) if current_hod in hod_options else 0
                                 edit_hod_sel = st.selectbox("الحوض الرئيسي\u200B", hod_options, index=hod_idx)
-                                
-                                if edit_hod_sel == "أخرى (كتابة يدوية)":
-                                    edit_hod = st.text_input("اكتب اسم الحوض يدوياً\u200B", value="")
-                                else:
-                                    edit_hod = edit_hod_sel
+                                edit_hod = st.text_input("اكتب اسم الحوض يدوياً\u200B", value="") if edit_hod_sel == "أخرى (كتابة يدوية)" else edit_hod_sel
 
                             st.markdown("##### 📐 2. المساحة الكلية (بسجل 2):")
                             col_s, col_q, col_f = st.columns(3)
@@ -516,93 +420,97 @@ def show_page():
                             
                             st.markdown("##### 🌱 3. تعديل الزراعات الحالية:")
                             crop_edits = {}
-                            if not all_items:
-                                st.info("لا توجد زراعات مسجلة لهذا الحائز. يمكنك إضافتها من القسم التالي.")
+                            if not all_items: st.info("لا توجد زراعات مسجلة لهذا الحائز. يمكنك إضافتها من القسم التالي.")
                             else:
                                 for crp in all_items:
                                     c_id, c_season, c_name_db, _, c_f, c_q, c_s = crp
                                     icon = "🌳" if c_season == "بساتين" else "🌾"
                                     st.markdown(f"<div style='background:#e9ecef; padding:5px 10px; border-radius:5px; margin-top:10px; border-right:3px solid #2d5a4e;'>{icon} <b>{unify_crop_name(c_name_db)}</b> ({c_season}) <span style='font-size:12px; color:red;'>(للحذف اجعل المساحات صفر)</span></div>", unsafe_allow_html=True)
-                                    
                                     cs, cq, cf = st.columns(3)
                                     with cs: new_cs = st.number_input("سهم\u200B", min_value=0.0, value=float(c_s), key=f"s_{c_id}")
                                     with cq: new_cq = st.number_input("قيراط\u200B", min_value=0, max_value=23, value=int(c_q), key=f"q_{c_id}")
                                     with cf: new_cf = st.number_input("فدان\u200B", min_value=0, value=int(c_f), key=f"f_{c_id}")
                                     crop_edits[c_id] = (new_cf, new_cq, new_cs)
+                                    total_planted_live += (new_cf * 24 * 24) + (new_cq * 24) + new_cs
 
                             st.markdown("##### ➕ 4. إضافة زراعات جديدة:")
                             new_crops_data = []
-                            for i in range(st.session_state[f'add_count_{h_no}']):
+                            for i in range(st.session_state[f'add_count_{f_id}']):
                                 c_ns, c_nq, c_nf, c_name, c_season = st.columns([1, 1, 1, 3, 2])
-                                
-                                with c_season: 
-                                    new_season = st.selectbox(f"الموسم / النوع\u200B", SEASONS_OPTS, key=f"nseason_{h_no}_{i}")
-                                
+                                with c_season: new_season = st.selectbox(f"الموسم / النوع\u200B", SEASONS_OPTS, key=f"nseason_{f_id}_{i}")
                                 with c_name: 
                                     if new_season and new_season != "أخرى (كتابة يدوية)":
                                         crop_opts = [""] + CROP_MAPPINGS.get(new_season, []) + ["أخرى (كتابة يدوية)"]
-                                        sel_crop = st.selectbox(f"اسم المحصول أو الشجرة\u200B", crop_opts, key=f"nname_sel_{h_no}_{i}")
-                                        if sel_crop == "أخرى (كتابة يدوية)":
-                                            new_crop_name = st.text_input("اكتب اسم المحصول\u200B", key=f"nname_txt_{h_no}_{i}")
-                                        else:
-                                            new_crop_name = sel_crop
+                                        sel_crop = st.selectbox(f"اسم المحصول أو الشجرة\u200B", crop_opts, key=f"nname_sel_{f_id}_{i}")
+                                        new_crop_name = st.text_input("اكتب اسم المحصول\u200B", key=f"nname_txt_{f_id}_{i}") if sel_crop == "أخرى (كتابة يدوية)" else sel_crop
                                     elif new_season == "أخرى (كتابة يدوية)":
-                                        new_crop_name = st.text_input("اكتب اسم المحصول\u200B", key=f"nname_txt2_{h_no}_{i}")
+                                        new_crop_name = st.text_input("اكتب اسم المحصول\u200B", key=f"nname_txt2_{f_id}_{i}")
                                     else:
-                                        st.selectbox(f"اسم المحصول أو الشجرة\u200B", [""], key=f"nname_dis_{h_no}_{i}", disabled=True)
+                                        st.selectbox(f"اسم المحصول أو الشجرة\u200B", [""], key=f"nname_dis_{f_id}_{i}", disabled=True)
                                         new_crop_name = ""
-
-                                with c_ns: new_s_add = st.number_input("سهم\u200B", min_value=0.0, key=f"ns2_{h_no}_{i}")
-                                with c_nq: new_q_add = st.number_input("قيراط\u200B", min_value=0, max_value=23, key=f"nq_{h_no}_{i}")
-                                with c_nf: new_f_add = st.number_input("فدان\u200B", min_value=0, key=f"nf_{h_no}_{i}")
-                                
+                                with c_ns: new_s_add = st.number_input("سهم\u200B", min_value=0.0, key=f"ns2_{f_id}_{i}")
+                                with c_nq: new_q_add = st.number_input("قيراط\u200B", min_value=0, max_value=23, key=f"nq_{f_id}_{i}")
+                                with c_nf: new_f_add = st.number_input("فدان\u200B", min_value=0, key=f"nf_{f_id}_{i}")
                                 new_crops_data.append((new_season, new_crop_name, new_f_add, new_q_add, new_s_add))
+                                total_planted_live += (new_f_add * 24 * 24) + (new_q_add * 24) + new_s_add
+
+                            st.write("---")
+                            total_sijil_live = (edit_f * 24 * 24) + (edit_q * 24) + edit_s
+                            diff_live = total_sijil_live - total_planted_live
+                            
+                            st.markdown("##### ⚖️ الموقف الحي للمساحة (أثناء التعديل):")
+                            if total_sijil_live == 0 and total_planted_live == 0:
+                                st.info("⚪ الحيازة مصفرة بالكامل.")
+                            elif diff_live == 0:
+                                st.success("🟢 المساحة مطابقة تماماً! لا يوجد زيادة أو عجز.")
+                            elif diff_live > 0:
+                                df_f = int(diff_live // (24 * 24))
+                                df_q = int((diff_live % (24 * 24)) // 24)
+                                df_s = fmt_s(round(diff_live % 24, 2))
+                                st.warning(f"🟡 متبقي للحائز (فضاء بدون زراعة): {df_f} فدان و {df_q} قيراط و {df_s} سهم")
+                            else:
+                                ov = abs(diff_live)
+                                ov_f = int(ov // (24 * 24))
+                                ov_q = int((ov % (24 * 24)) // 24)
+                                ov_s = fmt_s(round(ov % 24, 2))
+                                st.error(f"🔴 احذر! لقد تخطيت المساحة الكلية بزيادة قدرها: {ov_f} فدان و {ov_q} قيراط و {ov_s} سهم")
 
                             st.write("")
-                            b_cn, b_add_row, b_sv = st.columns([1, 1.5, 2])
-                            
-                            with b_cn:
-                                cancel_btn = st.button("❌ إلغاء التعديل", use_container_width=True, key=f"btn_cancel_{h_no}")
-                            with b_add_row:
-                                add_more_btn = st.button("➕ إضافة زراعة أخرى", use_container_width=True, key=f"btn_add_{h_no}")
-                            with b_sv:
-                                save_btn = st.button("💾 حفظ وتحديث كل قواعد البيانات", type="primary", use_container_width=True, key=f"btn_save_{h_no}")
+                            b_cn, b_del, b_add_row, b_sv = st.columns([1, 1, 1.5, 2])
+                            with b_cn: cancel_btn = st.button("❌ إلغاء", use_container_width=True, key=f"btn_cancel_{f_id}")
+                            with b_del: delete_btn = st.button("🗑️ حذف الحائز", use_container_width=True, key=f"btn_del_{f_id}")
+                            with b_add_row: add_more_btn = st.button("➕ إضافة زراعة أخرى", use_container_width=True, key=f"btn_add_{f_id}")
+                            with b_sv: save_btn = st.button("💾 حفظ وتحديث كل البيانات", type="primary", use_container_width=True, key=f"btn_save_{f_id}")
+
+                            if delete_btn:
+                                c.execute("DELETE FROM services_reg WHERE id=?", (f_id,))
+                                c.execute("DELETE FROM farmer_crops WHERE hayaza_no=?", (h_no,))
+                                conn.commit()
+                                st.session_state['edit_id'] = None
+                                st.success("🗑️ تم حذف الحائز وكل زراعاته نهائياً!")
+                                st.rerun()
 
                             if add_more_btn:
-                                st.session_state[f'add_count_{h_no}'] += 1
+                                st.session_state[f'add_count_{f_id}'] += 1
                                 st.rerun()
 
                             if save_btn:
                                 c.execute("UPDATE services_reg SET hayaza_no=?, hayaza_manzoma=?, name=?, normalized_name=?, smart_name=?, national_id=?, f=?, q=?, s=?, hod=?, rep_name=? WHERE id=?", 
                                           (edit_h_no, edit_h_manz, edit_name, normalize_arabic_name(edit_name), generate_smart_name(edit_name), edit_nid, edit_f, edit_q, edit_s, edit_hod, edit_rep, f_id))
-                                if edit_h_no != h_no: 
-                                    c.execute("UPDATE farmer_crops SET hayaza_no=? WHERE hayaza_no=?", (edit_h_no, h_no))
+                                
+                                if edit_h_no != h_no: c.execute("UPDATE farmer_crops SET hayaza_no=? WHERE hayaza_no=?", (edit_h_no, h_no))
                                 
                                 for cid, (nf, nq, ns) in crop_edits.items():
-                                    if nf == 0 and nq == 0 and ns == 0.0:
-                                        c.execute("DELETE FROM farmer_crops WHERE id=?", (cid,))
-                                    else:
-                                        c.execute("UPDATE farmer_crops SET f=?, q=?, s=? WHERE id=?", (nf, nq, ns, cid))
+                                    if nf == 0 and nq == 0 and ns == 0.0: c.execute("DELETE FROM farmer_crops WHERE id=?", (cid,))
+                                    else: c.execute("UPDATE farmer_crops SET f=?, q=?, s=? WHERE id=?", (nf, nq, ns, cid))
                                         
                                 for season_val, name_val, nf_add, nq_add, ns_add in new_crops_data:
                                     if season_val and name_val and (nf_add > 0 or nq_add > 0 or ns_add > 0):
-                                        db_season = ""
-                                        db_type = ""
-                                        if season_val == "بساتين":
-                                            db_season = "بساتين"
-                                            db_type = "بساتين"
-                                        elif "صيفي" in season_val:
-                                            db_season = "صيفي"
-                                            db_type = "خضار" if "خضر" in season_val else "محصول"
-                                        elif "شتوي" in season_val:
-                                            db_season = "شتوي"
-                                            db_type = "خضار" if "خضر" in season_val else "محصول"
-                                        else:
-                                            db_season = "أخرى"
-                                            db_type = "محصول"
-
-                                        c.execute("INSERT INTO farmer_crops (hayaza_no, season, crop_name, crop_type, f, q, s) VALUES (?, ?, ?, ?, ?, ?, ?)", 
-                                                  (edit_h_no, db_season, name_val, db_type, nf_add, nq_add, ns_add))
+                                        db_season, db_type = "أخرى", "محصول"
+                                        if season_val == "بساتين": db_season, db_type = "بساتين", "بساتين"
+                                        elif "صيفي" in season_val: db_season, db_type = "صيفي", "خضار" if "خضر" in season_val else "محصول"
+                                        elif "شتوي" in season_val: db_season, db_type = "شتوي", "خضار" if "خضر" in season_val else "محصول"
+                                        c.execute("INSERT INTO farmer_crops (hayaza_no, season, crop_name, crop_type, f, q, s) VALUES (?, ?, ?, ?, ?, ?, ?)", (edit_h_no, db_season, name_val, db_type, nf_add, nq_add, ns_add))
 
                                 conn.commit()
                                 st.session_state['edit_id'] = None
@@ -612,24 +520,83 @@ def show_page():
                             if cancel_btn:
                                 st.session_state['edit_id'] = None
                                 st.rerun()
-                                
                             st.markdown("</div>", unsafe_allow_html=True)
-                    st.markdown("---")
             conn.close()
 
     # ====================================================
-    # التبويب الثاني: قاعدة بيانات سجل 2 خدمات
+    # التبويب الثاني: قاعدة بيانات سجل 2 خدمات (الاستيراد الموحد)
     # ====================================================
     with tab_sijil2:
-        st.markdown("### 📖 قاعدة البيانات المركزية (المساحات الكلية)")
+        st.markdown("### 📖 قاعدة البيانات المركزية والاستيراد الشامل")
         
-        with st.expander("➕ إضافة حائز جديد لسجل 2 (إعطاء رقم تلقائي)", expanded=False):
-            conn = sqlite3.connect('contracts_database.db')
-            c = conn.cursor()
-            c.execute("SELECT MAX(CAST(hayaza_no AS INTEGER)) FROM services_reg")
+        # --- لوحة التقارير العلوية لسجل 2 ---
+        conn = sqlite3.connect('contracts_database.db')
+        c = conn.cursor()
+        c.execute("SELECT COUNT(*) FROM services_reg WHERE hayaza_no GLOB '[0-9]*'")
+        total_h_count = c.fetchone()[0]
+        c.execute("SELECT COUNT(*) FROM services_reg WHERE hayaza_no GLOB '[0-9]*' AND f=0 AND q=0 AND s=0")
+        zero_h_count = c.fetchone()[0]
+        active_h_count = total_h_count - zero_h_count
+        
+        st.markdown(f'''
+        <div style="display:flex; justify-content:space-around; background:#fff; padding:15px; border-radius:12px; margin-bottom:15px; border:2px solid #2d5a4e; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+            <div style="text-align:center;"><span style="font-size:28px; font-weight:900; color:#1a2c42;">{total_h_count}</span><br><span style="color:#666; font-weight:bold;">إجمالي الحيازات الكلي</span></div>
+            <div style="text-align:center; border-right: 1px solid #ddd; padding-right: 20px;"><span style="font-size:28px; font-weight:900; color:#28a745;">{active_h_count}</span><br><span style="color:#666; font-weight:bold;">حيازات فعلية (قائمة)</span></div>
+            <div style="text-align:center; border-right: 1px solid #ddd; padding-right: 20px;"><span style="font-size:28px; font-weight:900; color:#dc3545;">{zero_h_count}</span><br><span style="color:#666; font-weight:bold;">حيازات ملغاة (مُصفرة)</span></div>
+        </div>
+        ''', unsafe_allow_html=True)
+        # ------------------------------------
+
+        with st.expander("📥 الاستيراد الشامل الذكي (من الشيت المجمع Master Final)", expanded=True):
+            st.info("💡 ارفع الشيت المجمع (Master_Final.xlsx) هنا. البرنامج هيقسّم الأساسيات في سجل 2 ومحاصيل الجوافة والبرتقال والمانجو في البساتين تلقائياً.")
+            up_master_file = st.file_uploader("اختر الشيت المجمع لرفعه:", type=['csv', 'xlsx'], key="up_master")
+            if up_master_file and st.button("🚀 بدء الاستيراد الشامل والتوزيع", type="primary"):
+                try:
+                    df_up = pd.read_csv(up_master_file) if up_master_file.name.endswith('.csv') else pd.read_excel(up_master_file)
+                    df_up.columns = df_up.columns.str.strip()
+                    ok_c, crops_c, missing_counter = 0, 0, 0
+                    
+                    for _, row in df_up.iterrows():
+                        n_v = str(row.get('الاسم', '')).strip()
+                        h_base = str(row.get('رقم الحيازة', '')).replace('.0','').strip()
+                        
+                        if not n_v: continue
+                        
+                        if not h_base or "غير موجود" in h_base or "غير محدد" in h_base:
+                            missing_counter += 1
+                            h_v = f"غير مدرج ({missing_counter})"
+                        else:
+                            h_v = h_base
+
+                        nid = str(row.get('الرقم القومي', '')).replace('.0','').strip()
+                        hmz = str(row.get('رقم المنظومة', '')).replace('.0','').strip()
+                        hod = str(row.get('الحوض', '')).strip()
+                        sf = safe_num(row.get('فدان كلي', 0))
+                        sq = safe_num(row.get('قيراط كلي', 0))
+                        ss = safe_num(row.get('سهم كلي', 0.0), True)
+                        
+                        c.execute("INSERT INTO services_reg (hayaza_no, hayaza_manzoma, national_id, name, normalized_name, smart_name, f, q, s, hod) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                                  (h_v, hmz, nid, n_v, normalize_arabic_name(n_v), generate_smart_name(n_v), sf, sq, ss, hod))
+                        ok_c += 1
+
+                        crops_to_check = [('جوافه', 'الجوافة'), ('برتقال', 'البرتقال'), ('مانجو', 'المانجو')]
+                        for col_base, db_name in crops_to_check:
+                            cf = safe_num(row.get(f'فدان {col_base}', 0))
+                            cq = safe_num(row.get(f'قيراط {col_base}', 0))
+                            cs = safe_num(row.get(f'سهم {col_base}', 0.0), True)
+                            if cf > 0 or cq > 0 or cs > 0:
+                                c.execute("INSERT INTO farmer_crops (hayaza_no, season, crop_name, crop_type, f, q, s) VALUES (?, 'بساتين', ?, 'بساتين', ?, ?, ?)", (h_v, db_name, cf, cq, cs))
+                                crops_c += 1
+
+                    conn.commit()
+                    st.success(f"✅ تمت العملية بنجاح! تم استيراد {ok_c} حائز أساسي، وتوزيع {crops_c} مساحة بساتين.")
+                    st.rerun()
+                except Exception as e: st.error(f"خطأ في الاستيراد: {e}")
+
+        with st.expander("➕ إضافة حائز جديد لسجل 2 (رقم تلقائي)", expanded=False):
+            c.execute("SELECT MAX(CAST(hayaza_no AS INTEGER)) FROM services_reg WHERE hayaza_no GLOB '[0-9]*'")
             max_h = c.fetchone()[0]
             next_h = str((max_h or 0) + 1)
-            conn.close()
             
             c1, c2, c3 = st.columns(3)
             with c1: new_f_name = st.text_input("الاسم بالكامل*", key="new_fn")
@@ -639,10 +606,7 @@ def show_page():
             c4, c5 = st.columns(2)
             with c4: 
                 new_hod_sel = st.selectbox("الحوض الرئيسي", [""] + BASINS_LIST + ["أخرى (كتابة يدوية)"], key="new_hod_sel")
-                if new_hod_sel == "أخرى (كتابة يدوية)":
-                    new_hod = st.text_input("اكتب اسم الحوض يدوياً", key="new_hod_txt")
-                else:
-                    new_hod = new_hod_sel
+                new_hod = st.text_input("اكتب اسم الحوض يدوياً", key="new_hod_txt") if new_hod_sel == "أخرى (كتابة يدوية)" else new_hod_sel
             with c5: new_manz = st.text_input("رقم المنظومة", key="new_manz")
             
             st.markdown("###### 📐 المساحة الكلية للحائز الجديد:")
@@ -653,91 +617,36 @@ def show_page():
             
             if st.button("💾 حفظ الحائز الجديد", type="primary", use_container_width=True):
                 if new_f_name and new_h_no:
-                    conn = sqlite3.connect('contracts_database.db')
-                    c = conn.cursor()
                     c.execute("SELECT id FROM services_reg WHERE hayaza_no=?", (new_h_no,))
-                    if c.fetchone():
-                        st.error("⚠️ رقم الحيازة مسجل مسبقاً، برجاء اختيار رقم آخر.")
+                    if c.fetchone(): st.error("⚠️ رقم الحيازة مسجل مسبقاً، برجاء اختيار رقم آخر.")
                     else:
-                        norm_n = normalize_arabic_name(new_f_name)
-                        smart_n = generate_smart_name(new_f_name)
                         c.execute("INSERT INTO services_reg (hayaza_no, hayaza_manzoma, national_id, name, normalized_name, smart_name, f, q, s, hod) VALUES (?,?,?,?,?,?,?,?,?,?)",
-                                  (new_h_no, new_manz, new_nid, new_f_name, norm_n, smart_n, new_f, new_q, new_s, new_hod))
+                                  (new_h_no, new_manz, new_nid, new_f_name, normalize_arabic_name(new_f_name), generate_smart_name(new_f_name), new_f, new_q, new_s, new_hod))
                         conn.commit()
-                        st.success(f"✅ تم إضافة الحائز '{new_f_name}' برقم حيازة {new_h_no} بنجاح! يمكنك الآن البحث عنه في الملف الشامل.")
-                    conn.close()
-                else:
-                    st.error("⚠️ برجاء كتابة الاسم ورقم الحيازة.")
+                        st.success(f"✅ تم إضافة الحائز '{new_f_name}' برقم حيازة {new_h_no} بنجاح!")
+                else: st.error("⚠️ برجاء كتابة الاسم ورقم الحيازة.")
 
         st.markdown("---")
-        st.info("💡 هذا القسم مخصص لرفع وحفظ المساحات **الكلية** الخاصة بالفلاحين. المحاصيل تُخصم من هذه المساحة لاحقاً.")
         
-        with st.expander("📥 استيراد وتصدير سجل 2 خدمات (شيتات أكسيل)", expanded=False):
-            st.markdown("##### 1. تحميل قالب إدخال سجل 2 خدمات:")
-            empty_sijil_df = pd.DataFrame(columns=['رقم الحيازة', 'الاسم', 'الرقم القومي', 'رقم المنظومة', 'الحوض', 'فدان', 'قيراط', 'سهم'])
-            st.download_button("📥 تحميل القالب الفارغ (CSV)", data=convert_df_to_csv(empty_sijil_df), file_name="قالب_سجل_2_خدمات.csv", mime="text/csv")
+        # بناء التقرير المفلتر
+        filter_opt = st.selectbox("📌 عرض التقرير حسب الحالة:", ["الكل (عرض جميع الحيازات)", "الحيازات الفعلية (القائمة) فقط", "الحيازات الملغاة (المُصفرة) فقط"])
+        
+        base_query = "SELECT name as 'الاسم', national_id as 'الرقم القومي', hod as 'الحوض', s as 'سهم', q as 'قيراط', f as 'فدان' FROM services_reg"
+        conditions = ["hayaza_no GLOB '[0-9]*'"]
+        
+        if filter_opt == "الحيازات الفعلية (القائمة) فقط":
+            conditions.append("(f>0 OR q>0 OR s>0)")
+        elif filter_opt == "الحيازات الملغاة (المُصفرة) فقط":
+            conditions.append("(f=0 AND q=0 AND s=0)")
             
-            st.markdown("---")
-            st.markdown("##### 2. استيراد كشف حائزين جديد (سجل 2):")
-            up_sijil_file = st.file_uploader("اختر شيت سجل 2 لرفعه:", type=['csv', 'xlsx'], key="up_sijil")
-            if up_sijil_file and st.button("🚀 بدء استيراد سجل 2 خدمات", type="primary"):
-                try:
-                    df_up = pd.read_csv(up_sijil_file) if up_sijil_file.name.endswith('.csv') else pd.read_excel(up_sijil_file)
-                    df_up.columns = df_up.columns.str.strip()
-                    conn = sqlite3.connect('contracts_database.db')
-                    c = conn.cursor()
-                    ok_c, skip_c = 0, 0
-                    for _, row in df_up.iterrows():
-                        h_v = str(row.get('رقم الحيازة', '')).replace('.0','').strip()
-                        n_v = str(row.get('الاسم', '')).strip()
-                        if not h_v or not n_v: continue
-                        
-                        nid = str(row.get('الرقم القومي', '')).replace('.0','').strip()
-                        hmz = str(row.get('رقم المنظومة', '')).replace('.0','').strip()
-                        hod = str(row.get('الحوض', '')).strip()
-                        sf = safe_num(row.get('فدان', 0))
-                        sq = safe_num(row.get('قيراط', 0))
-                        ss = safe_num(row.get('سهم', 0.0), True)
-                        
-                        norm_n = normalize_arabic_name(n_v)
-                        smart_n = generate_smart_name(n_v)
-                        
-                        c.execute("SELECT id FROM services_reg WHERE hayaza_no=?", (h_v,))
-                        if not c.fetchone():
-                            c.execute("INSERT INTO services_reg (hayaza_no, hayaza_manzoma, national_id, name, normalized_name, smart_name, f, q, s, hod) VALUES (?,?,?,?,?,?,?,?,?,?)",
-                                      (h_v, hmz, nid, n_v, norm_n, smart_n, sf, sq, ss, hod))
-                            ok_c += 1
-                        else: skip_c += 1
-                    conn.commit()
-                    conn.close()
-                    st.success(f"✅ تم إضافة {ok_c} حائز جديد لسجل 2 خدمات، وتجاهل {skip_c} مكرر (بنفس رقم الحيازة).")
-                    st.rerun()
-                except Exception as e: st.error(f"خطأ: {e}")
-
-        conn = sqlite3.connect('contracts_database.db')
-        df_sijil = pd.read_sql_query("""
-            SELECT 
-                name as 'الاسم', 
-                national_id as 'الرقم القومي', 
-                hod as 'الحوض',
-                s as 'سهم', 
-                q as 'قيراط', 
-                f as 'فدان'
-            FROM services_reg 
-            ORDER BY CAST(hayaza_no AS INTEGER) ASC
-        """, conn)
+        base_query += " WHERE " + " AND ".join(conditions) + " ORDER BY CAST(hayaza_no AS INTEGER) ASC"
+        
+        df_sijil = pd.read_sql_query(base_query, conn)
         conn.close()
         
         if not df_sijil.empty:
             df_sijil['سهم'] = df_sijil['سهم'].apply(fmt_s)
-            
-            st.download_button(
-                "🖨️ طباعة سجل 2 خدمات كامل", 
-                data=generate_print_html(df_sijil, "قاعدة بيانات سجل 2 خدمات"), 
-                file_name="سجل_2_خدمات.html", 
-                mime="text/html", 
-                key="print_sijil_all"
-            )
+            st.download_button("🖨️ طباعة التقرير المعروض", data=generate_print_html(df_sijil, f"قاعدة بيانات سجل 2 خدمات - {filter_opt}"), file_name="تقرير_سجل_2.html", mime="text/html", key="print_sijil_all")
             st.write("")
             st.markdown(generate_scrollable_styled_table(df_sijil), unsafe_allow_html=True)
 
@@ -746,66 +655,6 @@ def show_page():
     # ====================================================
     with tab_orchards:
         st.markdown("### 🌳 إدارة وحصر مساحات أشجار البساتين")
-        
-        with st.expander("📥 أدوات استيراد وتصدير البساتين", expanded=True):
-            st.markdown("##### 1. تحميل قالب الإدخال الذكي للبساتين:")
-            st.info("💡 يمكنك إدخال (رقم الحيازة) لتأكيد الربط حتى لو كان الاسم متكرراً. إذا تركته فارغاً، سيربط البرنامج بالاسم.")
-            empty_orchard_df = pd.DataFrame(columns=[
-                'رقم الحيازة (اختياري)', 'الاسم', 
-                'فدان مانجو', 'قيراط مانجو', 'سهم مانجو', 
-                'فدان برتقال', 'قيراط برتقال', 'سهم برتقال'
-            ])
-            st.download_button("📥 تحميل شيت إكسيل فارغ للبساتين", data=convert_df_to_csv(empty_orchard_df), file_name="قالب_إدخال_البساتين_الذكي.csv", mime="text/csv")
-            
-            st.markdown("---")
-            st.markdown("##### 2. استيراد كشف البساتين الأفقي:")
-            up_orchard_file = st.file_uploader("اختر شيت البساتين لرفعه:", type=['csv', 'xlsx'], key="up_orch")
-            if up_orchard_file and st.button("🚀 بدء الاستيراد والربط الذكي للبساتين", type="primary"):
-                try:
-                    df_up = pd.read_csv(up_orchard_file) if up_orchard_file.name.endswith('.csv') else pd.read_excel(up_orchard_file)
-                    df_up.columns = df_up.columns.str.strip()
-                    tree_names = [col.replace('فدان ', '').strip() for col in df_up.columns if col.startswith('فدان ')]
-                    
-                    conn = sqlite3.connect('contracts_database.db')
-                    c = conn.cursor()
-                    ok_c, skip_c, not_found = 0, 0, []
-                    
-                    for _, row in df_up.iterrows():
-                        f_name = str(row.get('الاسم', '')).strip()
-                        h_no_excel = str(row.get('رقم الحيازة (اختياري)', '')).replace('.0', '').strip()
-                        
-                        if not f_name and not h_no_excel: continue
-                        
-                        if h_no_excel and h_no_excel != 'nan':
-                            h_v = h_no_excel
-                        else:
-                            h_v = get_hayaza_by_name(c, f_name)
-                            
-                        if not h_v:
-                            not_found.append(f_name)
-                            continue
-                            
-                        for t_name in tree_names:
-                            sf = safe_num(row.get(f'فدان {t_name}', 0))
-                            sq = safe_num(row.get(f'قيراط {t_name}', 0))
-                            ss = safe_num(row.get(f'سهم {t_name}', 0.0), True)
-                            
-                            if sf > 0 or sq > 0 or ss > 0:
-                                c.execute("SELECT id FROM farmer_crops WHERE hayaza_no=? AND season='بساتين' AND crop_name=?", (h_v, t_name))
-                                if not c.fetchone():
-                                    c.execute("INSERT INTO farmer_crops (hayaza_no, season, crop_name, crop_type, f, q, s) VALUES (?, 'بساتين', ?, 'بساتين', ?, ?, ?)", (h_v, t_name, sf, sq, ss))
-                                    ok_c += 1
-                                else: skip_c += 1
-                    conn.commit()
-                    conn.close()
-                    
-                    st.success(f"✅ تم ربط واستيراد {ok_c} شجرة، وتجاهل {skip_c} مكرر.")
-                    if not_found:
-                        st.error(f"⚠️ الأسماء التالية لم يتم العثور عليها في سجل 2 خدمات: {', '.join(not_found)}")
-                    st.rerun()
-                except Exception as e: st.error(f"خطأ: {e}")
-
-        st.markdown("##### 🔍 استعلام وفلترة البساتين:")
         c_srch_o, c_hod_o = st.columns(2)
         with c_srch_o: search_orch = st.text_input("بحث بالاسم أو رقم الحيازة:", key="s_orch")
         with c_hod_o: hod_orch = st.selectbox("فلترة بالحوض:", ["الكل"] + BASINS_LIST, key="hod_orch_sel")
@@ -820,33 +669,19 @@ def show_page():
         s_norm_o = normalize_arabic_name(search_orch) if search_orch else ""
         for r in orchard_data:
             name, hod, h_no, crop, f, q, s = r
-            
-            # 🌟 الفلتر الذكي للحوض (يتجاهل كلمة حوض والمسافات)
             if hod_orch != "الكل":
                 n_db = normalize_arabic_name(str(hod).replace("حوض", "").replace("-", ""))
                 n_sel = normalize_arabic_name(hod_orch.replace("حوض", "").replace("-", ""))
-                if not (n_db == n_sel or n_db in n_sel or n_sel in n_db):
-                    continue
-                    
-            if s_norm_o:
-                if not (search_orch == str(h_no) or s_norm_o in normalize_arabic_name(name)):
-                    continue
+                if not (n_db == n_sel or n_db in n_sel or n_sel in n_db): continue
+            if s_norm_o and not (search_orch == str(h_no) or s_norm_o in normalize_arabic_name(name)): continue
             filtered_orch.append(r)
             
         records_orch, ordered_crops_orch = build_pivot_data(filtered_orch, main_crops=["الجوافة", "البرتقال", "المانجو"])
-        
         if records_orch:
-            st.download_button(
-                "🖨️ طباعة سجل أشجار البساتين", 
-                data=generate_multi_header_html(records_orch, ordered_crops_orch, "سجل منظومة أشجار البساتين"), 
-                file_name="سجل_البساتين.html", 
-                mime="text/html", 
-                key="print_orch_all"
-            )
+            st.download_button("🖨️ طباعة سجل أشجار البساتين", data=generate_multi_header_html(records_orch, ordered_crops_orch, "سجل منظومة أشجار البساتين"), file_name="سجل_البساتين.html", mime="text/html", key="print_orch_all")
             st.write("")
             st.markdown(generate_scrollable_multi_header_table(records_orch, ordered_crops_orch), unsafe_allow_html=True)
-        else:
-            st.warning("لم يتم العثور على نتائج مطابقة في البساتين.")
+        else: st.warning("لم يتم العثور على نتائج مطابقة في البساتين.")
 
     # ====================================================
     # التبويب الرابع: المحاصيل والخضروات الزراعية
@@ -854,16 +689,16 @@ def show_page():
     with tab_crops:
         st.markdown("### 🌾 إدارة ومراجعة مساحات المحاصيل والخضروات")
         
-        with st.expander("📥 أدوات استيراد وتصدير المحاصيل", expanded=True):
-            st.markdown("##### 1. تحميل قالب المحاصيل الذكي (بدون حوض):")
-            st.info("💡 يمكنك إدخال (رقم الحيازة) لتأكيد الربط للأسماء المتكررة. إذا تُرك فارغاً سيربط بالاسم.")
+        with st.expander("📥 استيراد كشف المحاصيل والخضروات", expanded=True):
+            st.markdown("##### 1. تحميل قالب المحاصيل الذكي:")
+            st.info("💡 يمكنك إدخال (رقم الحيازة) لتأكيد الربط للأسماء المتكررة. إذا تُرك فارغاً سيربط بالاسم الموجود في سجل 2.")
             empty_crops_df = pd.DataFrame(columns=['رقم الحيازة (اختياري)', 'الاسم', 'الموسم', 'النوع', 'اسم المحصول_الخضار', 'فدان', 'قيراط', 'سهم'])
-            st.download_button("📥 تحميل شيت إكسيل فارغ للمحاصيل", data=convert_df_to_csv(empty_crops_df), file_name="قالب_المحاصيل_الذكي.csv", mime="text/csv")
+            st.download_button("📥 تحميل قالب إدخال المحاصيل", data=convert_df_to_csv(empty_crops_df), file_name="قالب_إدخال_المحاصيل.csv", mime="text/csv")
             
             st.markdown("---")
-            st.markdown("##### 2. استيراد كشف محاصيل جديد:")
+            st.markdown("##### 2. استيراد كشف المحاصيل بعد ملئه:")
             up_crop_file = st.file_uploader("اختر شيت المحاصيل لرفعه:", type=['csv', 'xlsx'], key="up_crp_fl")
-            if up_crop_file and st.button("🚀 بدء الاستيراد والربط الذكي للمحاصيل", type="primary"):
+            if up_crop_file and st.button("🚀 بدء استيراد وربط المحاصيل", type="primary"):
                 try:
                     df_up = pd.read_csv(up_crop_file) if up_crop_file.name.endswith('.csv') else pd.read_excel(up_crop_file)
                     df_up.columns = df_up.columns.str.strip()
@@ -879,12 +714,16 @@ def show_page():
                         c_name = str(row.get('اسم المحصول_الخضار', '')).strip()
                         
                         if not f_name and not h_no_excel: continue
-                        if not c_name: continue
+                        if not c_name or c_name == 'nan': continue
                         
                         if h_no_excel and h_no_excel != 'nan':
                             h_v = h_no_excel
                         else:
-                            h_v = get_hayaza_by_name(c, f_name)
+                            norm_n = normalize_arabic_name(f_name)
+                            smart_n = generate_smart_name(f_name)
+                            c.execute("SELECT hayaza_no FROM services_reg WHERE normalized_name=? OR smart_name=? OR name=?", (norm_n, smart_n, f_name))
+                            res = c.fetchone()
+                            h_v = res[0] if res else None
                             
                         if not h_v:
                             not_found_cr.append(f_name)
@@ -922,33 +761,19 @@ def show_page():
         s_norm_c = normalize_arabic_name(search_crop) if search_crop else ""
         for r in crops_data:
             name, hod, h_no, crop, f, q, s = r
-            
-            # 🌟 الفلتر الذكي للحوض (يتجاهل كلمة حوض والمسافات)
             if hod_crop != "الكل":
                 n_db = normalize_arabic_name(str(hod).replace("حوض", "").replace("-", ""))
                 n_sel = normalize_arabic_name(hod_crop.replace("حوض", "").replace("-", ""))
-                if not (n_db == n_sel or n_db in n_sel or n_sel in n_db):
-                    continue
-                    
-            if s_norm_c:
-                if not (search_crop == str(h_no) or s_norm_c in normalize_arabic_name(name)):
-                    continue
+                if not (n_db == n_sel or n_db in n_sel or n_sel in n_db): continue
+            if s_norm_c and not (search_crop == str(h_no) or s_norm_c in normalize_arabic_name(name)): continue
             filtered_crp.append(r)
             
         records_crp, ordered_crops_crp = build_pivot_data(filtered_crp, main_crops=["القمح", "الذرة", "الأرز", "البرسيم"])
-        
         if records_crp:
-            st.download_button(
-                "🖨️ طباعة سجل المحاصيل الشامل", 
-                data=generate_multi_header_html(records_crp, ordered_crops_crp, "سجل المحاصيل والخضروات"), 
-                file_name="سجل_المحاصيل.html", 
-                mime="text/html", 
-                key="print_crops_all"
-            )
+            st.download_button("🖨️ طباعة سجل المحاصيل الشامل", data=generate_multi_header_html(records_crp, ordered_crops_crp, "سجل المحاصيل والخضروات"), file_name="سجل_المحاصيل.html", mime="text/html", key="print_crops_all")
             st.write("")
             st.markdown(generate_scrollable_multi_header_table(records_crp, ordered_crops_crp), unsafe_allow_html=True)
-        else:
-            st.warning("لم يتم العثور على نتائج مطابقة في المحاصيل.")
+        else: st.warning("لم يتم العثور على نتائج مطابقة في المحاصيل.")
 
 if __name__ == "__main__":
     show_page()

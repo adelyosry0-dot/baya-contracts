@@ -16,7 +16,11 @@ def get_stats():
         sales = c.fetchone()[0]
         c.execute("SELECT COUNT(*) FROM archive WHERE seller_name LIKE '[قسمة]%'")
         kesma = c.fetchone()[0]
+        
+        # هنا كان الخطأ الخفي: استدعاء التاريخ لضمان عدم حدوث أي عطل
+        today = date.today()
         month_start = str(today.year) + "-" + str(today.month).zfill(2) + "-01"
+        
         c.execute("SELECT COUNT(*) FROM archive WHERE contract_date >= ?", (month_start,))
         this_month = c.fetchone()[0]
         total = sales + kesma
