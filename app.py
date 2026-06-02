@@ -28,20 +28,18 @@ CSS_STYLE = """
     }
     .stMarkdown p { text-align: right !important; direction: rtl !important; }
 
+    /* إخفاء جملة Press Enter to apply بالكامل */
+    div[data-testid="InputInstructions"] {
+        display: none !important;
+    }
+
     /* أنيميشنات تسجيل الدخول */
     @keyframes comeFromLeft  { 0%{transform:translateX(-200px) rotate(-30deg) scale(0.5);opacity:0;filter:blur(8px)} 60%{transform:translateX(15px) rotate(3deg) scale(1.05);opacity:1;filter:blur(0)} 100%{transform:translateX(0) rotate(0) scale(1);opacity:1} }
     @keyframes comeFromTop   { 0%{transform:translateY(-200px) scale(0.4) rotate(20deg);opacity:0;filter:blur(10px)} 55%{transform:translateY(12px) scale(1.08) rotate(-2deg);opacity:1;filter:blur(0)} 100%{transform:translateY(0) scale(1) rotate(0);opacity:1} }
     @keyframes comeFromBottom{ 0%{transform:translateY(200px) scale(0.4) rotate(-20deg);opacity:0;filter:blur(10px)} 55%{transform:translateY(-12px) scale(1.08) rotate(2deg);opacity:1;filter:blur(0)} 100%{transform:translateY(0) scale(1) rotate(0);opacity:1} }
     @keyframes comeFromRight { 0%{transform:translateX(200px) rotate(30deg) scale(0.5);opacity:0;filter:blur(8px)} 60%{transform:translateX(-15px) rotate(-3deg) scale(1.05);opacity:1;filter:blur(0)} 100%{transform:translateX(0) rotate(0) scale(1);opacity:1} }
     @keyframes goldShimmer   { 0%{background-position:-200% center} 100%{background-position:200% center} }
-    @keyframes goldShimmer2  { 0%{background-position:-200% center} 100%{background-position:200% center} }
     @keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-    @keyframes floatingWave  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
-    @keyframes spinSlow      { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-    @keyframes goldenPulseRing { 0%{box-shadow:0 0 0 0 rgba(201,168,76,0.6),0 10px 40px rgba(0,0,0,0.4)} 50%{box-shadow:0 0 0 18px rgba(201,168,76,0),0 10px 40px rgba(0,0,0,0.4)} 100%{box-shadow:0 0 0 0 rgba(201,168,76,0),0 10px 40px rgba(0,0,0,0.4)} }
-    @keyframes scaleBalance  { 0%,100%{transform:rotate(0deg) scale(1)} 20%{transform:rotate(-12deg) scale(1.1)} 40%{transform:rotate(10deg) scale(1.05)} 60%{transform:rotate(-6deg) scale(1.08)} 80%{transform:rotate(4deg) scale(1.02)} }
-    @keyframes drawLine      { 0%{width:0%;opacity:0} 60%{opacity:1} 100%{width:80%;opacity:1} }
-    @keyframes fadeInScale   { 0%{opacity:0;transform:translateY(20px) scale(0.92);filter:blur(4px)} 60%{opacity:1;filter:blur(0)} 100%{opacity:1;transform:translateY(0) scale(1)} }
     @keyframes shimmerBtn    { 0%{left:-75%;opacity:0} 10%{opacity:1} 50%{left:125%;opacity:1} 51%,100%{left:125%;opacity:0} }
 
     .letter-b,.letter-a1,.letter-y,.letter-a2 {
@@ -52,11 +50,6 @@ CSS_STYLE = """
     .letter-a1 { animation:comeFromTop    1.1s cubic-bezier(0.34,1.56,0.64,1) forwards,goldShimmer 3s linear 2.0s infinite; display:inline-block; opacity:0; animation-delay:0.4s; }
     .letter-y  { animation:comeFromBottom 1.1s cubic-bezier(0.34,1.56,0.64,1) forwards,goldShimmer 3s linear 2.2s infinite; display:inline-block; opacity:0; animation-delay:0.6s; }
     .letter-a2 { animation:comeFromRight  1.1s cubic-bezier(0.34,1.56,0.64,1) forwards,goldShimmer 3s linear 2.4s infinite; display:inline-block; opacity:0; animation-delay:0.8s; }
-    .fade-in-scale   { animation:fadeInScale 0.9s cubic-bezier(0.22,1,0.36,1) forwards; display:inline-block; opacity:0; }
-    .continuous-wave { animation:floatingWave 4s ease-in-out infinite; display:inline-block; }
-    .balance-icon    { animation:fadeInScale 0.8s ease-out forwards,scaleBalance 6s ease-in-out 2s infinite; display:inline-block; opacity:0; }
-    .login-box-pulse { animation:goldenPulseRing 2.5s ease-out infinite; }
-    .gold-line       { display:block; height:2px; background:linear-gradient(90deg,transparent,#c9a84c,#f0d98a,#c9a84c,transparent); border-radius:2px; margin:10px auto; animation:drawLine 1.5s cubic-bezier(0.22,1,0.36,1) 1.2s forwards; width:0%; opacity:0; }
     .login-animated-bg { background:linear-gradient(-45deg,#0d2318,#1e3d2f,#163026,#0a1f14,#1a3828); background-size:400% 400%; animation:gradientShift 8s ease infinite; }
     .stFormSubmitButton button { position:relative; overflow:hidden; transition:all 0.4s cubic-bezier(0.22,1,0.36,1) !important; }
     .stFormSubmitButton button::after { content:''; position:absolute; top:-50%; left:-75%; width:50%; height:200%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent); transform:skewX(-20deg); animation:shimmerBtn 3s ease-in-out 2s infinite; }
@@ -104,7 +97,9 @@ for folder in folders_to_create:
     if not os.path.exists(folder): os.makedirs(folder)
 
 def get_age_from_id(nat_id):
-    if nat_id and len(nat_id) == 14 and nat_id.isdigit():
+    if not nat_id: return ""
+    nat_id = str(nat_id).strip()
+    if len(nat_id) == 14 and nat_id.isdigit():
         century_code = int(nat_id[0])
         if century_code == 2: year = 1900 + int(nat_id[1:3])
         elif century_code == 3: year = 2000 + int(nat_id[1:3])
@@ -125,7 +120,6 @@ def tafqeet_area(f, k, s):
         teens = ["", "أحد عشر", "اثنا عشر", "ثلاثة عشر", "أربعة عشر", "خمسة عشر", "ستة عشر", "سبعة عشر", "ثمانية عشر", "تسعة عشر"]
         tens = ["", "عشرة", "عشرون", "ثلاثون", "أربعون", "خمسون", "ستون", "سبعون", "ثمانون", "تسعون"]
         
-        # تحويل الرقم إلى كلمات
         if n <= 10: word = units[n]
         elif 11 <= n <= 19: word = teens[n-10]
         else:
@@ -136,7 +130,6 @@ def tafqeet_area(f, k, s):
             elif u == 2: word = f"اثنان و{tens[t]}"
             else: word = f"{units[u]} و{tens[t]}"
         
-        # ربط الكلمة بالتمييز الصحيح (فدان، قيراط، سهم)
         if unit_name == 'f':
             if n == 1: return "فدان واحد"
             if n == 2: return "فدانان"
@@ -161,15 +154,8 @@ def tafqeet_area(f, k, s):
     s_int = int(s_val)
     s_frac = s_val - s_int
 
-    # معالجة الفدان
-    if f_int > 0:
-        parts.append(num_to_word(f_int, 'f'))
-        
-    # معالجة القيراط
-    if k_int > 0:
-        parts.append(num_to_word(k_int, 'k'))
-        
-    # معالجة السهم والكسور (نصف، ربع)
+    if f_int > 0: parts.append(num_to_word(f_int, 'f'))
+    if k_int > 0: parts.append(num_to_word(k_int, 'k'))
     if s_int > 0 or s_frac > 0:
         if s_int > 0:
             s_str = num_to_word(s_int, 's')
@@ -178,15 +164,12 @@ def tafqeet_area(f, k, s):
             elif s_frac == 0.75: s_str += " وثلاثة أرباع"
             parts.append(s_str)
         else:
-            # لو المساحة كسور فقط بدون أسهم صحيحة
             if s_frac == 0.5: parts.append("نصف سهم")
             elif s_frac == 0.25: parts.append("ربع سهم")
             elif s_frac == 0.75: parts.append("ثلاثة أرباع سهم")
             else: parts.append(f"{s_frac} سهم") 
 
-    if not parts:
-        return "صفر"
-    
+    if not parts: return "صفر"
     return " و ".join(parts) + " فقط لا غير"
 
 def init_db():
@@ -244,75 +227,45 @@ def format_custom_date(iso_str, mode="full"):
     if not iso_str: return ""
     try:
         d = date.fromisoformat(iso_str)
-        if mode == "my": 
-            return f"{d.month}/{d.year}" 
-        if mode == "short": 
-            return f"{d.day}/{d.month}/{d.year}"
-            
+        if mode == "my": return f"{d.month}/{d.year}" 
+        if mode == "short": return f"{d.day}/{d.month}/{d.year}"
         days_ar = ["الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
         day_name = days_ar[d.weekday()]
         return f"{day_name} الموافق {d.day}/{d.month}/{d.year}"
-    except: 
-        return iso_str
+    except: return iso_str
 
 def shorten_name(full_name, limit=3):
     if not full_name: return ""
     clean = full_name.replace("/", " ").replace("\\", " ").strip()
     words = clean.split()
-    if "ورثة" in words or "المرحوم" in words:
-        return " ".join(words[:limit+2])
+    if "ورثة" in words or "المرحوم" in words: return " ".join(words[:limit+2])
     return " ".join(words[:limit])
 
 # ==========================================
 # 3. بوابة الدخول (Login Gate & Animation)
 # ==========================================
-if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
+if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
     st.markdown("""
 <style>
 .stApp { background: radial-gradient(circle at center, #163026 0%, #0a1f14 100%) !important; }
-/* رفع الشاشة لأعلى عن طريق تقليل المسافة العلوية */
 .block-container { padding-top: 3rem !important; } 
-
 [data-testid="stForm"] {
     background: rgba(255, 255, 255, 0.03) !important;
     backdrop-filter: blur(15px) !important; -webkit-backdrop-filter: blur(15px) !important;
     border: 1px solid rgba(201, 168, 76, 0.2) !important;
     border-radius: 20px !important; padding: 40px 30px !important;
     box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 20px rgba(201,168,76,0.05) !important;
-    overflow: visible !important; 
 }
 [data-testid="stForm"] label { color: rgba(220,240,230,0.9) !important; font-weight: bold !important; font-family: 'Cairo' !important; }
-[data-testid="stForm"] input {
-    background: rgba(0, 0, 0, 0.3) !important;
-    border: 1px solid rgba(201, 168, 76, 0.3) !important;
-    color: #fff !important; border-radius: 8px !important; text-align: right !important;
-}
-[data-testid="stForm"] input:focus { border-color: #c9a84c !important; box-shadow: 0 0 10px rgba(201,168,76,0.3) !important; }
+[data-testid="stForm"] input { background: rgba(0, 0, 0, 0.3) !important; border: 1px solid rgba(201, 168, 76, 0.3) !important; color: #fff !important; border-radius: 8px !important; text-align: right !important; }
 [data-testid="stFormSubmitButton"] button {
     background: linear-gradient(90deg, #c9a84c, #f0d98a, #c9a84c) !important;
     background-size: 200% auto !important; border: none !important; color: #0a1f14 !important;
     font-weight: 900 !important; font-size: 16px !important; border-radius: 8px !important;
     margin-top: 15px !important; box-shadow: 0 0 20px rgba(201,168,76,0.4) !important; transition: 0.5s !important;
 }
-[data-testid="stFormSubmitButton"] button:hover { background-position: right center !important; transform: translateY(-2px) !important; }
-
-@keyframes comeFromLeft  { 0%{transform:translateX(-150px) rotate(-45deg) scale(0.5);opacity:0;filter:blur(8px)} 60%{transform:translateX(10px) rotate(5deg) scale(1.1);opacity:1;filter:blur(0)} 100%{transform:translateX(0) rotate(0) scale(1);opacity:1} }
-@keyframes comeFromTop   { 0%{transform:translateY(-150px) scale(0.4) rotate(30deg);opacity:0;filter:blur(10px)} 55%{transform:translateY(10px) scale(1.1) rotate(-3deg);opacity:1;filter:blur(0)} 100%{transform:translateY(0) scale(1) rotate(0);opacity:1} }
-@keyframes comeFromBottom{ 0%{transform:translateY(150px) scale(0.4) rotate(-30deg);opacity:0;filter:blur(10px)} 55%{transform:translateY(-10px) scale(1.1) rotate(3deg);opacity:1;filter:blur(0)} 100%{transform:translateY(0) scale(1) rotate(0);opacity:1} }
-@keyframes comeFromRight { 0%{transform:translateX(150px) rotate(45deg) scale(0.5);opacity:0;filter:blur(8px)} 60%{transform:translateX(-10px) rotate(-5deg) scale(1.1);opacity:1;filter:blur(0)} 100%{transform:translateX(0) rotate(0) scale(1);opacity:1} }
-@keyframes goldShimmer   { 0%{background-position:-200% center} 100%{background-position:200% center} }
-
-.letter-b, .letter-a1, .letter-y, .letter-a2 {
-    background: linear-gradient(90deg, #c9a84c 30%, #f0d98a 50%, #c9a84c 70%);
-    background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: inline-block; opacity: 0;
-}
-.letter-b  { animation: comeFromLeft   0.9s cubic-bezier(0.34,1.56,0.64,1) forwards, goldShimmer 3s linear 1.8s infinite; animation-delay: 0.1s; }
-.letter-a1 { animation: comeFromTop    0.9s cubic-bezier(0.34,1.56,0.64,1) forwards, goldShimmer 3s linear 2.0s infinite; animation-delay: 0.3s; }
-.letter-y  { animation: comeFromBottom 0.9s cubic-bezier(0.34,1.56,0.64,1) forwards, goldShimmer 3s linear 2.2s infinite; animation-delay: 0.5s; }
-.letter-a2 { animation: comeFromRight  0.9s cubic-bezier(0.34,1.56,0.64,1) forwards, goldShimmer 3s linear 2.4s infinite; animation-delay: 0.7s; }
 </style>
 """, unsafe_allow_html=True)
     
@@ -323,13 +276,9 @@ if not st.session_state.logged_in:
 <div style="text-align:center; margin-bottom: 25px;">
 <div style="font-size:60px; filter:drop-shadow(0 0 15px rgba(201,168,76,0.6)); margin-bottom:5px;">⚖️</div>
 <div style="font-size:48px; font-weight:900; letter-spacing:4px; display:flex; justify-content:center; gap:3px; margin-bottom:10px; direction:ltr;">
-<span class="letter-b">B</span>
-<span class="letter-a1">A</span>
-<span class="letter-y">Y</span>
-<span class="letter-a2">A</span>
+<span class="letter-b">B</span><span class="letter-a1">A</span><span class="letter-y">Y</span><span class="letter-a2">A</span>
 </div>
 <div style="color:#e0e0e0; font-size:15px; font-weight:bold;">الجمعية التعاونية الزراعية بالناصرية</div>
-<div style="color:#888; font-size:11px; margin-top:8px;">✦ تم التصميم بواسطة عادل جمعة ✦</div>
 <hr style="border-color: rgba(201,168,76,0.2); margin-top:15px; margin-bottom:10px;">
 </div>
 """, unsafe_allow_html=True)
@@ -342,8 +291,7 @@ if not st.session_state.logged_in:
                 if check_login(username_input, password_input):
                     st.session_state.logged_in = True
                     st.rerun()
-                else:
-                    st.error("❌ بيانات الدخول غير صحيحة، يرجى المحاولة مرة أخرى.")
+                else: st.error("❌ بيانات الدخول غير صحيحة، يرجى المحاولة مرة أخرى.")
     st.stop()
 
 # ==========================================
@@ -406,17 +354,12 @@ def process_kesma_lands(lands, total_f, total_k, total_s):
         f_val, k_val, s_val = l.get("f",0), l.get("k",0), l.get("s",0.0)
         if len(lands) == 1 and f_val == 0 and k_val == 0 and s_val == 0:
             f_val, k_val, s_val = total_f, total_k, total_s
-            
         if len(lands) == 1: plot_title = "قطعة أرض زراعية"
-        else:
-            ord_word = ordinals[idx] if idx < len(ordinals) else str(idx + 1)
-            plot_title = f"القطعة {ord_word}"
-            
+        else: plot_title = f"القطعة {ordinals[idx] if idx < len(ordinals) else str(idx + 1)}"
         processed.append({
             "f": f_val, "k": k_val, "s": format_sahm(s_val), 
             "hod": l.get("hod",""), "n": l.get("n",""), "s_bound": l.get("s_bound",""), 
-            "e": l.get("e",""), "w": l.get("w",""), 
-            "اسم_القطعة": plot_title
+            "e": l.get("e",""), "w": l.get("w",""), "اسم_القطعة": plot_title
         })
     return processed
 
@@ -590,35 +533,43 @@ elif choice == "🔄 الاسترجاع من ملف (Backup)":
         except Exception as e: st.error(f"❌ حدث خطأ في قراءة الملف: تأكد أنه ملف backup_data.json سليم.")
 
 elif choice == "🧮 الحاسبات":
-    _t1, _t2 = st.tabs(["🌾 حاسبة الأراضي", "⚖️ حاسبة المواريث"])
+    _t1, _t2 = st.tabs(["🌾 حاسبة الأراضي المتقدمة", "⚖️ حاسبة المواريث"])
     with _t1:
-        spacer1, main_col, spacer2 = st.columns([1, 2, 1])
+        spacer1, main_col, spacer2 = st.columns([1, 3, 1])
         with main_col:
-            st.markdown("<h4 style='text-align:center;color:#2d5a4e;margin-top:12px'>🌾 حاسبة مساحات الأراضي</h4>", unsafe_allow_html=True)
+            st.markdown("<h4 style='text-align:center;color:#2d5a4e;margin-top:12px'>🌾 حاسبة المساحات المتعددة</h4>", unsafe_allow_html=True)
             st.markdown("---")
-            # تم التبديل لـ selectbox لحل مشكلة الاختفاء
-            calc_op = st.selectbox("نوع العملية:", ["➕ جمع", "➖ طرح"])
-            st.markdown("<b>🌾 المساحة الأولى:</b>", unsafe_allow_html=True)
-            c_s1, c_k1, c_f1 = st.columns(3)
-            with c_f1: val_f1 = st.number_input("فدان", min_value=0, step=1, key="cf1")
-            with c_k1: val_k1 = st.number_input("قيراط", min_value=0, max_value=23, step=1, key="ck1")
-            with c_s1: val_s1 = st.number_input("سهم", min_value=0.0, max_value=23.99, step=0.5, key="cs1")
-            st.markdown("<b>🌾 المساحة الثانية:</b>", unsafe_allow_html=True)
-            c_s2, c_k2, c_f2 = st.columns(3)
-            with c_f2: val_f2 = st.number_input("فدان", min_value=0, step=1, key="cf2")
-            with c_k2: val_k2 = st.number_input("قيراط", min_value=0, max_value=23, step=1, key="ck2")
-            with c_s2: val_s2 = st.number_input("سهم", min_value=0.0, max_value=23.99, step=0.5, key="cs2")
-            st.write("")
-            if st.button("🧮 احسب الناتج", use_container_width=True, type="primary"):
-                tot1 = (val_f1 * 24 * 24) + (val_k1 * 24) + val_s1
-                tot2 = (val_f2 * 24 * 24) + (val_k2 * 24) + val_s2
-                res = tot1 + tot2 if "جمع" in calc_op else tot1 - tot2
-                if res < 0: st.error("⚠️ المساحة المطروحة أكبر من المساحة الأساسية!")
+            
+            c_op, c_num = st.columns(2)
+            with c_op: calc_op = st.selectbox("نوع العملية:", ["➕ جمع مساحات", "➖ طرح مساحات"])
+            with c_num: num_areas = st.number_input("عدد المساحات المراد حسابها:", min_value=2, max_value=10, value=2, step=1)
+            
+            st.markdown("---")
+            total_sahms = 0
+            
+            for i in range(num_areas):
+                st.markdown(f"<b>🌾 المساحة رقم {i+1}:</b>", unsafe_allow_html=True)
+                c_s, c_k, c_f = st.columns(3)
+                with c_f: f_val = st.number_input("فدان", min_value=0, step=1, key=f"cf_{i}")
+                with c_k: k_val = st.number_input("قيراط", min_value=0, step=1, key=f"ck_{i}")
+                with c_s: s_val = st.number_input("سهم", min_value=0.0, step=0.5, key=f"cs_{i}")
+                
+                current_sahms = (f_val * 24 * 24) + (k_val * 24) + s_val
+                
+                if "جمع" in calc_op:
+                    total_sahms += current_sahms
                 else:
-                    f_res = int(res // (24 * 24))
-                    k_res = int((res % (24 * 24)) // 24)
-                    s_res = format_sahm(round(res % 24, 2))
-                    st.markdown("<div style='text-align:center;color:#2d5a4e;font-weight:bold;'>النتيجة الصافية</div>", unsafe_allow_html=True)
+                    if i == 0: total_sahms = current_sahms
+                    else: total_sahms -= current_sahms
+            
+            st.write("")
+            if st.button("🧮 احسب الناتج النهائي", use_container_width=True, type="primary"):
+                if total_sahms < 0: st.error("⚠️ خطأ: المساحة المطروحة أكبر من المساحة الأساسية الأولى!")
+                else:
+                    f_res = int(total_sahms // (24 * 24))
+                    k_res = int((total_sahms % (24 * 24)) // 24)
+                    s_res = format_sahm(round(total_sahms % 24, 2))
+                    st.markdown("<div style='text-align:center;color:#2d5a4e;font-weight:bold;'>صافي المساحة (آلياً)</div>", unsafe_allow_html=True)
                     st.markdown(f"""
                     <div class="calc-result-container">
                         <div class="calc-box"><div class="calc-top">ف</div><div class="calc-bottom">{f_res}</div></div>
@@ -688,11 +639,17 @@ elif choice == "📝 منظومة عقود البيع":
             with st.expander(f"👤 بيانات البائع رقم {i+1}: {s.get('name','')}", expanded=True):
                 s["name"] = st.text_input(f"الاسم", value=s.get("name", ""), key=f"s_name_{i}")
                 c1, c2 = st.columns(2)
-                with c1: s["id"] = st.text_input(f"الرقم القومي", value=s.get("id", ""), key=f"s_id_{i}")
+                with c1: 
+                    s["id"] = st.text_input(f"الرقم القومي", value=s.get("id", ""), key=f"s_id_{i}")
+                    calc_s_age = get_age_from_id(s["id"])
+                    if calc_s_age and s.get("_last_id") != s["id"]:
+                        st.session_state[f"s_age_{i}"] = calc_s_age
+                        s["age"] = calc_s_age
+                        s["_last_id"] = s["id"]
                 with c2: s["job"] = st.text_input(f"المهنة", value=s.get("job", ""), key=f"s_job_{i}")
-                calc_s_age = get_age_from_id(s.get("id", ""))
+                
                 c3, c4 = st.columns(2)
-                with c3: s["age"] = st.text_input("السن", value=calc_s_age if calc_s_age else s.get("age", ""), key=f"s_age_{i}")
+                with c3: s["age"] = st.text_input("السن", value=s.get("age", ""), key=f"s_age_{i}")
                 with c4: s["id_date"] = st.date_input("تاريخ إصدار البطاقة", value=parse_date_safe(s.get("id_date")), key=f"s_date_{i}").isoformat()
                 s["address"] = st.text_input(f"العنوان", value=s.get("address", ""), key=f"s_addr_{i}")
                 if len(fd["sellers"]) > 1:
@@ -721,11 +678,17 @@ elif choice == "📝 منظومة عقود البيع":
             with st.expander(f"👤 بيانات المشتري رقم {i+1}: {b.get('name','')}", expanded=True):
                 b["name"] = st.text_input(f"الاسم ", value=b.get("name", ""), key=f"b_name_{i}")
                 c5, c6 = st.columns(2)
-                with c5: b["id"] = st.text_input(f"الرقم القومي ", value=b.get("id", ""), key=f"b_id_{i}")
+                with c5: 
+                    b["id"] = st.text_input(f"الرقم القومي ", value=b.get("id", ""), key=f"b_id_{i}")
+                    calc_b_age = get_age_from_id(b["id"])
+                    if calc_b_age and b.get("_last_id") != b["id"]:
+                        st.session_state[f"b_age_{i}"] = calc_b_age
+                        b["age"] = calc_b_age
+                        b["_last_id"] = b["id"]
                 with c6: b["job"] = st.text_input(f"المهنة ", value=b.get("job", ""), key=f"b_job_{i}")
-                calc_b_age = get_age_from_id(b.get("id", ""))
+                
                 c7, c8 = st.columns(2)
-                with c7: b["age"] = st.text_input("السن", value=calc_b_age if calc_b_age else b.get("age", ""), key=f"b_age_{i}")
+                with c7: b["age"] = st.text_input("السن", value=b.get("age", ""), key=f"b_age_{i}")
                 with c8: b["id_date"] = st.date_input("تاريخ الإصدار ", value=parse_date_safe(b.get("id_date")), key=f"b_date_{i}").isoformat()
                 b["address"] = st.text_input(f"العنوان ", value=b.get("address", ""), key=f"b_addr_{i}")
                 if len(fd["buyers"]) > 1:
@@ -744,7 +707,6 @@ elif choice == "📝 منظومة عقود البيع":
     st.markdown('<div class="premium-header">🌾 بيانات المساحة والحدود المبيعة</div>', unsafe_allow_html=True)
     sc_txt, sc_s, sc_k, sc_f = st.columns([3, 1, 1, 1])
     
-    # تفقيط مساحة البيع تلقائياً
     auto_sell_txt = tafqeet_area(fd.get("sell_f",0), fd.get("sell_k",0), fd.get("sell_s",0.0))
     
     with sc_txt: fd["sell_txt"] = st.text_input("المساحة بالحروف", value=auto_sell_txt)
@@ -825,7 +787,6 @@ elif choice == "🤝 منظومة القسمة الرضائية":
     if "main_lands" not in kd: kd["main_lands"] = [{"f": 0, "k": 0, "s": 0.0, "hod": "", "n": "", "s_bound": "", "e": "", "w": ""}]
     
     st.markdown("---")
-    # جعل قسم المورث بالكامل داخل expander كبير مطوي تلقائياً لراحة العين
     moraث_display_name = kd.get("moraث", "") or "(لم يحدد بعد)"
     with st.expander(f"👨‍🦳 بيانات المورث والتركة وإعلام الوراثة | المورث الحالي: {moraث_display_name}", expanded=False):
         c1, c2, c3 = st.columns(3)
@@ -867,10 +828,6 @@ elif choice == "🤝 منظومة القسمة الرضائية":
         if st.button("➕ إضافة قطعة أرض أخرى للمورث", use_container_width=True): kd["main_lands"].append({"f": 0, "k": 0, "s": 0.0, "hod": "", "n": "", "s_bound": "", "e": "", "w": ""}); st.rerun()
 
     st.markdown("---")
-    # ---------------------------
-    # حساب الإجمالي الحي للمساحات الموزعة والتحقق
-    # ---------------------------
-    # الجمع بيتم من مساحات الاختصاص فقط (total_f, total_k, total_s)
     total_part_sahm = sum((p.get("total_f", 0)*24*24) + (p.get("total_k", 0)*24) + float(p.get("total_s", 0.0)) for p in kd["partitioners"])
     total_inh_sahm = (kd.get("total_f", 0)*24*24) + (kd.get("total_k", 0)*24) + float(kd.get("total_s", 0.0))
 
@@ -878,7 +835,6 @@ elif choice == "🤝 منظومة القسمة الرضائية":
     calc_k = int((total_part_sahm % (24*24)) // 24)
     calc_s = format_sahm(round(total_part_sahm % 24, 2))
 
-    # تصميم العرض في 3 مربعات (ف - ط - س)
     st.markdown(f'''
     <div class="premium-header" style="display: flex !important; justify-content: space-between !important; align-items: center; padding: 8px 20px;">
         <span style="font-size: 20px;">👥 بيانات المتقاسمين (الورثة)</span>
@@ -902,7 +858,6 @@ elif choice == "🤝 منظومة القسمة الرضائية":
     </div>
     ''', unsafe_allow_html=True)
     
-    # رسائل التحقق (Validation)
     if total_inh_sahm > 0:
         diff = total_inh_sahm - total_part_sahm
         if abs(diff) < 0.01:
@@ -912,9 +867,6 @@ elif choice == "🤝 منظومة القسمة الرضائية":
         else:
             st.error(f"❌ تحذير أحمر: المساحة الموزعة تخطت التركة الأساسية! (المساحة الزائدة: {format_sahm(round(abs(diff),2))} سهم)")
 
-    # ---------------------------
-    # إعدادات الحدود السريعة
-    # ---------------------------
     st.markdown('<div class="info-header">📌 إعدادات الحدود السريعة للقطع الجديدة</div>', unsafe_allow_html=True)
     use_fixed_bounds = st.checkbox("تثبيت حدود افتراضية لأي قطعة يتم إضافتها؟", key="use_fb")
     if use_fixed_bounds:
@@ -926,9 +878,6 @@ elif choice == "🤝 منظومة القسمة الرضائية":
     else:
         default_n = default_s_bound = default_e = default_w = ""
 
-    # ---------------------------
-    # عرض الورثة مع الألوان والتفقيط
-    # ---------------------------
     colors = ["🔵", "🟢", "🟠", "🟣", "🟤", "🔴", "🟡"]
     for p_idx, p in enumerate(kd["partitioners"]):
         color_icon = colors[p_idx % len(colors)]
@@ -941,11 +890,17 @@ elif choice == "🤝 منظومة القسمة الرضائية":
                     st.markdown("</div>", unsafe_allow_html=True)
             p_c1, p_c2 = st.columns(2)
             with p_c1: p["name"] = st.text_input("اسم المتقاسم", value=p.get("name",""), key=f"pk_name_{p_idx}")
-            with p_c2: p["nat_id"] = st.text_input("الرقم القومي", value=p.get("nat_id",""), key=f"pk_id_{p_idx}")
+            with p_c2: 
+                p["nat_id"] = st.text_input("الرقم القومي", value=p.get("nat_id",""), key=f"pk_id_{p_idx}")
+                calc_age = get_age_from_id(p["nat_id"])
+                if calc_age and p.get("_last_id") != p["nat_id"]:
+                    st.session_state[f"pk_age_{p_idx}"] = calc_age
+                    p["age"] = calc_age
+                    p["_last_id"] = p["nat_id"]
+                    
             p_c3, p_c4, p_c5 = st.columns(3)
             with p_c3: p["job"] = st.text_input("المهنة", value=p.get("job",""), key=f"pk_job_{p_idx}")
-            calc_age = get_age_from_id(p.get("nat_id",""))
-            with p_c4: p["age"] = st.text_input("السن "+" "*p_idx, value=calc_age if calc_age else p.get("age",""))
+            with p_c4: p["age"] = st.text_input("السن", value=p.get("age",""), key=f"pk_age_{p_idx}")
             with p_c5: p["nat_id_date"] = st.date_input("تاريخ البطاقة", value=parse_date_safe(p.get("nat_id_date")), key=f"pk_date_{p_idx}").isoformat()
             p["address"] = st.text_input("العنوان", value=p.get("address",""), key=f"pk_add_{p_idx}")
             
@@ -962,7 +917,6 @@ elif choice == "🤝 منظومة القسمة الرضائية":
             with a2: p["total_k"] = st.number_input("قيراط اختصاص", min_value=0, max_value=23, step=1, value=int(p.get("total_k",0)), key=f"pt_k_{p_idx}")
             with a3: p["total_f"] = st.number_input("فدان اختصاص", min_value=0, step=1, value=int(p.get("total_f",0)), key=f"pt_f_{p_idx}")
             
-            # التفقيط الآلي يقرأ من المدخلات ويجهز القيمة للـ text_input
             auto_p_txt = tafqeet_area(p.get("total_f",0), p.get("total_k",0), p.get("total_s",0.0))
             p["total_txt"] = st.text_input("المساحة الإجمالية بالحروف (مكتوبة آلياً ويمكنك تعديلها)", value=auto_p_txt, key=f"pt_txt_{p_idx}")
             
@@ -987,7 +941,6 @@ elif choice == "🤝 منظومة القسمة الرضائية":
                 with b4: l["w"] = st.text_input("الحد الغربي", value=l.get("w",""), key=f"plw_{p_idx}_{l_idx}")
                 st.write("---")
             if st.button(f"➕ إضافة قطعة أخرى لـ {p.get('name','') or 'هذا المتقاسم'}", key=f"add_l_{p_idx}", use_container_width=True): 
-                # تطبيق الحدود الموحدة بشكل آلي هنا
                 p["lands"].append({"f": 0, "k": 0, "s": 0.0, "hod": "", "n": default_n, "s_bound": default_s_bound, "e": default_e, "w": default_w})
                 st.rerun()
 
