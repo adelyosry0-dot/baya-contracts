@@ -6,12 +6,15 @@ import os
 import json
 import zipfile
 from io import BytesIO
-from datetime import date
+from datetime import date, timedelta
+
 import inheritance_calc
 import register_services
 import reports_manager
 import home_page
 import navbar
+from core.helpers import get_age_from_id, tafqeet_area, tafqeet_money, format_sahm, parse_date_safe, format_custom_date, shorten_name
+from core.database import init_db, save_to_db, update_in_db, delete_from_db, check_login, update_credentials
 
 # ==========================================
 # 1. إعدادات الصفحة والتصميم CSS
@@ -28,12 +31,10 @@ CSS_STYLE = """
     }
     .stMarkdown p { text-align: right !important; direction: rtl !important; }
 
-    /* إخفاء جملة Press Enter to apply بالكامل */
     div[data-testid="InputInstructions"] {
         display: none !important;
     }
 
-    /* أنيميشنات تسجيل الدخول */
     @keyframes comeFromLeft  { 0%{transform:translateX(-200px) rotate(-30deg) scale(0.5);opacity:0;filter:blur(8px)} 60%{transform:translateX(15px) rotate(3deg) scale(1.05);opacity:1;filter:blur(0)} 100%{transform:translateX(0) rotate(0) scale(1);opacity:1} }
     @keyframes comeFromTop   { 0%{transform:translateY(-200px) scale(0.4) rotate(20deg);opacity:0;filter:blur(10px)} 55%{transform:translateY(12px) scale(1.08) rotate(-2deg);opacity:1;filter:blur(0)} 100%{transform:translateY(0) scale(1) rotate(0);opacity:1} }
     @keyframes comeFromBottom{ 0%{transform:translateY(200px) scale(0.4) rotate(-20deg);opacity:0;filter:blur(10px)} 55%{transform:translateY(-12px) scale(1.08) rotate(2deg);opacity:1;filter:blur(0)} 100%{transform:translateY(0) scale(1) rotate(0);opacity:1} }
@@ -54,7 +55,6 @@ CSS_STYLE = """
     .stFormSubmitButton button { position:relative; overflow:hidden; transition:all 0.4s cubic-bezier(0.22,1,0.36,1) !important; }
     .stFormSubmitButton button::after { content:''; position:absolute; top:-50%; left:-75%; width:50%; height:200%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent); transform:skewX(-20deg); animation:shimmerBtn 3s ease-in-out 2s infinite; }
 
-    /* حقول الإدخال */
     .stTextInput input:hover,.stNumberInput input:hover,.stTextArea textarea:hover {
         border-color:#c9a84c !important; box-shadow:0 0 8px rgba(201,168,76,0.25) !important; background-color:#fdfbf7 !important;
     }
@@ -64,23 +64,45 @@ CSS_STYLE = """
     .delete-btn button { background-color:#ffebee !important; color:#cc0000 !important; border:1px solid #ffcdd2 !important; }
     .delete-btn button:hover { background-color:#ffcdd2 !important; border-color:#cc0000 !important; }
 
-    /* headers */
     .premium-header { background:linear-gradient(90deg,#f7f3ee 0%,#ffffff 100%); padding:12px 20px; border-right:5px solid #c9a84c; margin:15px 0 20px; color:#1e3d2f !important; font-weight:800; font-size:22px; display:block !important; text-align:right !important; direction:rtl !important; width:100% !important; transition:transform 0.3s ease; position:relative; overflow:hidden; }
     .premium-header:hover { transform:translateX(-3px); }
     .info-header { background-color:#eef6f1; padding:10px 15px; border-right:4px solid #2d5a4e; border-radius:5px; color:#1e3d2f !important; font-weight:600; margin:15px 0; transition:all 0.3s ease; display:block !important; text-align:right !important; direction:rtl !important; width:100% !important; }
     .info-header:hover { background-color:#ddf0e6; transform:translateX(-2px); }
 
-    /* expanders */
     div[data-testid="stExpander"]:nth-child(1n) summary { border-right:5px solid #2d5a4e !important; background-color:#f0f7f4 !important; }
     div[data-testid="stExpander"]:nth-child(2n) summary { border-right:5px solid #c9a84c !important; background-color:#fdf8ed !important; }
     div[data-testid="stExpander"]:nth-child(3n) summary { border-right:5px solid #7b9e87 !important; background-color:#f2f7f4 !important; }
     div[data-testid="stExpander"]:nth-child(4n) summary { border-right:5px solid #a0522d !important; background-color:#faf4ef !important; }
 
-    /* حاسبة */
     .calc-result-container { display:flex; justify-content:center; gap:15px; margin:15px 0 20px; direction:ltr; }
     .calc-box { background:#fff; border:2px solid #2d5a4e; border-radius:12px; width:70px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 4px 6px rgba(0,0,0,0.08); }
     .calc-top { background:#2d5a4e; color:#c9a84c; font-weight:900; font-size:22px; text-align:center; padding:5px 0; }
     .calc-bottom { color:#1e3d2f; font-weight:800; font-size:20px; text-align:center; padding:10px 0; background:#f7f3ee; }
+    
+    .main-card {
+        background-color: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: 1px solid #e0e0e0; transition: all 0.3s ease-in-out; text-align: center; height: 100%;
+    }
+    .main-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(201,168,76,0.2); border-color: #c9a84c; }
+    .main-card h3 { color: #1e3d2f !important; font-weight: bold; font-size: 18px; margin-bottom: 5px;}
+    .main-card p { color: #666 !important; font-size: 13px; margin:0;}
+
+    .stat-box {
+        background-color: #f4f8f6; border-radius: 10px; padding: 15px; text-align: center;
+        border: 1px solid #d1e7dd; transition: transform 0.2s ease;
+    }
+    .stat-box:hover { transform: scale(1.03); }
+    .stat-box h2 { color: #2d5a4e !important; margin: 0; font-size: 32px; font-weight: 900;}
+    .stat-box p { color: #555 !important; margin: 0; font-size: 14px; font-weight: bold;}
+
+    .badge-sale {
+        background-color: #d1e7dd; color: #0f5132 !important; padding: 4px 10px; border-radius: 6px;
+        font-weight: 900; font-size: 12px; border: 1px solid #badbcc; display: inline-block;
+    }
+    .badge-kesma {
+        background-color: #fff3cd; color: #856404 !important; padding: 4px 10px; border-radius: 6px;
+        font-weight: 900; font-size: 12px; border: 1px solid #ffeeba; display: inline-block;
+    }
 </style>
 """
 st.markdown(CSS_STYLE, unsafe_allow_html=True)
@@ -96,153 +118,10 @@ folders_to_create = [
 for folder in folders_to_create:
     if not os.path.exists(folder): os.makedirs(folder)
 
-def get_age_from_id(nat_id):
-    if not nat_id: return ""
-    nat_id = str(nat_id).strip()
-    if len(nat_id) == 14 and nat_id.isdigit():
-        century_code = int(nat_id[0])
-        if century_code == 2: year = 1900 + int(nat_id[1:3])
-        elif century_code == 3: year = 2000 + int(nat_id[1:3])
-        else: return ""
-        month = int(nat_id[3:5])
-        day = int(nat_id[5:7])
-        try:
-            birth_date = date(year, month, day)
-            today = date.today()
-            age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
-            return str(age)
-        except ValueError: return ""
-    return ""
-
-def tafqeet_area(f, k, s):
-    def num_to_word(n, unit_name):
-        units = ["", "واحد", "اثنان", "ثلاثة", "أربعة", "خمسة", "ستة", "سبعة", "ثمانية", "تسعة", "عشرة"]
-        teens = ["", "أحد عشر", "اثنا عشر", "ثلاثة عشر", "أربعة عشر", "خمسة عشر", "ستة عشر", "سبعة عشر", "ثمانية عشر", "تسعة عشر"]
-        tens = ["", "عشرة", "عشرون", "ثلاثون", "أربعون", "خمسون", "ستون", "سبعون", "ثمانون", "تسعون"]
-        
-        if n <= 10: word = units[n]
-        elif 11 <= n <= 19: word = teens[n-10]
-        else:
-            t = n // 10
-            u = n % 10
-            if u == 0: word = tens[t]
-            elif u == 1: word = f"واحد و{tens[t]}"
-            elif u == 2: word = f"اثنان و{tens[t]}"
-            else: word = f"{units[u]} و{tens[t]}"
-        
-        if unit_name == 'f':
-            if n == 1: return "فدان واحد"
-            if n == 2: return "فدانان"
-            if 3 <= n <= 10: return f"{word} أفدنة"
-            return f"{word} فداناً"
-        elif unit_name == 'k':
-            if n == 1: return "قيراط واحد"
-            if n == 2: return "قيراطان"
-            if 3 <= n <= 10: return f"{word} قراريط"
-            return f"{word} قيراطاً"
-        elif unit_name == 's':
-            if n == 1: return "سهم واحد"
-            if n == 2: return "سهمان"
-            if 3 <= n <= 10: return f"{word} أسهم"
-            return f"{word} سهماً"
-        return ""
-
-    parts = []
-    f_int = int(float(f))
-    k_int = int(float(k))
-    s_val = float(s)
-    s_int = int(s_val)
-    s_frac = s_val - s_int
-
-    if f_int > 0: parts.append(num_to_word(f_int, 'f'))
-    if k_int > 0: parts.append(num_to_word(k_int, 'k'))
-    if s_int > 0 or s_frac > 0:
-        if s_int > 0:
-            s_str = num_to_word(s_int, 's')
-            if s_frac == 0.5: s_str += " ونصف"
-            elif s_frac == 0.25: s_str += " وربع"
-            elif s_frac == 0.75: s_str += " وثلاثة أرباع"
-            parts.append(s_str)
-        else:
-            if s_frac == 0.5: parts.append("نصف سهم")
-            elif s_frac == 0.25: parts.append("ربع سهم")
-            elif s_frac == 0.75: parts.append("ثلاثة أرباع سهم")
-            else: parts.append(f"{s_frac} سهم") 
-
-    if not parts: return "صفر"
-    return " و ".join(parts) + " فقط لا غير"
-
-def init_db():
-    conn = sqlite3.connect('contracts_database.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS archive (id INTEGER PRIMARY KEY AUTOINCREMENT, contract_date TEXT, seller_name TEXT, buyer_name TEXT, raw_data TEXT)''')
-    c.execute('''CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)''')
-    c.execute("SELECT COUNT(*) FROM users")
-    if c.fetchone()[0] == 0:
-        c.execute("INSERT INTO users (username, password) VALUES ('admin', '12345')")
-    conn.commit(); conn.close()
-
-def save_to_db(date_val, seller, buyer, raw_json):
-    conn = sqlite3.connect('contracts_database.db')
-    c = conn.cursor()
-    c.execute('INSERT INTO archive (contract_date, seller_name, buyer_name, raw_data) VALUES (?, ?, ?, ?)', (date_val, seller, buyer, raw_json))
-    conn.commit(); conn.close()
-
-def update_in_db(record_id, date_val, seller, buyer, raw_json):
-    conn = sqlite3.connect('contracts_database.db')
-    c = conn.cursor()
-    c.execute('UPDATE archive SET contract_date=?, seller_name=?, buyer_name=?, raw_data=? WHERE id=?', (date_val, seller, buyer, raw_json, record_id))
-    conn.commit(); conn.close()
-
-def delete_from_db(record_id):
-    conn = sqlite3.connect('contracts_database.db')
-    c = conn.cursor()
-    c.execute('DELETE FROM archive WHERE id=?', (record_id,))
-    conn.commit(); conn.close()
-
-def check_login(username, password):
-    conn = sqlite3.connect('contracts_database.db')
-    c = conn.cursor()
-    c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
-    user = c.fetchone()
-    conn.close()
-    return user is not None
-
-def update_credentials(new_user, new_pass):
-    conn = sqlite3.connect('contracts_database.db')
-    c = conn.cursor()
-    c.execute("UPDATE users SET username=?, password=? WHERE id=1", (new_user, new_pass))
-    conn.commit(); conn.close()
-
 init_db()
 
-def format_sahm(s): return int(s) if s == int(s) else s
-
-def parse_date_safe(d_val):
-    if not d_val: return date.today()
-    try: return date.fromisoformat(d_val)
-    except: return date.today()
-
-def format_custom_date(iso_str, mode="full"):
-    if not iso_str: return ""
-    try:
-        d = date.fromisoformat(iso_str)
-        if mode == "my": return f"{d.month}/{d.year}" 
-        if mode == "short": return f"{d.day}/{d.month}/{d.year}"
-        days_ar = ["الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
-        day_name = days_ar[d.weekday()]
-        return f"{day_name} الموافق {d.day}/{d.month}/{d.year}"
-    except: return iso_str
-
-def shorten_name(full_name, limit=3):
-    if not full_name: return ""
-    clean = full_name.replace("/", " ").replace("\\", " ").strip()
-    words = clean.split()
-    if "ورثة" in words or "المرحوم" in words: return " ".join(words[:limit+2])
-    return " ".join(words[:limit])
-
 # ==========================================
-# 3. بوابة الدخول (Login Gate & Animation)
+# 3. بوابة الدخول (Login Gate)
 # ==========================================
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 
@@ -295,7 +174,7 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ==========================================
-# 4. إدارة حالة البيانات الافتراضية
+# 4. إدارة حالة البيانات الافتراضية والمسح
 # ==========================================
 today_iso = date.today().isoformat()
 
@@ -305,8 +184,8 @@ def get_empty_sale():
         "sellers": [{"name": "", "id": "", "address": "", "id_date": today_iso, "job": "", "age": ""}], 
         "buyers": [{"name": "", "id": "", "address": "", "id_date": today_iso, "job": "", "age": ""}], 
         "lands": [{"f": 0, "k": 0, "s": 0.0, "hod": "", "n": "", "s_bound": "", "e": "", "w": ""}],
-        "is_heirs_s": False, "moraث_s": "", "s_morath_case_num": "", "s_morath_year": "", "s_morath_date": today_iso, "s_hayaza_no": "", "s_total_f": 0, "s_total_k": 0, "s_total_s": 0.0, "ayloula": "",
-        "is_heirs_b": False, "moraث_b": "", "b_morath_case_num": "", "b_morath_year": "", "b_morath_date": today_iso, "b_hayaza_no": "", "b_total_f": 0, "b_total_k": 0, "b_total_s": 0.0, 
+        "is_heirs_s": False, "moraث_s": "", "s_heirs_address": "", "s_morath_case_num": "", "s_morath_year": "", "s_morath_date": today_iso, "s_hayaza_no": "", "s_total_f": 0, "s_total_k": 0, "s_total_s": 0.0, "ayloula": "",
+        "is_heirs_b": False, "moraث_b": "", "b_heirs_address": "", "b_morath_case_num": "", "b_morath_year": "", "b_morath_date": today_iso, "b_hayaza_no": "", "b_total_f": 0, "b_total_k": 0, "b_total_s": 0.0, 
         "sell_f": 0, "sell_k": 0, "sell_s": 0.0, "sell_txt": "", "price_num": "", "price_txt": "", 
         "has_penalty": True, "penalty_num": "", "penalty_txt": "", "c_date": today_iso, "t_date": today_iso
     }
@@ -319,29 +198,62 @@ def get_empty_kesma():
     }
 
 def reset_form():
+    safe_keys = ['logged_in', 'active_menu', 'dark_mode', '_navbar_radio']
+    saved_state = {k: st.session_state[k] for k in safe_keys if k in st.session_state}
+    
+    st.session_state.clear()
+    
+    for k, v in saved_state.items():
+        st.session_state[k] = v
+        
     st.session_state.sale_data = get_empty_sale()
     st.session_state.kesma_data = get_empty_kesma()
     st.session_state.current_archive_id = None
     st.session_state.loaded_doc_type = None
-    if 'zip_data' in st.session_state: del st.session_state['zip_data']
 
-if 'sale_data' not in st.session_state: reset_form()
-
+if 'sale_data' not in st.session_state:
+    st.session_state.sale_data = get_empty_sale()
+if 'kesma_data' not in st.session_state:
+    st.session_state.kesma_data = get_empty_kesma()
+if 'current_archive_id' not in st.session_state:
+    st.session_state.current_archive_id = None
+if 'loaded_doc_type' not in st.session_state:
+    st.session_state.loaded_doc_type = None
 def load_from_archive(record_id, json_str):
     loaded_data = json.loads(json_str)
     doc_type = loaded_data.get("doc_type")
     if not doc_type:
         if "partitioners" in loaded_data or "moraث" in loaded_data: doc_type = "kesma"; loaded_data["doc_type"] = "kesma"
         else: doc_type = "sale"; loaded_data["doc_type"] = "sale"
+        
+    safe_keys = ['logged_in', 'active_menu', 'dark_mode', '_navbar_radio']
+    saved_state = {k: st.session_state[k] for k in safe_keys if k in st.session_state}
+    
+    st.session_state.clear()
+    
+    for k, v in saved_state.items():
+        st.session_state[k] = v
+
+    # السطرين الجداد لتأمين الذاكرة قبل وضع البيانات
+    st.session_state.sale_data = get_empty_sale()
+    st.session_state.kesma_data = get_empty_kesma()
+
     if doc_type == "sale":
         for key in ["sellers", "buyers"]:
             if loaded_data.get(key) and isinstance(loaded_data[key][0], str):
                 loaded_data[key] = [{"name": n, "id": "", "address": "", "id_date": today_iso, "job": "", "age": ""} for n in loaded_data[key]]
+                
     st.session_state.current_archive_id = record_id
     st.session_state.loaded_doc_type = doc_type  
-    if 'zip_data' in st.session_state: del st.session_state['zip_data']
-    if doc_type == "kesma": st.session_state.kesma_data = loaded_data; st.session_state.active_menu = "🤝 منظومة القسمة الرضائية"
-    else: st.session_state.sale_data = loaded_data; st.session_state.active_menu = "📝 منظومة عقود البيع"
+    
+    if doc_type == "kesma": 
+        st.session_state.kesma_data = loaded_data
+        st.session_state.active_menu = "🤝 منظومة القسمة الرضائية"
+        if "_navbar_radio" in st.session_state: st.session_state["_navbar_radio"] = "🤝 قسمة"
+    else: 
+        st.session_state.sale_data = loaded_data
+        st.session_state.active_menu = "📝 منظومة عقود البيع"
+        if "_navbar_radio" in st.session_state: st.session_state["_navbar_radio"] = "📝 بيع"
 
 # ==========================================
 # 5. دوال تجهيز وبناء الوثائق
@@ -372,45 +284,109 @@ def process_lands(lands, sell_f, sell_k, sell_s):
         if len(lands) == 1 and f_val == 0 and k_val == 0 and s_val == 0:
             f_val, k_val, s_val = sell_f, sell_k, sell_s
         plot_title = "قطعة أرض زراعية" if len(lands) == 1 else f"القطعة {ordinals[idx] if idx < len(ordinals) else str(idx + 1)}"
+        ordinal_word = ordinals[idx] if idx < len(ordinals) else str(idx + 1)
         processed.append({
             "f": f_val, "k": k_val, "s": format_sahm(s_val), 
             "hod": l.get("hod",""), "n": l.get("n",""), "s_bound": l.get("s_bound",""), 
-            "e": l.get("e",""), "w": l.get("w",""), "اسم_القطعة": plot_title
+            "e": l.get("e",""), "w": l.get("w",""), "اسم_القطعة": plot_title,
+            "ترتيب": ordinal_word
         })
     return processed
 
 def build_sale_context(fd):
-    final_seller = f"ورثة المرحوم / {fd['moraث_s']}" if fd.get("is_heirs_s") else (fd["sellers"][0]['name'] if fd["sellers"] else "")
-    final_buyer = f"ورثة المرحوم / {fd['moraث_b']}" if fd.get("is_heirs_b") else (fd["buyers"][0]['name'] if fd["buyers"] else "")
+    s1 = fd["sellers"][0] if fd.get("sellers") else {}
+    b1 = fd["buyers"][0] if fd.get("buyers") else {}
+
+    # تجهيز البائع
+    if fd.get("is_heirs_s"):
+        sellers_names = " - ".join([s.get('name', '') for s in fd.get("sellers", []) if s.get('name', '')])
+        sellers_ids = " - ".join([s.get('id', '') for s in fd.get("sellers", []) if s.get('id', '')])
+        moraث_s = fd.get("moraث_s", "")
+        
+        # الاسم العادي اللي هيظهر في باقي القوالب
+        final_seller = f"ورثة المرحوم / {moraث_s}"
+        final_s_address = fd.get("s_heirs_address", "")
+        final_s_id = sellers_ids
+        
+        # صيغة الاستجواب المخصصة في حالة الورثة
+        dibaga_seller = f"نحن ورثة المرحوم / {moraث_s} وأسماؤنا: ({sellers_names}) ومقيمون {final_s_address}"
+    else:
+        final_seller = s1.get('name', '')
+        final_s_address = s1.get('address', '')
+        final_s_id = s1.get('id', '')
+        
+        # صيغة الاستجواب المخصصة في حالة الفردي
+        s_age = s1.get('age', '')
+        s_job = s1.get('job', '')
+        dibaga_seller = f"اسمي / {final_seller} – {s_age} عام – {s_job} – ويقيم {final_s_address}"
+
+    # تجهيز المشتري
+    if fd.get("is_heirs_b"):
+        buyers_names = " - ".join([b.get('name', '') for b in fd.get("buyers", []) if b.get('name', '')])
+        buyers_ids = " - ".join([b.get('id', '') for b in fd.get("buyers", []) if b.get('id', '')])
+        moraث_b = fd.get("moraث_b", "")
+        
+        # الاسم العادي
+        final_buyer = f"ورثة المرحوم / {moraث_b}"
+        final_b_address = fd.get("b_heirs_address", "")
+        final_b_id = buyers_ids
+        
+        # صيغة الاستجواب المخصصة في حالة الورثة
+        dibaga_buyer = f"نحن ورثة المرحوم / {moraث_b} وأسماؤنا: ({buyers_names}) ومقيمون {final_b_address}"
+    else:
+        final_buyer = b1.get('name', '')
+        final_b_address = b1.get('address', '')
+        final_b_id = b1.get('id', '')
+        
+        # صيغة الاستجواب المخصصة في حالة الفردي
+        b_age = b1.get('age', '')
+        b_job = b1.get('job', '')
+        dibaga_buyer = f"اسمي / {final_buyer} – {b_age} عام – {b_job} – ويقيم {final_b_address}"
+
     formatted_sellers = []
-    for s in fd["sellers"]:
+    for s in fd.get("sellers", []):
         s_copy = s.copy()
         s_copy["id_date"] = format_custom_date(s.get("id_date"), "my")
         formatted_sellers.append(s_copy)
+        
     formatted_buyers = []
-    for b in fd["buyers"]:
+    for b in fd.get("buyers", []):
         b_copy = b.copy()
         b_copy["id_date"] = format_custom_date(b.get("id_date"), "my")
         formatted_buyers.append(b_copy)
-    s1 = fd["sellers"][0] if fd["sellers"] else {}
-    b1 = fd["buyers"][0] if fd["buyers"] else {}
-    
+        
     return {
         "sellers": formatted_sellers, "buyers": formatted_buyers,
-        "اسم_البائع": final_seller, "رقم_بطاقة_البائع": s1.get("id", ""), "عنوان_البائع": s1.get("address", ""), "مهنة_البائع": s1.get("job", ""), "سن_البائع": s1.get("age", ""), "تاريخ_إصدار_بطاقة_البائع": format_custom_date(s1.get("id_date"), "my"),
-        "اسم_المشتري": final_buyer, "رقم_بطاقة_المشتري": b1.get("id", ""), "عنوان_المشتري": b1.get("address", ""), "مهنة_المشتري": b1.get("job", ""), "سن_المشتري": b1.get("age", ""), "تاريخ_إصدار_بطاقة_المشتري": format_custom_date(b1.get("id_date"), "my"),
+        "moraث_s": fd.get("moraث_s", ""),
+        "moraث_b": fd.get("moraث_b", ""),
+        
+        "اسم_البائع": final_seller, 
+        "ديباجة_استجواب_البائع": dibaga_seller,
+        "رقم_بطاقة_البائع": final_s_id, 
+        "عنوان_البائع": final_s_address, 
+        "مهنة_البائع": s1.get("job", ""), 
+        "سن_البائع": s1.get("age", ""), 
+        "تاريخ_إصدار_بطاقة_البائع": format_custom_date(s1.get("id_date"), "my"),
+        
+        "اسم_المشتري": final_buyer, 
+        "ديباجة_استجواب_المشتري": dibaga_buyer,
+        "رقم_بطاقة_المشتري": final_b_id, 
+        "عنوان_المشتري": final_b_address, 
+        "مهنة_المشتري": b1.get("job", ""), 
+        "سن_المشتري": b1.get("age", ""), 
+        "تاريخ_إصدار_بطاقة_المشتري": format_custom_date(b1.get("id_date"), "my"),
+        
         "طريقة_أيلولة_الملكية": fd.get("ayloula", ""), "lands": process_lands(fd.get("lands", []), fd.get("sell_f",0), fd.get("sell_k",0), fd.get("sell_s",0.0)),
         "رقم_قضية_وراثة_البائع": fd.get("s_morath_case_num", ""), "سنة_قضية_وراثة_البائع": fd.get("s_morath_year", ""), "تاريخ_جلسة_وراثة_البائع": format_custom_date(fd.get("s_morath_date"), "full"),
         "رقم_قضية_وراثة_المشتري": fd.get("b_morath_case_num", ""), "سنة_قضية_وراثة_المشتري": fd.get("b_morath_year", ""), "تاريخ_جلسة_وراثة_المشتري": format_custom_date(fd.get("b_morath_date"), "full"),
         "الثمن_أرقام": fd.get("price_num", ""), "الثمن_حروف": fd.get("price_txt", ""), "يوجد_شرط_جزائي": fd.get("has_penalty", True), "الشرط_الجزائي_أرقام": fd.get("penalty_num", ""), "الشرط_الجزائي_حروف": fd.get("penalty_txt", ""),
         "تاريخ_العقد": format_custom_date(fd.get("c_date"), "full"), "تاريخ_العقد_رقمي": format_custom_date(fd.get("c_date"), "short"), 
-        "تاريخ_اليوم": format_custom_date(fd.get("t_date"), "full"),
+        "تاريخ_اليوم": format_custom_date(fd.get("c_date"), "full"),
         "مساحة_البيع_فدان": fd.get("sell_f",0), "مساحة_البيع_قيراط": fd.get("sell_k",0), "مساحة_البيع_سهم": format_sahm(fd.get("sell_s",0.0)), "مساحة_البيع_حروف": fd.get("sell_txt", ""), 
         "رقم_حيازة_البائع": fd.get("s_hayaza_no", ""), "إجمالي_فدان_البائع": fd.get("s_total_f",0), "إجمالي_قيراط_البائع": fd.get("s_total_k",0), "إجمالي_سهم_البائع": format_sahm(fd.get("s_total_s",0.0)),
         "رقم_حيازة_المشتري": fd.get("b_hayaza_no", ""), "إجمالي_فدان_المشتري": fd.get("b_total_f",0), "إجمالي_قيراط_المشتري": fd.get("b_total_k",0), "إجمالي_سهم_المشتري": format_sahm(fd.get("b_total_s",0.0)),
         "is_heirs_s": fd.get("is_heirs_s", False), "is_heirs_b": fd.get("is_heirs_b", False)
     }
-
 def generate_sale_zip(fd):
     context = build_sale_context(fd)
     zip_buffer = BytesIO()
@@ -503,18 +479,15 @@ def generate_kesma_zip(kd):
     return zip_buffer.getvalue()
 
 # ==========================================
-# 6. الشريط العلوي
+# 6. الشريط العلوي وإدارة التوجيه
 # ==========================================
 choice = navbar.show()
 
-# ==========================================
-# 7. واجهات البرنامج الرئيسية
-# ==========================================
 if choice == "🏠 الرئيسية":
     home_page.show_page()
 
 elif choice == "🔄 الاسترجاع من ملف (Backup)":
-    st.title("🔄 استرجاع معاملة مفقودة من ملف الطوارئ")
+    st.markdown("<h2 style='text-align: right; color: #1e3d2f; margin-top: -30px;'>🔄 استرجاع معاملة مفقودة</h2>", unsafe_allow_html=True)
     st.info("💡 طريقة الاستخدام: قم بفك الضغط عن ملف الـ ZIP الخاص بالمعاملة القديمة، وارفع ملف `backup_data.json` الموجود بداخله هنا لاستعادة كافة البيانات فوراً.")
     uploaded_file = st.file_uploader("اختر ملف النسخة الاحتياطية (backup_data.json)", type=['json'])
     if uploaded_file is not None:
@@ -527,8 +500,12 @@ elif choice == "🔄 الاسترجاع من ملف (Backup)":
             if st.button("🚀 استرجاع البيانات والانتقال للتعديل", type="primary", use_container_width=True):
                 st.session_state.current_archive_id = None 
                 st.session_state.loaded_doc_type = doc_type
-                if doc_type == "kesma": st.session_state.kesma_data = loaded_data; st.session_state.active_menu = "🤝 منظومة القسمة الرضائية"
-                else: st.session_state.sale_data = loaded_data; st.session_state.active_menu = "📝 منظومة عقود البيع"
+                if doc_type == "kesma": 
+                    st.session_state.kesma_data = loaded_data
+                    st.session_state.active_menu = "🤝 منظومة القسمة الرضائية"
+                else: 
+                    st.session_state.sale_data = loaded_data
+                    st.session_state.active_menu = "📝 منظومة عقود البيع"
                 st.rerun()
         except Exception as e: st.error(f"❌ حدث خطأ في قراءة الملف: تأكد أنه ملف backup_data.json سليم.")
 
@@ -617,20 +594,30 @@ elif choice == "🧮 الحاسبات":
     
 elif choice == "📝 منظومة عقود البيع":
     if st.session_state.current_archive_id is not None and st.session_state.get('loaded_doc_type') != 'sale': st.session_state.current_archive_id = None
-    col_title, col_btn = st.columns([3, 1])
-    with col_title: st.title("📄 بيانات عقد البيع")
-    with col_btn:
-        st.write("") 
-        if st.button("🆕 معاملة جديدة", type="secondary", use_container_width=True): reset_form(); st.rerun()
+    
+    st.markdown("<h2 style='text-align: right; color: #1e3d2f; margin-top: -30px;'>📄 بيانات عقد البيع</h2>", unsafe_allow_html=True)
+    st.markdown("---")
 
     fd = st.session_state.sale_data
-    st.markdown("---")
+    
+    st.markdown('<div class="premium-header">📅 تاريخ تحرير العقد</div>', unsafe_allow_html=True)
+    d_col1, d_col2 = st.columns([4, 1])
+    with d_col1:
+        fd["c_date"] = st.date_input("اختر تاريخ العقد (اضغط لتغييره من لوحة النوتة المنسدلة آلياً)", value=parse_date_safe(fd.get("c_date")), min_value=date(date.today().year - 30, 1, 1), key="c_date_picker_top").isoformat()
+        fd["t_date"] = fd["c_date"]
+    with d_col2:
+        st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+        if st.button("🗑️ مسح الخانات لمعاملة جديدة", type="secondary", use_container_width=True): 
+            reset_form()
+            st.rerun()
+
     col1, col2 = st.columns(2)
     with col1:
         st.markdown('<div class="premium-header">👥 الطرف الأول (البائع)</div>', unsafe_allow_html=True)
         fd["is_heirs_s"] = st.checkbox("الطرف الأول ورثة؟", value=fd.get("is_heirs_s", False))
         if fd["is_heirs_s"]: 
             fd["moraث_s"] = st.text_input("اسم المورث", value=fd.get("moraث_s", ""))
+            fd["s_heirs_address"] = st.text_input("عنوان إقامة الورثة المجمع", value=fd.get("s_heirs_address", ""))
             wc1, wc2, wc3 = st.columns(3)
             with wc1: fd["s_morath_case_num"] = st.text_input("رقم قضية الوراثة", value=fd.get("s_morath_case_num", ""))
             with wc2: fd["s_morath_year"] = st.text_input("لسنة", value=fd.get("s_morath_year", ""))
@@ -650,14 +637,23 @@ elif choice == "📝 منظومة عقود البيع":
                 
                 c3, c4 = st.columns(2)
                 with c3: s["age"] = st.text_input("السن", value=s.get("age", ""), key=f"s_age_{i}")
-                with c4: s["id_date"] = st.date_input("تاريخ إصدار البطاقة", value=parse_date_safe(s.get("id_date")), key=f"s_date_{i}").isoformat()
+                
+                curr_s = s.get("id_date", "")
+                try: 
+                    d_val = date(int(curr_s[:4]), int(curr_s[5:7]), 1) if len(curr_s) == 7 else parse_date_safe(curr_s)
+                except: 
+                    d_val = date.today()
+                with c4: 
+                    s_picker = st.date_input("تاريخ إصدار البطاقة (اختر أي يوم)", value=d_val, min_value=date(1990, 1, 1), key=f"s_date_{i}")
+                    s["id_date"] = f"{s_picker.year}/{s_picker.month:02d}"
+                    
                 s["address"] = st.text_input(f"العنوان", value=s.get("address", ""), key=f"s_addr_{i}")
                 if len(fd["sellers"]) > 1:
                     st.markdown("<div class='delete-btn'>", unsafe_allow_html=True)
                     if st.button(f"🗑️ حذف البائع {i+1}", key=f"del_s_{i}", use_container_width=True): fd["sellers"].pop(i); st.rerun()
                     st.markdown("</div>", unsafe_allow_html=True)
         if st.button("➕ أضف بائع آخر", use_container_width=True): fd["sellers"].append({"name": "", "id": "", "address": "", "id_date": today_iso, "job": "", "age": ""}); st.rerun()
-        fd["ayloula"] = st.text_area("طريقة أيلولة الملكية للبائع", value=fd.get("ayloula", ""))
+        fd["ayloula"] = st.text_area("طريقة أيلولة الملكية (إذا كان ورثة: اكتب كيف آلت الأرض للمورث المرحوم)", value=fd.get("ayloula", ""))
         st.markdown('<div class="info-header">🌾 بيانات الحيازة الإجمالية للبائع</div>', unsafe_allow_html=True)
         fd["s_hayaza_no"] = st.text_input("رقم حيازة البائع", value=fd.get("s_hayaza_no", ""))
         hc_s, hc_k, hc_f = st.columns(3)
@@ -670,6 +666,7 @@ elif choice == "📝 منظومة عقود البيع":
         fd["is_heirs_b"] = st.checkbox("الطرف الثاني ورثة؟", value=fd.get("is_heirs_b", False))
         if fd["is_heirs_b"]: 
             fd["moraث_b"] = st.text_input("اسم مورث الطرف الثاني", value=fd.get("moraث_b", ""))
+            fd["b_heirs_address"] = st.text_input("عنوان إقامة الورثة المجمع", value=fd.get("b_heirs_address", ""))
             wc1, wc2, wc3 = st.columns(3)
             with wc1: fd["b_morath_case_num"] = st.text_input("رقم قضية الوراثة", value=fd.get("b_morath_case_num", ""), key="b_mc")
             with wc2: fd["b_morath_year"] = st.text_input("لسنة", value=fd.get("b_morath_year", ""), key="b_my")
@@ -689,7 +686,16 @@ elif choice == "📝 منظومة عقود البيع":
                 
                 c7, c8 = st.columns(2)
                 with c7: b["age"] = st.text_input("السن", value=b.get("age", ""), key=f"b_age_{i}")
-                with c8: b["id_date"] = st.date_input("تاريخ الإصدار ", value=parse_date_safe(b.get("id_date")), key=f"b_date_{i}").isoformat()
+                
+                curr_b = b.get("id_date", "")
+                try: 
+                    d_val = date(int(curr_b[:4]), int(curr_b[5:7]), 1) if len(curr_b) == 7 else parse_date_safe(curr_b)
+                except: 
+                    d_val = date.today()
+                with c8: 
+                    b_picker = st.date_input("تاريخ الإصدار (اختر أي يوم)", value=d_val, min_value=date(1990, 1, 1), key=f"b_date_{i}")
+                    b["id_date"] = f"{b_picker.year}/{b_picker.month:02d}"
+                    
                 b["address"] = st.text_input(f"العنوان ", value=b.get("address", ""), key=f"b_addr_{i}")
                 if len(fd["buyers"]) > 1:
                     st.markdown("<div class='delete-btn'>", unsafe_allow_html=True)
@@ -735,19 +741,25 @@ elif choice == "📝 منظومة عقود البيع":
         st.write("---")
     if st.button("➕ أضف قطعة أرض أخرى", use_container_width=True): fd["lands"].append({"f": 0, "k": 0, "s": 0.0, "hod": "", "n": "", "s_bound": "", "e": "", "w": ""}); st.rerun()
 
-    st.markdown('<div class="premium-header">💰 التواريخ والمبالغ</div>', unsafe_allow_html=True)
-    tc1, tc2, tc3, tc4 = st.columns(4)
-    with tc1: fd["price_num"] = st.text_input("الثمن (أرقام)", value=fd.get("price_num", ""))
-    with tc2: fd["price_txt"] = st.text_input("الثمن (حروف)", value=fd.get("price_txt", ""))
-    with tc3: fd["c_date"] = st.date_input("تاريخ العقد", value=parse_date_safe(fd.get("c_date")), key="c_date_picker").isoformat()
-    with tc4: fd["t_date"] = st.date_input("تاريخ اليوم", value=parse_date_safe(fd.get("t_date")), key="t_date_picker").isoformat()
+    st.markdown('<div class="premium-header">💰 المبالغ والشرط الجزائي التفصيلي</div>', unsafe_allow_html=True)
+    tc1, tc2 = st.columns(2)
+    with tc1: 
+        fd["price_num"] = st.text_input("الثمن (أرقام)", value=fd.get("price_num", ""))
+        auto_price_money_txt = tafqeet_money(fd["price_num"])
+    with tc2: 
+        curr_p_txt = auto_price_money_txt if fd["price_num"] else fd.get("price_txt", "")
+        fd["price_txt"] = st.text_input("الثمن (حروف - يتفقط تلقائياً ويمكنك تعديله)", value=curr_p_txt)
 
     st.write("---")
     fd["has_penalty"] = st.checkbox("⚖️ إضافة بند الشرط الجزائي للعقد", value=fd.get("has_penalty", True))
     if fd["has_penalty"]:
         pc1, pc2 = st.columns(2)
-        with pc1: fd["penalty_num"] = st.text_input("الشرط الجزائي (أرقام)", value=fd.get("penalty_num", ""))
-        with pc2: fd["penalty_txt"] = st.text_input("الشرط الجزائي (حروف)", value=fd.get("penalty_txt", ""))
+        with pc1: 
+            fd["penalty_num"] = st.text_input("الشرط الجزائي (أرقام)", value=fd.get("penalty_num", ""))
+            auto_penalty_money_txt = tafqeet_money(fd["penalty_num"])
+        with pc2: 
+            curr_pen_txt = auto_penalty_money_txt if fd["penalty_num"] else fd.get("penalty_txt", "")
+            fd["penalty_txt"] = st.text_input("الشرط الجزائي (حروف - يتفقط تلقائياً)", value=curr_pen_txt)
     else: fd["penalty_num"] = ""; fd["penalty_txt"] = ""
 
     st.markdown("---")
@@ -777,22 +789,28 @@ elif choice == "📝 منظومة عقود البيع":
 
 elif choice == "🤝 منظومة القسمة الرضائية":
     if st.session_state.current_archive_id is not None and st.session_state.get('loaded_doc_type') != 'kesma': st.session_state.current_archive_id = None
-    col_title, col_btn = st.columns([3, 1])
-    with col_title: st.title("🤝 بيانات شرط القسمة الرضائي")
-    with col_btn:
-        st.write("") 
-        if st.button("🆕 معاملة جديدة", type="secondary", use_container_width=True): reset_form(); st.rerun()
+    
+    st.markdown("<h2 style='text-align: right; color: #1e3d2f; margin-top: -30px;'>🤝 بيانات شرط القسمة الرضائي</h2>", unsafe_allow_html=True)
+    st.markdown("---")
         
     kd = st.session_state.kesma_data
     if "main_lands" not in kd: kd["main_lands"] = [{"f": 0, "k": 0, "s": 0.0, "hod": "", "n": "", "s_bound": "", "e": "", "w": ""}]
     
-    st.markdown("---")
+    st.markdown('<div class="premium-header">📅 تاريخ تحرير عقد القسمة</div>', unsafe_allow_html=True)
+    d_col1, d_col2 = st.columns([4, 1])
+    with d_col1:
+        kd["c_date"] = st.date_input("اختر تاريخ عقد القسمة (اضغط لتغييره من لوحة النوتة المنسدلة)", value=parse_date_safe(kd.get("c_date")), min_value=date(date.today().year - 30, 1, 1), key="k_date_picker_top").isoformat()
+    with d_col2:
+        st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+        if st.button("🗑️ مسح الخانات لمعاملة جديدة", type="secondary", use_container_width=True): 
+            reset_form()
+            st.rerun()
+
     moraث_display_name = kd.get("moraث", "") or "(لم يحدد بعد)"
     with st.expander(f"👨‍🦳 بيانات المورث والتركة وإعلام الوراثة | المورث الحالي: {moraث_display_name}", expanded=False):
-        c1, c2, c3 = st.columns(3)
+        c1, c2 = st.columns(2)
         with c1: kd["moraث"] = st.text_input("اسم المورث", value=kd.get("moraث", ""))
         with c2: kd["hayaza_no"] = st.text_input("رقم حيازة المورث", value=kd.get("hayaza_no", ""))
-        with c3: kd["c_date"] = st.date_input("تاريخ شرط القسمة", value=parse_date_safe(kd.get("c_date")), key="k_date_picker").isoformat()
             
         w1, w2, w3 = st.columns(3)
         with w1: kd["morath_case_num"] = st.text_input("رقم قضية الوراثة", value=kd.get("morath_case_num", ""))
@@ -901,7 +919,16 @@ elif choice == "🤝 منظومة القسمة الرضائية":
             p_c3, p_c4, p_c5 = st.columns(3)
             with p_c3: p["job"] = st.text_input("المهنة", value=p.get("job",""), key=f"pk_job_{p_idx}")
             with p_c4: p["age"] = st.text_input("السن", value=p.get("age",""), key=f"pk_age_{p_idx}")
-            with p_c5: p["nat_id_date"] = st.date_input("تاريخ البطاقة", value=parse_date_safe(p.get("nat_id_date")), key=f"pk_date_{p_idx}").isoformat()
+            
+            curr_p = p.get("nat_id_date", "")
+            try: 
+                d_val = date(int(curr_p[:4]), int(curr_p[5:7]), 1) if len(curr_p) == 7 else parse_date_safe(curr_p)
+            except: 
+                d_val = date.today()
+            with p_c5: 
+                p_picker = st.date_input("تاريخ البطاقة (اختر أي يوم)", value=d_val, min_value=date(1990, 1, 1), key=f"pk_date_{p_idx}")
+                p["nat_id_date"] = f"{p_picker.year}/{p_picker.month:02d}"
+                
             p["address"] = st.text_input("العنوان", value=p.get("address",""), key=f"pk_add_{p_idx}")
             
             st.markdown('<div class="info-header">🌾 بيانات الحيازة السابقة للمتقاسم (إن وجد)</div>', unsafe_allow_html=True)
@@ -969,7 +996,7 @@ elif choice == "🤝 منظومة القسمة الرضائية":
         st.download_button("📥 تحميل جميع مستندات القسمة (ملف ZIP)", data=st.session_state.zip_data, file_name=f"ملف_قسمة_ورثة_{mora_name}.zip", mime="application/zip", type="secondary", use_container_width=True)
 
 elif choice == "📂 أرشيف العقود":
-    st.title("📂 أرشيف المعاملات المسجلة")
+    st.markdown("<h2 style='text-align: right; color: #1e3d2f; margin-top: -30px;'>📂 أرشيف المعاملات المسجلة</h2>", unsafe_allow_html=True)
     search_query = st.text_input("🔍 بحث باسم البائع / المورث...")
     st.markdown("---")
     conn = sqlite3.connect('contracts_database.db')
@@ -987,7 +1014,7 @@ elif choice == "📂 أرشيف العقود":
                     if st.button(f"🗑️ حذف نهائي", key=f"del_arc_{row['id']}", type="primary", use_container_width=True): delete_from_db(row['id']); st.rerun()
 
 elif choice == "🖨️ إدارة المستندات (فردي)":
-    st.title("🖨️ طباعة واستخراج المستندات الفردية")
+    st.markdown("<h2 style='text-align: right; color: #1e3d2f; margin-top: -30px;'>🖨️ طباعة واستخراج المستندات الفردية</h2>", unsafe_allow_html=True)
     st.info("💡 ملاحظة: ملفات القسمة يتم استخراجها آلياً دفعة واحدة من صفحة القسمة. هذه الصفحة مخصصة لاستخراج ملف واحد من قوالب (البيع).")
     sale_folder = os.path.join("templates", "sale")
     if os.path.exists(sale_folder):
@@ -1018,7 +1045,7 @@ elif choice == "🖨️ إدارة المستندات (فردي)":
                 with c_b: st.components.v1.html("""<button onclick="window.print()" style="background-color:#1a2c42;color:white;border:none;padding:10px 20px;font-family:'Cairo';border-radius:5px;cursor:pointer;width:100%;">🖨️ طباعة المستند</button>""", height=50)
 
 elif choice == "⚙️ إعدادات الأمان":
-    st.title("⚙️ تغيير بيانات الدخول الخاصة بالبرنامج")
+    st.markdown("<h2 style='text-align: right; color: #1e3d2f; margin-top: -30px;'>⚙️ تغيير بيانات الدخول الخاصة بالبرنامج</h2>", unsafe_allow_html=True)
     st.info("💡 يمكنك كتابة رقم هاتفك أو أي اسم تفضله في خانة 'اسم المستخدم'.")
     with st.form("security_settings_form"):
         new_username = st.text_input("اسم المستخدم الجديد (أو رقم التليفون)")

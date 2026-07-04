@@ -2,19 +2,19 @@ import streamlit as st
 from datetime import date
 
 # ==========================================
-# قائمة الأقسام
+# قائمة الأقسام 
 # ==========================================
 MENU_ITEMS = [
     ("🏠", "الرئيسية",    "🏠 الرئيسية"),
-    ("📝", "عقود البيع",  "📝 منظومة عقود البيع"),
-    ("🤝", "القسمة",      "🤝 منظومة القسمة الرضائية"),
+    ("📝", "بيع",        "📝 منظومة عقود البيع"),
+    ("🤝", "قسمة",       "🤝 منظومة القسمة الرضائية"),
     ("📖", "سجل 2",       "📖 سجل 2 خدمات"),
-    ("🚨", "المحاضر",     "🚨 سجل المحاضر"),
-    ("🧮", "الحاسبات",    "🧮 الحاسبات"),
-    ("📂", "الأرشيف",     "📂 أرشيف العقود"),
-    ("🖨️", "المستندات",  "🖨️ إدارة المستندات (فردي)"),
-    ("🔄", "استرجاع",     "🔄 الاسترجاع من ملف (Backup)"),
-    ("⚙️", "الإعدادات",  "⚙️ إعدادات الأمان"),
+    ("🚨", "محاضر",      "🚨 سجل المحاضر"),
+    ("🧮", "حاسبات",     "🧮 الحاسبات"),
+    ("📂", "أرشيف",      "📂 أرشيف العقود"),
+    ("🖨️", "مستندات",    "🖨️ إدارة المستندات (فردي)"),
+    ("🔄", "باك أب",     "🔄 الاسترجاع من ملف (Backup)"),
+    ("⚙️", "إعدادات",   "⚙️ إعدادات الأمان"),
 ]
 
 DAYS_AR   = ["الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت","الأحد"]
@@ -22,199 +22,121 @@ MONTHS_AR = {1:"يناير",2:"فبراير",3:"مارس",4:"أبريل",5:"ما
              7:"يوليو",8:"أغسطس",9:"سبتمبر",10:"أكتوبر",11:"نوفمبر",12:"ديسمبر"}
 
 # ==========================================
-# CSS الشامل (تم إرجاع التوسيط المثالي للمستطيلات)
+# CSS الشامل للشريط العلوي وإصلاح الفراغات والرعشة
 # ==========================================
 NAVBAR_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap');
 
-/* إخفاء القائمة العلوية وزر Deploy نهائياً */
+/* 🚀 إيقاف الرعشة (Flicker) وتأثير الخيال (Ghosting) نهائياً 🚀 */
+[data-testid="stAppViewContainer"], .stApp {
+    transition: none !important;
+    animation: none !important;
+}
+
+/* إخفاء القائمة الافتراضية لستريمليت */
 [data-testid="stHeader"], header[data-testid="stHeader"], .stApp > header, 
 [data-testid="stAppDeployButton"], .stAppDeployButton, [data-testid="stToolbar"] {
     display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    height: 0 !important;
 }
 
-/* مؤشر التحميل */
 [data-testid="stStatusWidget"] {
     position: fixed !important; bottom: 30px !important; left: 30px !important;
-    top: auto !important; right: auto !important;
-    background: rgba(13, 35, 24, 0.95) !important; backdrop-filter: blur(10px) !important;
-    border-radius: 12px !important; border: 1px solid rgba(201,168,76,0.5) !important;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important; z-index: 999999 !important;
+    background: rgba(13, 35, 24, 0.95) !important; border-radius: 12px !important; z-index: 999999 !important;
 }
-[data-testid="stStatusWidget"] * { color: #f0d98a !important; }
 
-/* محاذاة النصوص */
-.stMarkdown, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4, .stMarkdown h5, .stMarkdown p, label {
-    text-align: right !important; direction: rtl !important;
-}
+.stMarkdown, .stMarkdown p, label { text-align: right !important; direction: rtl !important; }
 .hero-brand-name, .hero-brand-sub, .hero-date-box, .hero-stat-n { direction: ltr !important; }
 
-/* مساحة المحتوى الكلية لتوسيع الإحصائيات لأعلى */
+/* التحكم الصارم في الفراغ الأبيض لكل الصفحات */
 .block-container { 
-    max-width: 1150px !important; margin: 0 auto !important; padding-top: 8rem !important; 
+    max-width: 1150px !important; 
+    margin: 0 auto !important; 
+    padding-top: 4.5rem !important; 
+    padding-bottom: 2rem !important; 
 } 
 
-/* ==============================================
-   الشريط الأخضر الثابت (توسيط الأقسام بالمسطرة أفقياً ورأسياً)
-   ============================================== */
+/* رفع التبويبات (Tabs) لأعلى في سجل 2 والحاسبات */
+div[data-testid="stTabs"] {
+    margin-top: -20px !important;
+}
+
+/* الشريط الأخضر الثابت ومحاذاة الأزرار */
 div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) {
     position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important;
     z-index: 999990 !important;
     background: linear-gradient(135deg, #0a1f14 0%, #1e3d2f 50%, #0d2318 100%) !important;
-    padding: 0 !important; /* بدون حواف لضمان التوسيط الدقيق */
-    box-shadow: 0 4px 25px rgba(0,0,0,0.4) !important;
-    border-bottom: 2px solid rgba(201,168,76,0.6) !important;
-    height: 95px !important; /* ارتفاع ثابت لمركزة العناصر داخله */
+    height: 75px !important; 
     display: flex !important; align-items: center !important; justify-content: center !important;
+    border-bottom: 2px solid rgba(201,168,76,0.6) !important;
 }
 
 div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > label { display: none !important; }
 
-/* حاوية الأقسام في منتصف الشريط تماماً */
 div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] {
     display: flex !important; flex-direction: row !important;
-    justify-content: center !important; 
+    justify-content: flex-start !important; 
     align-items: center !important;
-    flex-wrap: wrap !important;
-    gap: 12px !important; 
+    flex-wrap: nowrap !important; 
+    gap: 8px !important; 
     direction: rtl !important;
     width: 100% !important;
-    padding: 0 !important; margin: 0 auto !important;
+    padding-right: 170px !important; /* مسافة اللوجو BAYA */
+    margin: 0 !important;
 }
 div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] > label > div:first-child { display: none !important; }
 
-/* تصميم الأقسام (زجاجي شفاف) */
 div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] > label {
-    flex: 0 0 auto !important; width: auto !important;
+    flex: 0 0 auto !important;
     background: rgba(255, 255, 255, 0.08) !important; 
-    backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 10px !important; padding: 10px 18px !important;
-    cursor: pointer !important; transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1) !important; 
-    margin: 0 !important;
-    display: inline-flex !important; align-items: center !important; justify-content: center !important;
+    border-radius: 8px !important; padding: 8px 12px !important;
+    cursor: pointer !important; transition: all 0.3s !important; margin: 0 !important;
 }
 div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] > label p {
-    color: rgba(255,255,255,0.85) !important; font-size: 14px !important; font-weight: 600 !important; font-family: 'Cairo' !important; margin: 0 !important;
-    transition: all 0.3s !important;
+    color: rgba(255,255,255,0.85) !important; font-size: 13px !important; font-weight: 600 !important; font-family: 'Cairo' !important; margin: 0 !important;
 }
 div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] > label:hover { 
-    transform: translateY(-5px) !important; 
-    box-shadow: 0 8px 18px rgba(0,0,0,0.3) !important; 
-    background: rgba(201, 168, 76, 0.2) !important; 
-    border-color: rgba(201, 168, 76, 0.6) !important; 
+    transform: translateY(-3px) !important; background: rgba(201, 168, 76, 0.2) !important; border-color: rgba(201, 168, 76, 0.6) !important; 
 }
 div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] > label:hover p { color: #f0d98a !important; }
 
-/* القسم النشط */
 div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] > label:has(input:checked) {
-    background: linear-gradient(90deg, #c9a84c, #f0d98a) !important; 
-    border-color: #f0d98a !important; 
-    box-shadow: 0 4px 15px rgba(201,168,76,0.4) !important; 
-    transform: translateY(-2px) !important;
+    background: linear-gradient(90deg, #c9a84c, #f0d98a) !important; border-color: #f0d98a !important; transform: translateY(-2px) !important;
 }
 div[data-testid="stRadio"]:has(div[aria-label="navbar_radio"]) > div[role="radiogroup"] > label:has(input:checked) p { 
     color: #1a3328 !important; font-weight: 900 !important; 
 }
 
-/* =========================================
-   تثبيت الأزرار الجانبية (المظهر والخروج)
-   ========================================= */
-/* حاوية زر الخروج */
-div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div {
-    position: fixed !important;
-    top: 26px !important;
-    left: 20px !important;
-    z-index: 999999 !important;
-    width: auto !important;
-}
-div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div button {
-    background: rgba(220, 53, 69, 0.15) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(220, 53, 69, 0.3) !important;
-    border-radius: 10px !important;
-    height: 42px !important;
-    padding: 0 15px !important;
-    transition: all 0.3s ease !important;
-}
-div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div button p {
-    color: #ffadad !important;
-    font-weight: bold !important;
-    font-family: 'Cairo', sans-serif !important;
-    margin: 0 !important;
-}
-div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div button:hover {
-    background: rgba(220, 53, 69, 0.3) !important;
-    transform: translateY(-3px) !important;
-    border-color: rgba(220, 53, 69, 0.5) !important;
-}
+/* الأزرار الجانبية واللوجو */
+div[data-testid="stVerticalBlock"] > div:has(#logout-marker) + div { position: fixed !important; top: 16px !important; left: 20px !important; z-index: 999999 !important; }
+div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div { position: fixed !important; top: 16px !important; left: 120px !important; z-index: 999999 !important; }
 
-/* حاوية زر المظهر */
-div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div {
-    position: fixed !important;
-    top: 26px !important;
-    left: 120px !important; 
-    z-index: 999999 !important;
-    width: auto !important;
-}
-div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div button {
-    background: rgba(255, 255, 255, 0.08) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 10px !important;
-    height: 42px !important;
-    padding: 0 15px !important;
-    transition: all 0.3s ease !important;
-}
-div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div button p {
-    color: #fff !important;
-    font-weight: bold !important;
-    font-family: 'Cairo', sans-serif !important;
-    margin: 0 !important;
-}
-div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div button:hover {
-    background: rgba(255, 255, 255, 0.2) !important;
-    transform: translateY(-3px) !important;
-    border-color: rgba(255, 255, 255, 0.4) !important;
-}
-
-/* اللوجو على اليمين */
 .nav-logo-box {
-    position: fixed; top: 32px; right: 30px; z-index: 999999 !important; 
+    position: fixed; top: 18px; right: 30px; z-index: 999999 !important; 
     display: flex; align-items: center; gap: 8px; direction: ltr; pointer-events: none;
 }
-.nav-logo-box .icon { font-size: 28px; }
+.nav-logo-box .icon { font-size: 26px; }
 .nav-logo-box .text {
     font-size: 24px; font-weight: 900; letter-spacing: 2px; font-family: 'Cairo';
-    background: linear-gradient(90deg,#c9a84c,#f0d98a,#c9a84c);
-    background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background: linear-gradient(90deg,#c9a84c,#f0d98a,#c9a84c); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
 
 /* ==============================================
-   الأنيميشن الخاص بالمستطيل الرئيسي
-   ============================================== */
+   تصميم المستطيل العريض للرئيسية (الإحصائيات)
+============================================== */
 @keyframes fadeInScale {
     0% { opacity: 0; transform: translateY(20px) scale(0.95); filter: blur(4px); }
     100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
-.fade-in-scale {
-    animation: fadeInScale 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
+.fade-in-scale { animation: fadeInScale 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 
-/* المستطيل العريض للرئيسية */
 .hero-banner {
     display: flex; flex-direction: row; justify-content: space-between; align-items: center;
-    background: #ffffff; 
-    padding: 35px 30px 20px 30px !important; 
-    border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+    background: #ffffff; padding: 35px 30px 20px 30px !important; 
+    border-radius: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.04);
     border: 1px solid rgba(201,168,76,0.3); border-bottom: 4px solid #c9a84c; 
-    margin-top: -15px !important; 
+    margin-top: -30px !important; 
     margin-bottom: 30px; direction: rtl; width: 100%; flex-wrap: wrap; gap: 20px;
 }
 .hb-right { display: flex; flex-direction: column; align-items: flex-start; }
@@ -227,20 +149,22 @@ div[data-testid="stVerticalBlock"] > div:has(#theme-marker) + div button:hover {
 .hero-date-box { text-align: center; direction: ltr; background: #fdfbf7; padding: 10px 25px; border-radius: 12px; border: 1px solid #eee; }
 .hero-date-num { font-size: 34px; font-weight: 900; color: #c9a84c; line-height: 1; }
 .hero-date-txt { font-size: 11px; color: #666; margin-top: 4px; font-weight: bold; }
-.hero-stat-box { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; padding: 12px 18px; text-align: center; min-width: 100px; }
-.hero-stat-n { font-size: 24px; font-weight: 900; color: #2d5a4e; line-height: 1; }
-.hero-stat-n.gr { color: #c9a84c; }
-.hero-stat-l { font-size: 10px; color: #6c757d; margin-top: 5px; font-weight: 800; }
 
-@media (max-width:1450px) { 
-    .nav-logo-box { display: none; } 
+.hero-stat-box { 
+    background: #f4f8f6; border: 1px solid #d1e7dd; border-radius: 12px; 
+    padding: 15px 12px; text-align: center; min-width: 105px; 
+    transition: transform 0.3s ease, box-shadow 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.02);
 }
+.hero-stat-box:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(45,90,78,0.1); }
+.hero-stat-box:nth-child(2), .hero-stat-box:nth-child(4) { background: #fdf8ed; border-color: #f0d98a; }
+.hero-stat-n { font-size: 28px; font-weight: 900; color: #2d5a4e; line-height: 1; }
+.hero-stat-n.gr { color: #c9a84c; }
+.hero-stat-l { font-size: 11px; color: #555; margin-top: 6px; font-weight: 800; }
+
+@media (max-width:1450px) { .nav-logo-box { display: none; } }
 </style>
 """
 
-# ==========================================
-# CSS الوضع الداكن 
-# ==========================================
 DARK_MODE_CSS = """
 <style>
 .stApp, .block-container { background-color: #121418 !important; color: #e0e0e0 !important; }
@@ -292,9 +216,6 @@ def show(default="🏠 الرئيسية"):
     if "active_menu" not in st.session_state:
         st.session_state.active_menu = default
 
-    # ==================================
-    # أزرار (الخروج والمظهر) المستقلة
-    # ==================================
     st.markdown('<div id="logout-marker" style="display:none;"></div>', unsafe_allow_html=True)
     if st.button("🚪 خروج"):
         st.session_state.logged_in = False
@@ -306,7 +227,6 @@ def show(default="🏠 الرئيسية"):
         st.session_state.dark_mode = not st.session_state.dark_mode
         st.rerun()
 
-    # قائمة الأقسام العادية
     labels = [icon+" "+label for icon,label,key in MENU_ITEMS]
     keys   = [key for icon,label,key in MENU_ITEMS]
     
@@ -321,21 +241,14 @@ def show(default="🏠 الرئيسية"):
         </div>
     """, unsafe_allow_html=True)
 
-    selected_label = st.radio(
-        "navbar_radio",
-        labels,
-        index=current_idx,
-        key="_navbar_radio",
-        horizontal=True,
-        label_visibility="collapsed"
-    )
+    selected_label = st.radio("navbar_radio", labels, index=current_idx, key="_navbar_radio", horizontal=True, label_visibility="collapsed")
 
     selected_idx = labels.index(selected_label)
     new_key = keys[selected_idx]
     
+    # السحر هنا: شيلنا الـ st.rerun() من هنا عشان نمنع الرعشة وازدواج التحميل!
     if new_key != st.session_state.get("active_menu"):
         st.session_state.active_menu = new_key
-        st.rerun()
 
     if st.session_state.active_menu == "🏠 الرئيسية":
         sales, kesma, total, this_month = _get_stats()

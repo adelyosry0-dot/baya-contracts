@@ -40,14 +40,12 @@ def generate_smart_name(name):
 def unify_crop_name(c):
     if not c: return ""
     c_str = str(c).strip()
-    
     if 'جواف' in c_str: return 'الجوافة'
     if 'مانج' in c_str: return 'المانجو'
     if 'برتقال' in c_str: return 'البرتقال'
     
     c_norm = normalize_arabic_name(c_str)
     c_no_al = c_norm[2:] if c_norm.startswith('ال') else c_norm
-    
     for cat, crops in CROP_MAPPINGS.items():
         for std_crop in crops:
             std_norm = normalize_arabic_name(std_crop)
@@ -60,10 +58,8 @@ def safe_num(val, is_float=False):
     if pd.isna(val): return 0.0 if is_float else 0
     val_str = str(val).strip()
     if val_str in ['-', 'ــ', '—', '_', '', 'nan', 'None']: return 0.0 if is_float else 0
-    try:
-        return float(val_str) if is_float else int(float(val_str))
-    except ValueError:
-        return 0.0 if is_float else 0
+    try: return float(val_str) if is_float else int(float(val_str))
+    except ValueError: return 0.0 if is_float else 0
 
 def fmt_s(val):
     try: return f"{float(val):.2f}".rstrip('0').rstrip('.')
@@ -85,12 +81,8 @@ def init_db():
                  (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                   hayaza_no TEXT, season TEXT, crop_name TEXT, crop_type TEXT DEFAULT 'محصول',
                   f INTEGER DEFAULT 0, q INTEGER DEFAULT 0, s REAL DEFAULT 0)''')
-    
-    try:
-        c.execute("ALTER TABLE services_reg ADD COLUMN rep_name TEXT DEFAULT ''")
-    except sqlite3.OperationalError:
-        pass
-        
+    try: c.execute("ALTER TABLE services_reg ADD COLUMN rep_name TEXT DEFAULT ''")
+    except sqlite3.OperationalError: pass
     conn.commit()
     conn.close()
 
@@ -99,7 +91,7 @@ def convert_df_to_csv(df):
     return df.to_csv(index=False, encoding='utf-8-sig').encode('utf-8-sig')
 
 # ==========================================
-# 4. بناء واجهات الطباعة والتصميم
+# 4. بناء واجهات الطباعة والتصميم (بدون f-string للهروب من الأخطاء)
 # ==========================================
 def build_pivot_data(raw_data, main_crops=None):
     records = {}
@@ -107,12 +99,8 @@ def build_pivot_data(raw_data, main_crops=None):
     for r in raw_data:
         name, hod, h_no, crop, f, q, s = r
         unified_crop = unify_crop_name(crop)
-        
-        if h_no not in records:
-            records[h_no] = {'الاسم': name, 'الحوض': hod, 'رقم الحيازة': h_no}
-        if unified_crop not in records[h_no]:
-            records[h_no][unified_crop] = {'f': 0, 'q': 0, 's': 0.0}
-        
+        if h_no not in records: records[h_no] = {'الاسم': name, 'الحوض': hod, 'رقم الحيازة': h_no}
+        if unified_crop not in records[h_no]: records[h_no][unified_crop] = {'f': 0, 'q': 0, 's': 0.0}
         records[h_no][unified_crop]['f'] += int(f)
         records[h_no][unified_crop]['q'] += int(q)
         records[h_no][unified_crop]['s'] += float(s)
@@ -122,60 +110,42 @@ def build_pivot_data(raw_data, main_crops=None):
     if main_crops:
         for mc in main_crops:
             for c in found_crops:
-                if mc in c and c not in ordered_crops:
-                    ordered_crops.append(c)
+                if mc in c and c not in ordered_crops: ordered_crops.append(c)
         for c in found_crops:
-            if c not in ordered_crops:
-                ordered_crops.append(c)
-    else:
-        ordered_crops = list(found_crops)
-        
+            if c not in ordered_crops: ordered_crops.append(c)
+    else: ordered_crops = list(found_crops)
     return records, ordered_crops
 
 def generate_multi_header_html(records, ordered_crops, title):
-    if not records:
-        return "<h3>لا توجد بيانات</h3>".encode('utf-8')
-    
+    if not records: return "<h3>لا توجد بيانات</h3>".encode('utf-8')
     thead = "<tr><th rowspan='2' style='min-width:150px;'>الاسم</th><th rowspan='2'>الحيازة</th><th rowspan='2'>الحوض</th>"
-    for c in ordered_crops:
-        thead += f"<th colspan='3'>{c}</th>"
+    for c in ordered_crops: thead += f"<th colspan='3'>{c}</th>"
     thead += "</tr><tr>"
-    for c in ordered_crops:
-        thead += "<th>س</th><th>ط</th><th>ف</th>"
+    for c in ordered_crops: thead += "<th>س</th><th>ط</th><th>ف</th>"
     thead += "</tr>"
-    
     tbody = ""
     for h_no, data in records.items():
         tbody += "<tr>"
         tbody += f"<td>{data['الاسم']}</td><td>{h_no}</td><td>{data['الحوض']}</td>"
         for c in ordered_crops:
-            if c in data:
-                tbody += f"<td>{fmt_s(data[c]['s'])}</td><td>{data[c]['q']}</td><td>{data[c]['f']}</td>"
-            else:
-                tbody += "<td></td><td></td><td></td>"
+            if c in data: tbody += f"<td>{fmt_s(data[c]['s'])}</td><td>{data[c]['q']}</td><td>{data[c]['f']}</td>"
+            else: tbody += "<td></td><td></td><td></td>"
         tbody += "</tr>"
         
-    html = f"""<!DOCTYPE html>
-<html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>{title}</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-body {{ font-family:'Cairo',sans-serif; background:#fff; color:#000; padding:20px; direction:rtl; }}
-table {{ width:100%; border-collapse:collapse; margin-top:15px; font-size:13px; text-align:center; page-break-inside: auto; }}
-tr {{ page-break-inside: avoid; page-break-after: auto; }}
-th,td {{ border:1px solid #000; padding:6px; font-weight:bold; }}
-th {{ background:#2d5a4e; color:#c9a84c; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
-h2 {{ text-align:center; color:#2d5a4e; margin-bottom: 10px; }}
-.btn {{ display:block; width:200px; margin:0 auto 15px; padding:10px; background:#2d5a4e; color:#fff; text-align:center; cursor:pointer; border:none; font-size:16px; border-radius:5px; font-family:'Cairo'; }}
-@media print {{ 
-    .btn {{ display:none !important; }} 
-    @page {{ size: A4 landscape; margin: 0; }}
-    body {{ padding: 15mm; }}
-}}
-</style></head><body>
-<button class="btn" onclick="window.print()">🖨️ طباعة المستند الحالي</button>
-<h2>{title}</h2>
-<table><thead>{thead}</thead><tbody>{tbody}</tbody></table>
-</body></html>"""
+    html = (
+        '<!DOCTYPE html>\n<html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>' + str(title) + '</title>\n'
+        '<style>\n@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap");\n'
+        'body { font-family:"Cairo",sans-serif; background:#fff; color:#000; padding:20px; direction:rtl; }\n'
+        'table { width:100%; border-collapse:collapse; margin-top:15px; font-size:13px; text-align:center; page-break-inside: auto; }\n'
+        'tr { page-break-inside: avoid; page-break-after: auto; }\n'
+        'th,td { border:1px solid #000; padding:6px; font-weight:bold; }\n'
+        'th { background:#2d5a4e; color:#c9a84c; -webkit-print-color-adjust: exact; print-color-adjust: exact; }\n'
+        'h2 { text-align:center; color:#2d5a4e; margin-bottom: 10px; }\n'
+        '.btn { display:block; width:200px; margin:0 auto 15px; padding:10px; background:#2d5a4e; color:#fff; text-align:center; cursor:pointer; border:none; font-size:16px; border-radius:5px; font-family:"Cairo"; }\n'
+        '@media print { \n    .btn { display:none !important; } \n    @page { size: A4 landscape; margin: 0; }\n    body { padding: 15mm; }\n}\n'
+        '</style></head><body>\n<button class="btn" onclick="window.print()">🖨️ طباعة المستند الحالي</button>\n'
+        '<h2>' + str(title) + '</h2>\n<table><thead>' + thead + '</thead><tbody>' + tbody + '</tbody></table>\n</body></html>'
+    )
     return html.encode('utf-8')
 
 def generate_scrollable_multi_header_table(records, ordered_crops):
@@ -226,7 +196,20 @@ def generate_print_html(df, title):
             rows += f"<td>{val if val != '' and val is not None else ''}</td>"
         rows += "</tr>"
     headers = ''.join([f'<th>{col}</th>' for col in df.columns])
-    return f"""<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>{title}</title><style>@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap'); body {{ font-family:'Cairo',sans-serif; background:#fff; color:#000; padding:20px; direction:rtl; }} table {{ width:100%; border-collapse:collapse; margin-top:15px; font-size:13px; text-align:center; }} th,td {{ border:1px solid #000; padding:6px; font-weight:bold; }} th {{ background:#2d5a4e; color:#c9a84c; -webkit-print-color-adjust: exact; print-color-adjust: exact; }} h2 {{ text-align:center; color:#2d5a4e; margin-bottom: 10px; }} .btn {{ display:block; width:200px; margin:0 auto 15px; padding:10px; background:#2d5a4e; color:#fff; text-align:center; cursor:pointer; border:none; font-size:16px; border-radius:5px; font-family:'Cairo'; }} @media print {{ .btn {{ display:none !important; }} @page {{ size: A4 portrait; margin: 0; }} body {{ padding: 15mm; }} }}</style></head><body><button class="btn" onclick="window.print()">🖨️ طباعة المستند الحالي</button><h2>{title}</h2><table><thead><tr>{headers}</tr></thead><tbody>{rows}</tbody></table></body></html>""".encode('utf-8')
+    html = (
+        '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>' + str(title) + '</title>'
+        '<style>@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap"); '
+        'body { font-family:"Cairo",sans-serif; background:#fff; color:#000; padding:20px; direction:rtl; } '
+        'table { width:100%; border-collapse:collapse; margin-top:15px; font-size:13px; text-align:center; } '
+        'th,td { border:1px solid #000; padding:6px; font-weight:bold; } '
+        'th { background:#2d5a4e; color:#c9a84c; -webkit-print-color-adjust: exact; print-color-adjust: exact; } '
+        'h2 { text-align:center; color:#2d5a4e; margin-bottom: 10px; } '
+        '.btn { display:block; width:200px; margin:0 auto 15px; padding:10px; background:#2d5a4e; color:#fff; text-align:center; cursor:pointer; border:none; font-size:16px; border-radius:5px; font-family:"Cairo"; } '
+        '@media print { .btn { display:none !important; } @page { size: A4 portrait; margin: 0; } body { padding: 15mm; } }'
+        '</style></head><body><button class="btn" onclick="window.print()">🖨️ طباعة المستند الحالي</button>'
+        '<h2>' + str(title) + '</h2><table><thead><tr>' + headers + '</tr></thead><tbody>' + rows + '</tbody></table></body></html>'
+    )
+    return html.encode('utf-8')
 
 # ==========================================
 # 5. جسم الصفحة الرئيسي
@@ -235,23 +218,7 @@ def show_page():
     init_db()
     if 'edit_id' not in st.session_state: st.session_state['edit_id'] = None
 
-    st.markdown("""
-    <style>
-        .block-container { max-width: 1000px !important; padding-top: 2rem !important; }
-        ::selection { background-color: #87CEEB !important; color: #000 !important; }
-        ::-moz-selection { background-color: #87CEEB !important; color: #000 !important; }
-        .stTabs [data-baseweb="tab"] { height:50px; background-color:#f4f6f9; border-radius:6px 6px 0 0; padding-top:10px; font-weight:600; }
-        .stTabs [aria-selected="true"] { background-color:#2d5a4e !important; color:#c9a84c !important; font-weight:bold !important; font-size:16px; }
-        div[data-testid="stDownloadButton"] button { height: 45px !important; background-color: #2d5a4e !important; color: #fff !important; border: none !important; border-radius: 8px !important; font-weight: bold !important; width: 100%; transition: 0.2s; }
-        div[data-testid="stDownloadButton"] button:hover { background-color: #163026 !important; color: #c9a84c !important; }
-        button[kind="primary"] { height: 45px !important; background-color: #c9a84c !important; color: #2d5a4e !important; border: none !important; border-radius: 8px !important; font-weight: 900 !important; width: 100%; transition: 0.2s; }
-        button[kind="primary"]:hover { background-color: #a08838 !important; color: #fff !important; }
-        .delete-btn { background-color: #ffebee !important; color: #cc0000 !important; border: 1px solid #ffcdd2 !important; font-weight: bold !important; border-radius: 8px !important; height: 45px !important; width: 100%; }
-        .delete-btn:hover { background-color: #ffcdd2 !important; border-color: #cc0000 !important; }
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown("<h2 style='text-align:center; color:#2d5a4e;'>🌾 منظومة الإدارة الزراعية الشاملة</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: right; color: #2d5a4e; margin-top: -35px;'>🌾 منظومة الإدارة الزراعية الشاملة</h2>", unsafe_allow_html=True)
     st.markdown("---")
 
     tab_comprehensive, tab_sijil2, tab_orchards, tab_crops = st.tabs([
@@ -284,7 +251,13 @@ def show_page():
                 h_no = str(r[cols_map['hayaza_no']])
                 db_name_raw = str(r[cols_map['name']])
                 db_name = normalize_arabic_name(db_name_raw)
-                if search_input == h_no or s_norm in db_name or all(p in db_name for p in s_parts):
+                
+                # جلب اسم مفوض الورثة ومعالجته للبحث
+                rep_name_raw = str(r[cols_map.get('rep_name', '')] if 'rep_name' in cols_map else "")
+                db_rep_name = normalize_arabic_name(rep_name_raw)
+                
+                # البحث في الحيازة، اسم الحائز الأساسي، أو اسم المفوض
+                if (search_input == h_no) or (s_norm in db_name) or all(p in db_name for p in s_parts) or (db_rep_name and (s_norm in db_rep_name or all(p in db_rep_name for p in s_parts))):
                     farmers.append(r)
             
             if not farmers: st.warning("⚠️ لم يتم العثور على أي حائز يطابق هذا البحث في سجل 2 خدمات.")
@@ -366,11 +339,14 @@ def show_page():
                     col_print, col_gap, col_edit = st.columns([1, 0.2, 1])
                     
                     with col_print:
-                        print_file = f"""<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>كارت الحائز - {f_name}</title>
-                        <style>@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap'); body {{ font-family:'Cairo',sans-serif; background:#fff; margin:0; padding:20px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
-                        @media print {{ @page {{ size: A4 portrait; margin: 15mm; }} button {{ display: none !important; }} }}</style></head>
-                        <body><button onclick="window.print()" style="display:block; margin:0 auto 20px auto; padding:10px 20px; font-family:'Cairo'; font-size:16px; background:#2d5a4e; color:#fff; border:none; border-radius:5px; cursor:pointer;">🖨️ اضغط هنا لطباعة الكارت الفوري</button>
-                        {card_full_html}</body></html>""".encode('utf-8')
+                        print_file = (
+                            '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>كارت الحائز - ' + str(f_name) + '</title>'
+                            '<style>@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap"); '
+                            'body { font-family:"Cairo",sans-serif; background:#fff; margin:0; padding:20px; -webkit-print-color-adjust: exact; print-color-adjust: exact; } '
+                            '@media print { @page { size: A4 portrait; margin: 15mm; } button { display: none !important; } }</style></head>'
+                            '<body><button onclick="window.print()" style="display:block; margin:0 auto 20px auto; padding:10px 20px; font-family:\'Cairo\'; font-size:16px; background:#2d5a4e; color:#fff; border:none; border-radius:5px; cursor:pointer;">🖨️ اضغط هنا لطباعة الكارت الفوري</button>'
+                            + card_full_html + '</body></html>'
+                        ).encode('utf-8')
                         st.download_button("🖨️ تحميل نسخة الطباعة (A4)", data=print_file, file_name=f"كارت_الطباعة_{h_no}.html", mime="text/html", use_container_width=True)
                     
                     with col_edit:
@@ -524,12 +500,11 @@ def show_page():
             conn.close()
 
     # ====================================================
-    # التبويب الثاني: قاعدة بيانات سجل 2 خدمات (الاستيراد الموحد)
+    # التبويب الثاني: قاعدة بيانات سجل 2 خدمات
     # ====================================================
     with tab_sijil2:
         st.markdown("### 📖 قاعدة البيانات المركزية والاستيراد الشامل")
         
-        # --- لوحة التقارير العلوية لسجل 2 ---
         conn = sqlite3.connect('contracts_database.db')
         c = conn.cursor()
         c.execute("SELECT COUNT(*) FROM services_reg WHERE hayaza_no GLOB '[0-9]*'")
@@ -545,7 +520,6 @@ def show_page():
             <div style="text-align:center; border-right: 1px solid #ddd; padding-right: 20px;"><span style="font-size:28px; font-weight:900; color:#dc3545;">{zero_h_count}</span><br><span style="color:#666; font-weight:bold;">حيازات ملغاة (مُصفرة)</span></div>
         </div>
         ''', unsafe_allow_html=True)
-        # ------------------------------------
 
         with st.expander("📥 الاستيراد الشامل الذكي (من الشيت المجمع Master Final)", expanded=True):
             st.info("💡 ارفع الشيت المجمع (Master_Final.xlsx) هنا. البرنامج هيقسّم الأساسيات في سجل 2 ومحاصيل الجوافة والبرتقال والمانجو في البساتين تلقائياً.")
@@ -559,14 +533,11 @@ def show_page():
                     for _, row in df_up.iterrows():
                         n_v = str(row.get('الاسم', '')).strip()
                         h_base = str(row.get('رقم الحيازة', '')).replace('.0','').strip()
-                        
                         if not n_v: continue
-                        
                         if not h_base or "غير موجود" in h_base or "غير محدد" in h_base:
                             missing_counter += 1
                             h_v = f"غير مدرج ({missing_counter})"
-                        else:
-                            h_v = h_base
+                        else: h_v = h_base
 
                         nid = str(row.get('الرقم القومي', '')).replace('.0','').strip()
                         hmz = str(row.get('رقم المنظومة', '')).replace('.0','').strip()
@@ -627,20 +598,14 @@ def show_page():
                 else: st.error("⚠️ برجاء كتابة الاسم ورقم الحيازة.")
 
         st.markdown("---")
-        
-        # بناء التقرير المفلتر
         filter_opt = st.selectbox("📌 عرض التقرير حسب الحالة:", ["الكل (عرض جميع الحيازات)", "الحيازات الفعلية (القائمة) فقط", "الحيازات الملغاة (المُصفرة) فقط"])
         
         base_query = "SELECT name as 'الاسم', national_id as 'الرقم القومي', hod as 'الحوض', s as 'سهم', q as 'قيراط', f as 'فدان' FROM services_reg"
         conditions = ["hayaza_no GLOB '[0-9]*'"]
-        
-        if filter_opt == "الحيازات الفعلية (القائمة) فقط":
-            conditions.append("(f>0 OR q>0 OR s>0)")
-        elif filter_opt == "الحيازات الملغاة (المُصفرة) فقط":
-            conditions.append("(f=0 AND q=0 AND s=0)")
+        if filter_opt == "الحيازات الفعلية (القائمة) فقط": conditions.append("(f>0 OR q>0 OR s>0)")
+        elif filter_opt == "الحيازات الملغاة (المُصفرة) فقط": conditions.append("(f=0 AND q=0 AND s=0)")
             
         base_query += " WHERE " + " AND ".join(conditions) + " ORDER BY CAST(hayaza_no AS INTEGER) ASC"
-        
         df_sijil = pd.read_sql_query(base_query, conn)
         conn.close()
         
@@ -688,15 +653,12 @@ def show_page():
     # ====================================================
     with tab_crops:
         st.markdown("### 🌾 إدارة ومراجعة مساحات المحاصيل والخضروات")
-        
         with st.expander("📥 استيراد كشف المحاصيل والخضروات", expanded=True):
-            st.markdown("##### 1. تحميل قالب المحاصيل الذكي:")
             st.info("💡 يمكنك إدخال (رقم الحيازة) لتأكيد الربط للأسماء المتكررة. إذا تُرك فارغاً سيربط بالاسم الموجود في سجل 2.")
             empty_crops_df = pd.DataFrame(columns=['رقم الحيازة (اختياري)', 'الاسم', 'الموسم', 'النوع', 'اسم المحصول_الخضار', 'فدان', 'قيراط', 'سهم'])
             st.download_button("📥 تحميل قالب إدخال المحاصيل", data=convert_df_to_csv(empty_crops_df), file_name="قالب_إدخال_المحاصيل.csv", mime="text/csv")
             
             st.markdown("---")
-            st.markdown("##### 2. استيراد كشف المحاصيل بعد ملئه:")
             up_crop_file = st.file_uploader("اختر شيت المحاصيل لرفعه:", type=['csv', 'xlsx'], key="up_crp_fl")
             if up_crop_file and st.button("🚀 بدء استيراد وربط المحاصيل", type="primary"):
                 try:
@@ -716,8 +678,7 @@ def show_page():
                         if not f_name and not h_no_excel: continue
                         if not c_name or c_name == 'nan': continue
                         
-                        if h_no_excel and h_no_excel != 'nan':
-                            h_v = h_no_excel
+                        if h_no_excel and h_no_excel != 'nan': h_v = h_no_excel
                         else:
                             norm_n = normalize_arabic_name(f_name)
                             smart_n = generate_smart_name(f_name)
@@ -741,12 +702,10 @@ def show_page():
                     conn.commit()
                     conn.close()
                     st.success(f"✅ تم ربط واستيراد {ok_c} محصول، وتجاهل {skip_c} مكرر.")
-                    if not_found_cr:
-                        st.error(f"⚠️ هذه الأسماء غير موجودة في سجل 2: {', '.join(not_found_cr)}")
+                    if not_found_cr: st.error(f"⚠️ هذه الأسماء غير موجودة في سجل 2: {', '.join(not_found_cr)}")
                     st.rerun()
                 except Exception as e: st.error(f"خطأ: {e}")
 
-        st.markdown("##### 🔍 استعلام وفلترة المحاصيل:")
         c_srch_c, c_hod_c = st.columns(2)
         with c_srch_c: search_crop = st.text_input("بحث بالاسم أو رقم الحيازة:", key="s_crp")
         with c_hod_c: hod_crop = st.selectbox("فلترة بالحوض:", ["الكل"] + BASINS_LIST, key="hod_crp_sel")

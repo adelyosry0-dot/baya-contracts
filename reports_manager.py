@@ -22,19 +22,8 @@ def sync_reports_to_csv():
     conn.close()
 
 def show_page():
-    # --- تنسيق سحري لتوسيط الصفحة وجعلها مريحة للعين ---
-    st.markdown("""
-    <style>
-        .block-container {
-            max-width: 1000px !important;
-            padding-top: 2rem !important;
-            margin: 0 auto;
-        }
-    </style>
-    """, unsafe_allow_html=True)
-
     init_db()
-    st.markdown("<h2 style='text-align: center; color: #1a2c42;'>🚨 سجل المحاضر والتشريعات (متزامن مع الإكسيل)</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center; color: #1a2c35;'>🚨 سجل المحاضر والتشريعات (متزامن مع الإكسيل)</h2>", unsafe_allow_html=True)
     st.markdown("---")
 
     # ==========================================
@@ -46,7 +35,6 @@ def show_page():
             df_template = pd.DataFrame(columns=["رقم المحضر", "اسم المخالف", "التاريخ", "ملاحظات"])
             st.download_button("⬇️ تحميل قالب المحاضر فارغ", data=df_template.to_csv(index=False).encode('utf-8-sig'), file_name="قالب_سجل_المحاضر.csv", mime="text/csv", use_container_width=True)
         with col_up:
-            # دعم صيغة xlsx هنا أيضاً
             uploaded_file = st.file_uploader("📤 ارفع قالب المحاضر بعد ملئه", type=['csv', 'xlsx'])
             if uploaded_file is not None:
                 if st.button("🚀 سحب المحاضر للقاعدة", type="primary", use_container_width=True):
